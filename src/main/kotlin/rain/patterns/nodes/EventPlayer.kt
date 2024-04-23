@@ -42,6 +42,7 @@ open class EventPlayer(
         // TODO: implementation here assumes gating always triggers machine... is that what we want?
         machine?.let { m -> tlEvent.tree.getProperty<Gate?>("gate")?.startGate?.let { g -> gateMachine(m, g) } }
         addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
+        println(tlEvent)
 
         val threads: MutableList<Job> = mutableListOf()
 

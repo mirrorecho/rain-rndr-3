@@ -4,23 +4,36 @@ import org.openrndr.Program
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
 import rain.language.*
+import rain.patterns.relationships.TRIGGERS
 import rain.utils.*
 import kotlin.math.absoluteValue
 
-class AnimationValue(
-    var value: Double
-):Animatable()
-
-open class Value(
+abstract class ValueController(
     key:String = autoKey(),
-    ): RndrMachine(key) {
-    companion object : NodeLabel<Value>(Value::class, RndrMachine, { k -> Value(k) })
-    override val label: NodeLabel<out Value> = Value
+): RndrMachine(key) {
+    abstract var controlValue: Double? // would it be simpler to not allow nulls here?
+
+    val targetValue = cachedTarget(TRIGGERS, Value)
+
+    override fun render(program: Program) {
+        controlValue?.let { targetValue.target?.value = it }
+    }
+}
+
+open class AnimateValue(
+    key:String = autoKey(),
+    ): ValueController(key) {
+    companion object : NodeLabel<AnimateValue>(AnimateValue::class, RndrMachine, { k -> AnimateValue(k) })
+    override val label: NodeLabel<out AnimateValue> = AnimateValue
+
+    class AnimationValue(
+        var value: Double
+    ) : Animatable()
 
     var animationValue = AnimationValue(0.0)
 
-    var value get() = animationValue.value
-        set(v) {animationValue.value=v}
+    override var controlValue:Double? get() = animationValue.value
+        set(v) { v?.let { animationValue.value = it } }
 
     override fun trigger(properties: Map<String, Any?>) {
 
@@ -46,7 +59,7 @@ open class Value(
 //                println("animateDur: ${event.animateDur}")
 //                println("easing: ${event.easing}")
 //                println("initValue: ${event.initValue}")
-                initValue?.let { value = it }
+                initValue?.let { controlValue = it }
 
                 animationValue.apply {
                     if (animateDurMs >= 0) {
@@ -60,55 +73,32 @@ open class Value(
                         ::value.complete()
                     }
                 }
-            } else value = v
+            } else controlValue = v
         }
     }
 
     override fun render(program: Program) {
         animationValue.updateAnimation()
+        super.render(program)
     }
-
-    // TODO: bring this back!!!
-//    // TODO: OK that this isn't an override (due to more specific event type?)
-//    fun trigger(event: ValueEvent) {
-//        super.trigger(event)
-//
-//        value?.let {v ->
-//            if (event.isAnimation) {
-//                println("ANIM event ${event.key}: ---------------------- ")
-//                println("value: ${event.value}")
-//                println("animateDur: ${event.animateDur}")
-//                println("easing: ${event.easing}")
-//                println("initValue: ${event.initValue}")
-//                event.initValue?.let { value = it }
-//
-//                animationValue.apply {
-//                    if (event.animateDurMs >= 0) {
-//                        ::value.animate(v, event.animateDurMs, event.easingTyped)
-//                        ::value.complete()
-//                    } else {
-//                        // TODO, a better way to keep current value for the duration instead of "animating" it?
-//                        ::value.animate(value, event.durMs + event.animateDurMs)
-//                        ::value.complete()
-//                        ::value.animate(v, event.animateDurMs.absoluteValue, event.easingTyped)
-//                        ::value.complete()
-//                    }
-//                }
-//            } else {
-//                value = v
-//                println("STATIC VALUE ${event.key}: ${event.value}")
-//            }
-//        }
-//
-//
-//    }
 
 }
 
+open class Value(
+    key:String = autoKey(),
+    ): RndrMachine(key) {
+    companion object : NodeLabel<Value>(Value::class, RndrMachine, { k -> Value(k) })
+    override val label: NodeLabel<out Value> = Value
 
+    var value:Double = 0.0 // TODO maybe: use by this.properties?
 
-//fun createValues(single:Boolean=true, vararg keys: String) {
-//    keys.forEach { k ->
-//        createRndrMachine(k, single) { Value(it) }
-//    }
-//}
+    override fun trigger(properties: Map<String, Any?>) {
+        properties["value"]?.let{ value = it as Double }
+    }
+
+    override fun render(program: Program) {
+        // DO NOTHING // TODO avoid this?
+    }
+
+}
+

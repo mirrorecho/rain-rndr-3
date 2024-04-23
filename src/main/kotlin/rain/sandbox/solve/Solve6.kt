@@ -30,8 +30,12 @@ fun main() {
     val e = Event.create {
         simultaneous = true
         extend(
-            Event.create("CIRCLE-ANIM-1", mapOf("simultaneous" to true, "machine" to Circle, "gate" to Gate.ON_OFF,)) {
-                relate(TRIGGERS, Circle.create { autoTarget() })
+            Event.create("CIRCLE-ANIM-1", mapOf("machine" to Circle, "gate" to Gate.ON_OFF,)) {
+                relate(TRIGGERS, Circle.create {
+                    autoTarget();
+//                    val pX = this[POSITION(), X()](Value).first()
+//                    val pXController = AnimateValue.create {  relate(TRIGGERS, pX) }
+                })
                 extend(
                     Event.create(properties = mapOf("gate" to Gate.ON_OFF, "machinePath" to listOf(POSITION, X), "machinePathType" to Value, "value" to 0.2) ) {
                         stream("dur", 2.0, 2.0)
