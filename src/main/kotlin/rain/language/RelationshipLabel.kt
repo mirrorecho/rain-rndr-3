@@ -8,7 +8,7 @@ import rain.interfaces.SelectDirection
 class RelationshipLabel(
     override val labelName:String,
 ): RelationshipSelectable, RelationshipLabelInterface<Relationship> {
-    override val selectMe = SelectRelationships(labelName=this.labelName)
+    override val selectMe = SelectRelationships(labelName=labelName)
     override val allNames: List<String> = listOf(labelName)
 
     override var context: ContextInterface = LocalContext

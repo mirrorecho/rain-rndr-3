@@ -1,5 +1,6 @@
 package rain.rndr.nodes
 
+import org.openrndr.Program
 import rain.utils.*
 import rain.language.*
 import rain.machines.nodes.Machine
@@ -40,12 +41,11 @@ abstract class RndrMachine(
     // parentMachine?
 
     override fun trigger(properties: Map<String, Any?>) {
-        // TODO: implement gating and such
+        // TODO: implement gating and such here?
 //        if (event.gate==true) {
 //
 //        }
     }
-
 
     open var single: Boolean by this.properties
 

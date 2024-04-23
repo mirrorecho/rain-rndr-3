@@ -17,7 +17,11 @@ open class NodeLabel<T:Node>(
 
     override val labelName:String = getName(myClass)
 
+    // TODO: needed?
+//    override val ancestorLabels: List<NodeLabel<*>> = parentLabel?.let { listOf(it) + it.ancestorLabels }.orEmpty()
+
     override val allNames: List<String> = listOf(getName(myClass)) + parentLabel?.allNames.orEmpty()
+
     override val selectMe:SelectNodes = SelectNodes(labelName=getName(myClass))
 
     override var context: ContextInterface = LocalContext // TODO: ok to just default to LocalContext here?

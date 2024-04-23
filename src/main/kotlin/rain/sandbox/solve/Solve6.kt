@@ -1,6 +1,7 @@
 package rain.sandbox.solve
 
 import rain.graph.Graph
+import rain.interfaces.Gate
 import rain.interfaces.SelectDirection
 import rain.language.*
 import rain.machines.nodes.Printer
@@ -11,23 +12,53 @@ import rain.rndr.nodes.*
 import rain.rndr.relationships.*
 
 
-
 fun main() {
 
-//    Event.create("CIRCLE-ANIM-1", mapOf("machine" to Circle.label)) {
-    val e = Event.create("CIRCLE-ANIM-1") {
-        relate(TRIGGERS, Printer.create {  })
-        stream("gate", true)
-
-        extend(
-            Event.create(properties = mapOf("simultaneous" to false)) {
-                stream("dur", 1.0, 2.0, 0.4, 4.0)
-                stream("value", 22.0, 29.0, 4.0, 99.0)
-            }
-        )
-        extend( Event.create (properties = mapOf("gate" to false)))
-
+    val rChange = Event.create(properties = mapOf("gate" to Gate.ON_OFF, "machinePath" to listOf(RADIUS), "machinePathType" to Value ) ) {
+        stream("dur", 0.2, 2.0, 0.4, 4.0)
+        stream("value", 90.0, 200.0, 4.0, 99.0)
+        stream("initValue", 490.0)
+        stream("animateDur", 0.0, 0.0, 0.0, -1.0)
     }
+    val sVA = Event.create {extend(
+        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, S), "machinePathType" to Value, "value" to 0.8) ),
+        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, V), "machinePathType" to Value, "value" to 0.8) ),
+        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, A), "machinePathType" to Value, "value" to 0.8) ),
+        )}
+
+
+    val e = Event.create {
+        simultaneous = true
+        extend(
+            Event.create("CIRCLE-ANIM-1", mapOf("simultaneous" to true, "machine" to Circle, "gate" to Gate.ON_OFF,)) {
+                relate(TRIGGERS, Circle.create { autoTarget() })
+                extend(
+                    Event.create(properties = mapOf("gate" to Gate.ON_OFF, "machinePath" to listOf(POSITION, X), "machinePathType" to Value, "value" to 0.2) ) {
+                        stream("dur", 2.0, 2.0)
+                        stream("value", 0.9, 0.6)
+                        stream("animateDur", 0.0, 0.0)
+                    },
+                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, Y), "machinePathType" to Value, "value" to 0.2) ),
+                    Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 290.0) ),
+                    sVA,
+                    rChange
+                )
+            },
+            Event.create("CIRCLE-ANIM-2", mapOf("simultaneous" to true, "machine" to Circle, "gate" to Gate.ON_OFF,)) {
+                relate(TRIGGERS, Circle.create { autoTarget() })
+                extend(
+                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, X), "machinePathType" to Value, "value" to 0.8) ),
+                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, Y), "machinePathType" to Value, "value" to 0.8) ),
+                    Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 90.0) ),
+                    sVA,
+                    rChange
+                )
+            },
+        )
+    }
+
+
+
 
     e.play()
 

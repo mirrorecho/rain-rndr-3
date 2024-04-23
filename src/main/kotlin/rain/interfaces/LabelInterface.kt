@@ -4,14 +4,16 @@ import rain.utils.autoKey
 
 interface LabelInterface<T:LanguageItem> {
     val labelName:String
-    val allNames: List<String>
     val isRoot: Boolean
     val isRelationship:Boolean
     var context: ContextInterface
-
+    val allNames: List<String>
 }
 
 interface NodeLabelInterface<T:LanguageNode>: LabelInterface<T> {
+    // TODO: needed?
+    //    val ancestorLabels: List<NodeLabelInterface<*>>
+
     override val isRelationship: Boolean get() = false
 
     val factory: (String)->T

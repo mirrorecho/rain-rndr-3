@@ -4,6 +4,7 @@ import rain.language.*
 import rain.machines.nodes.Machine
 import rain.patterns.relationships.TRIGGERS
 import rain.rndr.nodes.RndrMachine
+import rain.rndr.nodes.Value
 import rain.utils.autoKey
 
 class Event(
@@ -14,13 +15,15 @@ class Event(
 
     override val lineage: TreeLineage<Event> get() = TreeLineage(this, label)
 
-    override val lineageProperties: List<String> = listOf("machinePath", "dur", "value")
+    // TODO: needed?
+//    override val lineageProperties: List<String> = listOf("machinePath", "dur", "value")
 
-    val isTrigger:Boolean by this.properties.apply { putIfAbsent("isTrigger", false) }
+    val isTrigger:Boolean by this.properties.apply { putIfAbsent("isTrigger", true) }
 
-    var simultaneous: Boolean by this.properties.apply { putIfAbsent("simultaneous", true) }
+    var simultaneous: Boolean by this.properties.apply { putIfAbsent("simultaneous", false) }
 
-    val triggers = cachedTarget(TRIGGERS, Machine)
+//    var machine:NodeLabel<out RndrMachine>? by this.properties
+
 
     fun play() {
         EventPlayer(TreeLineage(this, Event)).play()
@@ -69,15 +72,19 @@ class Event(
 // because it's used so often AND cascade doesn't make sense
 val TreeLineage<Event>.simultaneous get() = tree.simultaneous
 
-val TreeLineage<Event>.triggersMachine get() = this.tree.triggers.target ?: parent?.tree?.triggers?.target
+// TODO: figure out if there is some way to cache this without needing to keep querying
+val TreeLineage<Event>.triggersMachine: Machine? get() = getAs<NodeLabel<out Machine>?>("machine") ?.let { tree[TRIGGERS()](it).firstOrNull() } ?: parent?.triggersMachine
 
 val TreeLineage<Event>.triggersPathMachine: Machine? get() = this.triggersMachine?.let {machine->
-    this.getAs<List<RelationshipLabel>?>("machinePath")?.let { rels->
-        return machine.get( *(rels.map { it() }.toTypedArray()) )(Machine).first()
+    getAs<List<RelationshipLabel>?>("machinePath")?.let { rel->
+        getAs<NodeLabel<out Machine>?>("machinePathType")?.let {mpt ->
+            return machine.get( *(rel.map { it() }.toTypedArray()) )(mpt).first()
+        }
     }
     return machine
 }
 
-fun TreeLineage<Event>.trigger() {
-    if (this.tree.isTrigger) this.triggersPathMachine?.trigger(properties)
-}
+fun TreeLineage<Event>.trigger(): Machine? =
+    if (this.tree.isTrigger) this.triggersPathMachine?.also { machine->
+        machine.trigger(properties)
+    } else null

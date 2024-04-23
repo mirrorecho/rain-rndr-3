@@ -1,14 +1,20 @@
 package rain.patterns.nodes
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.launch
+import rain.interfaces.Gate
 import rain.language.Node
 import rain.language.NodeLabel
+import rain.machines.nodes.*
 import rain.patterns.relationships.*
+import rain.rndr.nodes.Circle
+import rain.rndr.nodes.Value
+import rain.rndr.relationships.RADIUS
 import rain.utils.autoKey
+import javax.management.ObjectName
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -17,31 +23,51 @@ import kotlin.time.toDuration
 open class EventPlayer(
     val treeLineageEvent: TreeLineage<Event>
 ) {
+    private val runningMachines:MutableMap<String, Machine> = mutableMapOf()
 
-    private suspend fun playEvent(tlEvent: TreeLineage<Event>, program: Program,  addDelay: Double?=null) {
-        tlEvent.trigger()
-        addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
-        if (tlEvent.parent?.simultaneous==true && !tlEvent.simultaneous)
-            program.launch { playEventChildren(tlEvent, program) }
-        else
-            playEventChildren(tlEvent, program)
+    fun gateMachine(machine: Machine, gate:Boolean) {
+//        println("gating $gate - $machine")
+        if (gate) {
+            runningMachines[machine.key] = machine
+            machine.isRunning = true
+        }
+        else {
+            runningMachines.remove(machine.key)
+            machine.isRunning = false
+        }
     }
 
+    private suspend fun playEvent(tlEvent: TreeLineage<Event>, program: Program,  addDelay: Double?=null) {
+        val machine = tlEvent.trigger()
+        // TODO: implementation here assumes gating always triggers machine... is that what we want?
+        machine?.let { m -> tlEvent.tree.getProperty<Gate?>("gate")?.startGate?.let { g -> gateMachine(m, g) } }
+        addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
 
-    private suspend fun playEventChildren(tlEvent: TreeLineage<Event>, program: Program) {
+        val threads: MutableList<Job> = mutableListOf()
+
         tlEvent.children.forEach {
-            if (tlEvent.tree.simultaneous)
-                playEvent(it, program)
+            if (tlEvent.simultaneous)
+                threads.add(program.launch { playEvent(it, program, it.getAs("dur")) })
             else
                 playEvent(it, program, it.getAs("dur"))
         }
+        threads.joinAll()
+
+        machine?.let { m -> tlEvent.tree.getProperty<Gate?>("gate")?.endGate?.let { g -> gateMachine(m, g) } }
     }
 
 
     fun play() = application {
+
         treeLineageEvent.let { tlEvent ->
             program {
-                playEvent(tlEvent, this)
+                launch { playEvent(tlEvent, this@program) }
+
+                extend {
+
+                    // TODO: consider ... machines are executed in no particular order, is that OK?
+                    runningMachines.forEach { it.value.render(this@program) }
+                }
             }
         }
     }

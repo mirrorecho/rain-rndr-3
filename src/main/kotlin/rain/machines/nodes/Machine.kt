@@ -1,11 +1,13 @@
 package rain.machines.nodes
 
+import org.openrndr.Program
 import rain.language.*
 import rain.patterns.nodes.Event
 import rain.patterns.nodes.TreeLineage
 
 
-// TODO maybe: inherit from Pattern?
+// TODO maybe: inherit from a general Pattern?
+// TODO maybe: is this interface even worth it?
 interface MachinePattern {
 
 //    fun reset() { throw NotImplementedError() }
@@ -15,13 +17,20 @@ interface MachinePattern {
     // TODO maybe pass a simple properties map instead of TreeLineage<Event>?
     fun trigger(properties: Map<String, Any?>)
 
+    fun render(program: Program) {
+        throw(NotImplementedError("render not implemented"))
+    }
+
 }
 
-abstract class Machine(
+open class Machine(
     key:String = rain.utils.autoKey(),
 ): MachinePattern, Node(key) {
-    companion object : NodeLabel<Machine>(Machine::class, Node, { k -> Node(k) as Machine })
+    companion object : NodeLabel<Machine>(Machine::class, Node, { k -> Machine(k)})
     override val label: NodeLabel<out Machine> = Machine
+
+    // TODO: is this even used?
+    var isRunning = false
 
     override fun trigger(properties: Map<String, Any?>) {
         // TODO: implement?
@@ -34,7 +43,7 @@ abstract class Machine(
 open class Printer(
     key:String = rain.utils.autoKey(),
 ): MachinePattern, Machine(key) {
-    companion object : NodeLabel<Printer>(Printer::class, Machine, { k -> Printer(k) })
+    companion object : NodeLabel<Printer>(Printer::class, Node, { k -> Printer(k) })
     override val label: NodeLabel<out Printer> = Printer
 
     override fun trigger(properties: Map<String, Any?>) {

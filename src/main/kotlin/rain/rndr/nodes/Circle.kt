@@ -27,7 +27,7 @@ open class Circle(
 //        super.trigger(event)
 //    }
 
-    fun render(program: Program) {
+    override fun render(program: Program) {
 //        println("circle with x position " + position.x.value.toString())
         program.apply {
             drawer.fill = fillColor.target?.colorRGBa()
