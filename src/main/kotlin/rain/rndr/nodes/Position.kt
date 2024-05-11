@@ -7,6 +7,7 @@ import rain.utils.*
 
 import org.openrndr.Program
 import org.openrndr.math.Vector2
+import rain.patterns.nodes.Trigger
 
 
 open class Position(
@@ -25,3 +26,8 @@ open class Position(
         (y.target?.value ?: 0.5)  * program.height,
     )
 }
+
+var Trigger<Position>.x: Double get() = properties["x"] as Double
+    set(value) {properties["x"]=value}
+var Trigger<Position>.y: Double get() = properties["y"] as Double
+    set(value) {properties["y"]=value}

@@ -4,9 +4,10 @@ import rain.interfaces.*
 import rain.utils.autoKey
 import kotlin.reflect.KProperty0
 
-open class Node(
+// TODO: consider making Node abstract?
+open class Node protected constructor(
     key:String = autoKey(),
-): LanguageNode, NodeSelectable, Item(key) {
+): LanguageNode, Item(key) {
     companion object : NodeLabel<Node>(Node::class, null, {k->Node(k) })
     override val label:NodeLabel<out Node> = Node
 
@@ -16,7 +17,13 @@ open class Node(
     override val selectMe get() = SelectNodes(keys=listOf(this.key))
     override val labelName get() = label.labelName
 
+    // TODO maybe: consider moving this to the manager class?
     protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
+
+//    override fun getPattern(previous: Pattern?): Pattern = SelfPattern(this)
+
+//    override val manager by lazy {  NodeManager(this) }
+    override val manager by lazy {  properties.manageWith(NodeManager(this)) }
 
     fun autoTarget() {
         targetProperties.forEach {
@@ -27,8 +34,8 @@ open class Node(
         }
     }
 
-    fun <T:Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>) =
-        CachedTarget(this, rLabel, nLabel)
+    fun <T:Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>, direction:SelectDirection=SelectDirection.RIGHT) =
+        CachedTarget(this, rLabel, nLabel, direction)
 
     // TODO: maybe implement this...?
 //    fun <T:Node>targetsOrMake(
@@ -43,28 +50,24 @@ open class Node(
     // TODO: maybe implement this...?
 //    fun invoke()
 
-    fun relate(
-        rLabel:RelationshipLabel,
-        targetKey:String,
-        key:String = autoKey()
-    ):Relationship = rLabel.create(this.key, targetKey, key)
 
-    fun relate(
-        rLabel:RelationshipLabel,
-        targetNode:Node,
-        key:String = autoKey()
-    ):Relationship = rLabel.create(this.key, targetNode.key, key)
 
 }
 
 // ===========================================================================================================
 
 // just for fiddling around purposes...
-open class SpecialNode(
+open class SpecialNode protected constructor(
     key:String = autoKey(),
 ): Node(key) {
     companion object : NodeLabel<SpecialNode>(SpecialNode::class, Node, { k -> SpecialNode(k) })
     override val label: NodeLabel<SpecialNode> = SpecialNode
+
+    class SpecialNodeManager : NodeManager {
+        var special: String? by properties
+    }
+
+    override val manager by lazy { SpecialNodeManager(this) }
 
 
 //    companion object : NodeCompanion<SpecialNode>(Node.childLabel { k -> SpecialNode(k) })

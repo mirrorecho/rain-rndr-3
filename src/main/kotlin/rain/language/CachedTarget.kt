@@ -1,12 +1,15 @@
 package rain.language
 
+import rain.interfaces.SelectDirection
+
 // TODO: move somewhere else
 class CachedTarget<T:Node>(
     val sourceNode:Node,
     val rLabel: RelationshipLabel,
     val nLabel: NodeLabel<T>,
+    direction: SelectDirection = SelectDirection.RIGHT
 ) {
-    val rQuery = sourceNode.relates(label=rLabel)
+    val rQuery = sourceNode.relates(label=rLabel, direction)
     val query = rQuery.nodes()
     private var _cachedValue:T? = query(nLabel).firstOrNull()
 

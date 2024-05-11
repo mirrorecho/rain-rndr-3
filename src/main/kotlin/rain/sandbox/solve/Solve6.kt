@@ -4,64 +4,194 @@ import rain.graph.Graph
 import rain.interfaces.Gate
 import rain.interfaces.SelectDirection
 import rain.language.*
+import rain.machines.nodes.Machine
 import rain.machines.nodes.Printer
 
 import rain.patterns.nodes.*
 import rain.patterns.relationships.*
 import rain.rndr.nodes.*
 import rain.rndr.relationships.*
+import rain.utils.autoKey
+import kotlin.reflect.KMutableProperty
+
+fun seq(key:String = autoKey(), machine:NodeLabel<out Machine>?=null, gate:Gate?=null, properties:Map<String,Any?>?=null, vararg children:Tree): Event {
+    return Event.create(key, properties, {
+        gate?.let { this.properties["gate"]=it }
+        this.properties.putIfAbsent("isTrigger", gate!=null )
+        machine?.let { this.properties["machine"]=it }
+    }) { extend(*children) }
+}
+fun seq(machine:NodeLabel<out Machine>?=null, gate:Gate?=null, properties:Map<String,Any?>?=null, vararg children:Tree)  =
+    seq(autoKey(), machine, gate, properties, *children)
+fun seq(gate:Gate?=null, properties:Map<String,Any?>?=null, vararg children:Tree) =
+    seq(null, gate, properties)
+fun seq(properties:Map<String,Any?>?=null, vararg children:Tree) =
+    seq(null, properties, *children)
+fun seq(vararg children:Tree) =
+    seq(null, *children)
+
+fun par(key:String = autoKey(), machine:NodeLabel<out Machine>?=null, gate:Gate?=null, properties:Map<String,Any?>?=null, vararg children:Tree): Event {
+    return Event.create(key, properties, {
+        gate?.let { this.properties["gate"]=it }
+        this.properties["simultaneous"] = true
+        this.properties.putIfAbsent("isTrigger", gate!=null )
+        machine?.let { this.properties["machine"]=it }
+    }) { extend(*children) }
+}
+fun par(machine:NodeLabel<out Machine>?=null, gate:Gate?=null, properties:Map<String,Any?>?=null, vararg children:Tree)  =
+    par(autoKey(), machine, gate, properties, *children)
+fun par(gate:Gate?=null, properties:Map<String,Any?>?=null, vararg children:Tree) =
+    par(null, gate, properties)
+fun par(properties:Map<String,Any?>?=null, vararg children:Tree) =
+    par(null, properties, *children)
+fun par(vararg children:Tree) =
+    par(null, *children)
+
+fun Event.Companion.value(key:String= autoKey(), vararg path:RelationshipLabel, value:Double?=null): Event {
+    return Event()
+}
+fun Event.Companion.value(vararg path:RelationshipLabel, value:Double?=null):Event =
+    Event.value(autoKey(), *path, value=value)
+fun Event.Companion.value(value:Double?=null):Event =
+    Event.value(autoKey(), value=value)
+
+
+
+fun Event.Companion.builder() {
+
+}
+
 
 
 fun main() {
 
-    val rChange = Event.create(properties = mapOf("gate" to Gate.ON_OFF, "machinePath" to listOf(RADIUS), "machinePathType" to Value ) ) {
-        stream("dur", 0.2, 2.0, 0.4, 4.0)
-        stream("value", 90.0, 200.0, 4.0, 99.0)
-        stream("initValue", 490.0)
-        stream("animateDur", 0.0, 0.0, 0.0, -1.0)
+    val e2 = targeting(Event, Circle.TriggerManager(), "YOYO") {}
+
+    val e3 = Event.sends(Circle.receives) {
+        machine = Circle
+        gate = Gate.ON_OFF
+        ::radius.stream(90.0, 200.0)
     }
-    val sVA = Event.create {extend(
-        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, S), "machinePathType" to Value, "value" to 0.8) ),
-        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, V), "machinePathType" to Value, "value" to 0.8) ),
-        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, A), "machinePathType" to Value, "value" to 0.8) ),
-        )}
+
+    val ev = SubEvent.create().apply {
+        Circle.manager3(this.properties).apply {
+        }
+    }
+
+    Event.patternManager<Color>(ev.properties, ev.getPattern()).apply {
+
+    }
+
+    val manager = Event.patternManager<Color>(ev.properties, ev.getPattern())
+    manager.apply {
+        ::dur.stream(0.5, 1.0)
+        h = 1.4
+    }
 
 
-    val e = Event.create {
+    Event.triggering {
+        h = 90.0
+    }
+    val radiusAnimate = Event.triggering<AnimateValue>(RADIUS, TRIGGERS.left) { // TODO: test this left label
+        gate = Gate.ON_OFF
+        ::dur.stream(0.2, 2.0, 0.4, 4.0)
+        ::initValue.stream(490.0)
+        ::value.stream(0.0, 200.0, 4.0, 99.0)
+        ::animateDur.stream(0.0, 0.0, 0.0, -1.0)
+    }
+
+    val colorSva = Event.triggering {
+        s = 0.8
+        v = 0.8
+        a = 0.8
+    }
+
+    Event.triggering<Circle>("CIRCLE-ANIM-1") {
         simultaneous = true
-        extend(
-            Event.create("CIRCLE-ANIM-1", mapOf("machine" to Circle, "gate" to Gate.ON_OFF,)) {
-                relate(TRIGGERS, Circle.create {
-                    autoTarget();
-//                    val pX = this[POSITION(), X()](Value).first()
-//                    val pXController = AnimateValue.create {  relate(TRIGGERS, pX) }
-                })
-                extend(
-                    Event.create(properties = mapOf("gate" to Gate.ON_OFF, "machinePath" to listOf(POSITION, X), "machinePathType" to Value, "value" to 0.2) ) {
-                        stream("dur", 2.0, 2.0)
-                        stream("value", 0.9, 0.6)
-                        stream("animateDur", 0.0, 0.0)
-                    },
-                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, Y), "machinePathType" to Value, "value" to 0.2) ),
-                    Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 290.0) ),
-                    sVA,
-                    rChange
-                )
-            },
-            Event.create("CIRCLE-ANIM-2", mapOf("simultaneous" to true, "machine" to Circle, "gate" to Gate.ON_OFF,)) {
-                relate(TRIGGERS, Circle.create { autoTarget() })
-                extend(
-                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, X), "machinePathType" to Value, "value" to 0.8) ),
-                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, Y), "machinePathType" to Value, "value" to 0.8) ),
-                    Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 90.0) ),
-                    sVA,
-                    rChange
-                )
-            },
+    }.extend(
+        Event.triggering<AnimateValue>(POSITION, X, TRIGGERS.left) {
+            gate = Gate.ON_OFF
+            ::dur.stream(2.0, 2.0)
+            ::value.stream(0.9, 0.6)
+        },
+
+
+        Event.create(properties = mapOf("machinePath" to listOf(POSITION, Y), "machinePathType" to Value, "value" to 0.2) ),
+        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 290.0) ),
+        colorSva,
+        radiusAnimate
+    )
+
+    val e = seq (
+        par("CIRCLE-ANIM-1", Circle, Gate.ON_OFF,)).makeTrigger().apply {
+
+            val pX = this[POSITION(), X()](Value).first()
+            val pXController = AnimateValue.create {  pX.relate(TRIGGERS, this) }
+        }),
         )
-    }
+        extend(
+
+        )
+    },
+    Event.create("CIRCLE-ANIM-2", mapOf("simultaneous" to true, "machine" to Circle, "gate" to Gate.ON_OFF,)) {
+        relate(TRIGGERS, Circle.create { autoTarget() })
+        extend(
+            Event.triggering {
+                x = 0.5
+                y = 0.5
+            },
+            Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 90.0) ),
+            colorSva,
+            radiusAnimate
+        )
+    },
+    )
+
+//    val rChange = Event.create(properties = mapOf("gate" to Gate.ON_OFF, "machinePath" to listOf(RADIUS), "machinePathType" to AnimateValue ) ) {
+//        stream("dur", 0.2, 2.0, 0.4, 4.0)
+//        stream("value", 90.0, 200.0, 4.0, 99.0)
+//        stream("initValue", 490.0)
+//        stream("animateDur", 0.0, 0.0, 0.0, -1.0)
+//    }
+//    val sVA = par(
+//        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, S), "machinePathType" to Value, "value" to 0.8) ),
+//        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, V), "machinePathType" to Value, "value" to 0.8) ),
+//        Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, A), "machinePathType" to Value, "value" to 0.8) ),
+//        )
 
 
+//
+//
+//    val e = seq(
+//            par("CIRCLE-ANIM-1", Circle, Gate.ON_OFF,)) {
+//                relate(TRIGGERS, Circle.create {
+//                    autoTarget();
+//                    val pX = this[POSITION(), X()](Value).first()
+//                    val pXController = AnimateValue.create {  pX.relate(TRIGGERS, this) }
+//                }),
+//                extend(
+//                    Event.create(properties = mapOf("gate" to Gate.ON_OFF, "machinePath" to listOf(POSITION, X, TRIGGERS.left), "machinePathType" to AnimateValue, "value" to 0.2) ) {
+//                        stream("dur", 2.0, 2.0)
+//                        stream("value", 0.9, 0.6)
+//                        stream("animateDur", 0.0, 0.0)
+//                    },
+//                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, Y), "machinePathType" to Value, "value" to 0.2) ),
+//                    Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 290.0) ),
+//                    sVA,
+//                    rChange
+//                )
+//            },
+//            Event.create("CIRCLE-ANIM-2", mapOf("simultaneous" to true, "machine" to Circle, "gate" to Gate.ON_OFF,)) {
+//                relate(TRIGGERS, Circle.create { autoTarget() })
+//                extend(
+//                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, X), "machinePathType" to Value, "value" to 0.8) ),
+//                    Event.create(properties = mapOf("machinePath" to listOf(POSITION, Y), "machinePathType" to Value, "value" to 0.8) ),
+//                    Event.create(properties = mapOf("machinePath" to listOf(FILL_COLOR, H), "machinePathType" to Value, "value" to 90.0) ),
+//                    sVA,
+//                    rChange
+//                )
+//            },
+//    )
 
 
     e.play()

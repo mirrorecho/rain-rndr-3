@@ -10,7 +10,7 @@ open class Context<G:GraphInterface>(
 ): ContextInterface {
 
     // TODO maybe: consider tracking node labels with the context
-//    val nodeLabels:Map<String, NodeLabel<*>> = mapOf()
+    override val nodeLabels:MutableMap<String, NodeLabel<*>> = mutableMapOf()
 //
 //    fun <T:Node>getNodeLabel(name:String):NodeLabel<T> {
 //        return nodeLabels[name] as NodeLabel<T>
@@ -34,6 +34,12 @@ open class Context<G:GraphInterface>(
     override fun <T : LanguageNode>selectNodes(select: SelectInterface, label:NodeLabelInterface<T>): Sequence<T> = sequence {
         graph.selectGraphNodes(select).forEach {
             yield(label.from(it))
+        }
+    }
+
+    override fun selectNodes(select: SelectInterface): Sequence<LanguageNode> = sequence {
+        graph.selectGraphNodes(select).forEach {
+            this@Context.nodeLabels[it.labelName]?.from(it)?.let { n -> yield(n) }
         }
     }
 

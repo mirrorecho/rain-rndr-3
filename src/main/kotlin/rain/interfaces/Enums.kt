@@ -14,7 +14,8 @@ enum class SelectDirection(val shortForm: String) {
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
     ON(true, null),
     OFF(null, false),
-    ON_OFF(true, false);
+    ON_OFF(true, false),
+    NONE(null, null),
 }
 
 // TODO maybe: include an enum for itemType? (NODE vs RELATIONSHIP)

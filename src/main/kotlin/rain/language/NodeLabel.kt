@@ -2,6 +2,7 @@ package rain.language
 
 import rain.graph.GraphNode
 import rain.interfaces.*
+import rain.patterns.nodes.*
 import rain.utils.autoKey
 import kotlin.reflect.KClass
 
@@ -15,7 +16,7 @@ open class NodeLabel<T:Node>(
 
     override val isRoot: Boolean = parentLabel==null
 
-    override val labelName:String = getName(myClass)
+    final override val labelName:String = getName(myClass)
 
     // TODO: needed?
 //    override val ancestorLabels: List<NodeLabel<*>> = parentLabel?.let { listOf(it) + it.ancestorLabels }.orEmpty()
@@ -24,10 +25,22 @@ open class NodeLabel<T:Node>(
 
     override val selectMe:SelectNodes = SelectNodes(labelName=getName(myClass))
 
-    override var context: ContextInterface = LocalContext // TODO: ok to just default to LocalContext here?
+    final override var context: ContextInterface = LocalContext // TODO: ok to just default to LocalContext here?
+
+    override val receives: Manager get() = Manager()
 
     override val registry: MutableMap<String, T> = mutableMapOf()
 
     override fun toString() = labelName
+
+    private fun registerMe() {
+        context.nodeLabels[labelName] = this
+    }
+
+//    open fun <TT:Node>patternManager(properties: MutableMap<String, Any?>, pattern: Pattern) = PatternManager<T, TT>(properties, pattern)
+
+    init {
+        registerMe()
+    }
 
 }

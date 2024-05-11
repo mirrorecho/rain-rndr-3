@@ -1,10 +1,13 @@
 package rain.interfaces
 
 import rain.language.FancyProperty
+import rain.language.NodeLabel
 import rain.language.Relationship
 
 interface ContextInterface {
     val graph: GraphInterface
+
+    val nodeLabels:MutableMap<String, NodeLabel<*>>
 
     // note, with Kotlin generics and class values, no need for initEmptyGraph and such nonsense
     // as in python implementation
@@ -35,6 +38,8 @@ interface ContextInterface {
     fun <T>getFancyProperty(universalName: String): FancyProperty<T>
 
     fun <T: LanguageNode>selectNodes(select: SelectInterface, label: NodeLabelInterface<T>):Sequence<T>
+
+    fun selectNodes(select: SelectInterface): Sequence<LanguageNode>
 
     fun <T: LanguageRelationship>selectRelationships(select: SelectInterface, label: RelationshipLabelInterface<T>):Sequence<T>
 

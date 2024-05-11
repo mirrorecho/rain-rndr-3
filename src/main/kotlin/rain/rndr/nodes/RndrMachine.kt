@@ -15,12 +15,18 @@ import rain.patterns.nodes.Event
 // TODO: reconfigure so Act type param not needed at class level, only at fun level
 // TODO: are RndrMachines Laaves?
 
+// TODO: what makes RndrMachine special vs any other Machine?
+//  - MAYBE this should simply be an interface?
 abstract class RndrMachine(
     key:String = autoKey(),
 ): MachinePattern, Machine(key) { // TODO: is Leaf the best parent class? (Relationships might not be simple tree patterns.)
     companion object : NodeLabel<RndrMachine>(RndrMachine::class, Machine, { k -> Node(k) as RndrMachine })
     override val label: NodeLabel<out RndrMachine> = RndrMachine
 
+
+    fun render(program: Program) {
+        throw(NotImplementedError("render not implemented"))
+    }
 
 //    TODO: implement below if implementing Pattern interface for Machine ...
 

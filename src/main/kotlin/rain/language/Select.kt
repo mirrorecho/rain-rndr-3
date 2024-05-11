@@ -42,6 +42,9 @@ open class SelectNodes(
 
     operator fun <T:Node>invoke(label: NodeLabelInterface<T>):Sequence<T> = context.selectNodes(this, label)
 
+    // TODO: test this!!!
+    operator fun invoke():Sequence<LanguageNode> = context.selectNodes(this)
+
     override fun selectKeys(): Sequence<String> = context.selectNodeKeys(this)
 
     fun indexOfFirst(key:String): Int = selectKeys().indexOfFirst {it==key}
@@ -49,6 +52,8 @@ open class SelectNodes(
     fun contains(key: String): Boolean = this.indexOfFirst(key) > -1
 
     fun <T:Node>first(label:NodeLabelInterface<T>): T? = this(label).firstOrNull()
+
+    val first: LanguageNode? get() = this().firstOrNull()
 
     // TODO: yay, caching! Maybe make use of something like this?
 //    val <T:Node>cachedItems: List<T> by lazy { this().toList() }

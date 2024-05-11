@@ -6,11 +6,14 @@ import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.Program
+import rain.machines.nodes.*
 
 open class Circle(
     key:String = autoKey(),
     ): RndrMachine(key) {
-    companion object : NodeLabel<Circle>(Circle::class, RndrMachine, { k -> Circle(k) })
+    companion object : NodeLabel<Circle>(Circle::class, RndrMachine, { k -> Circle(k) }) {
+        override val receives: ReceivingManger get() = ReceivingManger()
+    }
     override val label: NodeLabel<out Circle> = Circle
 
     var radius = cachedTarget(RADIUS, Value)
@@ -21,11 +24,24 @@ open class Circle(
 //
     override val targetProperties = listOf(::radius, ::strokeWeight, ::strokeColor, ::fillColor, ::position)
 
+    class ReceivingManger : ReceivingManager() {
+        var radius: Double? by properties
+    }
+//    val manageTrigger = TriggerManager(mutableMapOf())
+
+    // TODO: maybe this should ACTUALLY trigger the underlying value machine?
+    fun triggerValue(cTarget: CachedTarget<Value>, value:Double?) {
+        cTarget.target?.apply { value?.let { this.value = it }   }
+    }
+
+
 //    // TODO: implement if needed (or remove)
-//    override fun trigger(event:Event) {
-//        // TODO: implement
-//        super.trigger(event)
-//    }
+    override fun trigger(properties: MutableMap<String, Any?>) {
+        properties.manageWith(receives) {
+            triggerValue(this@Circle.radius, radius)
+        }
+
+    }
 
     override fun render(program: Program) {
 //        println("circle with x position " + position.x.value.toString())

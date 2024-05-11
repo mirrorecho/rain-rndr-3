@@ -1,12 +1,12 @@
 package rain.rndr.nodes
 
-import rain.interfaces.*
 import rain.language.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
+import rain.patterns.nodes.*
 
 open class Color(
     key:String = autoKey(),
@@ -31,3 +31,21 @@ open class Color(
     fun colorRGBa(): ColorRGBa = colorHSVa().toRGBa()
 
 }
+
+
+var Trigger<Color>.h: Double get() = properties["h"] as Double
+    set(value) {properties["h"]=value}
+var Trigger<Color>.s: Double get() = properties["s"] as Double
+    set(value) {properties["s"]=value}
+var Trigger<Color>.v: Double get() = properties["v"] as Double
+    set(value) {properties["v"]=value}
+var Trigger<Color>.a: Double get() = properties["a"] as Double
+    set(value) {properties["a"]=value}
+
+//fun NodeLabel<Color>.triggering(properties: Map<String, Any?>): object: Trigger(properties) {
+//
+//}
+
+//inner class ColorTrigger(val properties: Map<String, Any?>) {
+//
+//}

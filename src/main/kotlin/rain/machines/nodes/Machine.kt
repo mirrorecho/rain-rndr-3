@@ -1,38 +1,41 @@
 package rain.machines.nodes
 
-import org.openrndr.Program
+import rain.interfaces.Gate
+import rain.interfaces.LanguageNode
 import rain.language.*
-import rain.patterns.nodes.Event
-import rain.patterns.nodes.TreeLineage
+import rain.patterns.nodes.*
 
 
-// TODO maybe: inherit from a general Pattern?
-// TODO maybe: is this interface even worth it?
-interface MachinePattern {
 
-//    fun reset() { throw NotImplementedError() }
-
-    // NOTE: trigger is key here... it's what fundamentally makes a machine a machine
-    // ... i.e. a machine is something that's "trigger-able"
-    // TODO maybe pass a simple properties map instead of TreeLineage<Event>?
-    fun trigger(properties: Map<String, Any?>)
-
-    fun render(program: Program) {
-        throw(NotImplementedError("render not implemented"))
-    }
-
-}
 
 open class Machine(
     key:String = rain.utils.autoKey(),
-): MachinePattern, Node(key) {
+): Node(key) {
     companion object : NodeLabel<Machine>(Machine::class, Node, { k -> Machine(k)})
     override val label: NodeLabel<out Machine> = Machine
+
+//    open class MachineManager : Manager() {
+//
+//        init {
+//            setPatternFactory { n, p, d -> MachinePattern(n, p, d) }
+//        }
+//    }
+//    override val manager = MachineManager()
+
+    open class ReceivingManager : Event.EventManager()
+    open val receivingManager by lazy { ReceivingManager() }
+
+
 
     // TODO: is this even used?
     var isRunning = false
 
-    override fun trigger(properties: Map<String, Any?>) {
+
+    override fun bump(vararg fromPatterns: PatternInterface) {
+        fromPatterns.forEach { trigger(it.properties) }
+    }
+
+    open fun trigger(properties: MutableMap<String, Any?>) {
         // TODO: implement?
         println("TRIGGERING $key: $properties - WARNING: no machine trigger defined")
         println("--------------------------------")
@@ -42,14 +45,22 @@ open class Machine(
 
 open class Printer(
     key:String = rain.utils.autoKey(),
-): MachinePattern, Machine(key) {
+): Machine(key) {
     companion object : NodeLabel<Printer>(Printer::class, Node, { k -> Printer(k) })
+
     override val label: NodeLabel<out Printer> = Printer
 
-    override fun trigger(properties: Map<String, Any?>) {
-        // TODO: implement
-        println("PRINTER $key: $properties")
-        println("--------------------------------")
+    open class ReceivingManager : Machine.ReceivingManager() {
+        var message: String by properties.apply { putIfAbsent("message", "No Message Defined") }
     }
 
+    override val receivingManager by lazy { ReceivingManager() }
+
+    override fun trigger(properties: MutableMap<String, Any?>) {
+        receivingManager.apply {
+            this.properties = properties
+            println("PRINTER $key: $message")
+            println("--------------------------------")
+        }
+    }
 }
