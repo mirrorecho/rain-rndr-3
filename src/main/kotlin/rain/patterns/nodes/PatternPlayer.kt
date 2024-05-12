@@ -1,87 +1,58 @@
 package rain.patterns.nodes
 
 import kotlinx.coroutines.*
+
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.launch
-import rain.interfaces.Gate
-import rain.language.NodeLabel
-import rain.machines.nodes.*
-import rain.patterns.relationships.*
-import rain.rndr.nodes.RndrMachine
+import rain.language.interfaces.*
+import rain.patterns.interfaces.*
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 
 // just for fiddling around purposes...
 open class PatternPlayer(
-    val pattern: PatternInterface
+    val pattern: Pattern
 ) {
-    private val runningMachines: MutableMap<String, RndrMachine> = mutableMapOf()
+    private val runningMachines: MutableMap<String, LanguageNode> = mutableMapOf()
 
-    fun gateMachine(machine: RndrMachine, gate: Boolean) {
+    fun gateMachine(machine: LanguageNode, gate: Boolean) {
 //        println("gating $gate - $machine")
+        machine.gate(gate)
         if (gate) {
             runningMachines[machine.key] = machine
-            machine.isRunning = true
         } else {
             runningMachines.remove(machine.key)
-            machine.isRunning = false
         }
     }
 
-    private suspend fun playPattern(pattern: PatternInterface, program: Program, addDelay: Double? = null) {
-
-        // TODO: WARNING!... targets not implemented for this yet!!!!!!!!!!!
-        val machine = pattern.receiver(pattern.getAs<NodeLabel<out Machine>>("machine"))
-        Machine.TriggerManager()
-        machine.triggerManager.also {tm ->
-            tm.use(pattern.properties)
-            tm.gate.startGate?.let { g -> gateMachine(machine, g) }
-            addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
-
-            val threads: MutableList<Job> = mutableListOf()
-
-            pattern.children.forEach {
-                if (pattern.simultaneous)
-                    threads.add(program.launch { playPattern(it, program, it.getAs("dur")) })
-                else
-                    playPattern(it, program, it.getAs("dur"))
-            }
-            threads.joinAll()
-
-            machine?.let { m -> pattern.tree.getProperty<Gate?>("gate")?.endGate?.let { g -> gateMachine(m, g) } }
-
-        }
-
-
-        pattern.receiver(pattern.getAs<NodeLabel<out Machine>>("machine"))?.let { machine ->
-
-        }
-
-
-
-
-        pattern.node.manager
-
-        // TODO: implementation here assumes isTrigger=true is necessary in order to gate the machine... is that what we want?
-        machine?.let { m -> pattern.node.propert<Gate?>("gate")?.startGate?.let { g -> gateMachine(m, g) } }
-        addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
-//        println(pattern)
-
+    private suspend fun playPattern(pattern: Pattern, program: Program, addDelay: Double? = null) {
+        val eventManager = pattern.properties.manageWith(Event.EventManager())
         val threads: MutableList<Job> = mutableListOf()
+        val machines = pattern[PatternDimension.BUMPS]
 
-        pattern.children.forEach {
-            if (pattern.simultaneous)
-                threads.add(program.launch { playPattern(it, program, it.getAs("dur")) })
+        pattern.sendTo(PatternDimension.BUMPS) { m->
+            eventManager.gate.startGate?.let { gateMachine(m.node, it) }
+        }
+
+
+        addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
+
+        pattern[PatternDimension.CHILDREN].forEach { child ->
+            val childManager = child.properties.manageWith(Event.EventManager())
+            if (eventManager.simultaneous)
+                threads.add(program.launch { playPattern(child, program, childManager.dur) })
             else
-                playPattern(it, program, it.getAs("dur"))
+                playPattern(child, program, childManager.dur)
         }
         threads.joinAll()
 
-        machine?.let { m -> pattern.tree.getProperty<Gate?>("gate")?.endGate?.let { g -> gateMachine(m, g) } }
-    }
+        pattern.sendTo(PatternDimension.BUMPS) { m->
+            eventManager.gate.endGate?.let { gateMachine(m.node, it) }
+        }
 
+    }
 
     fun play(): PatternPlayer {
         application {

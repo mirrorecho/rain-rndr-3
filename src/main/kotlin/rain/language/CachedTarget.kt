@@ -1,6 +1,6 @@
 package rain.language
 
-import rain.interfaces.SelectDirection
+import rain.language.interfaces.SelectDirection
 
 // TODO: move somewhere else
 class CachedTarget<T:Node>(

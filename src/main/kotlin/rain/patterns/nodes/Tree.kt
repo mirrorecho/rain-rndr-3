@@ -2,37 +2,46 @@ package rain.patterns.nodes
 
 import rain.interfaces.*
 import rain.language.*
-import rain.machines.nodes.Machine
+import rain.language.interfaces.*
+import rain.patterns.interfaces.*
 
 import rain.patterns.relationships.*
 
 
 class TriggeringTree(
     node: LanguageNode,
-    historyPattern: PatternInterface? = null,
-    historyDimension: PatternInterface.Dimension? = null,
-): Pattern(node, historyPattern, historyDimension) {
+    historyPattern: Pattern? = null,
+    historyDimension: PatternDimension
+? = null,
+): BasicPattern(node, historyPattern, historyDimension) {
 
-    private fun getCuedPatterns(qCue: SelectNodes): Sequence<PatternInterface> = sequence {
-        this@TriggeringTree.selectAny(qCue[CUES()], PatternInterface.Dimension.CHILDREN).forEach {
+    private fun getCuedPatterns(qCue: SelectNodes): Sequence<Pattern> = sequence {
+        this@TriggeringTree.selectAny(qCue[CUES()], PatternDimension
+.CHILDREN).forEach {
             yield(it)
             yieldAll(getCuedPatterns(qCue[CUES_NEXT()]))
         }
     }
 
-    override operator fun get(dimension: PatternInterface.Dimension) = when (dimension) {
-        PatternInterface.Dimension.CHILDREN ->
+    override operator fun get(dimension: PatternDimension
+) = when (dimension) {
+        PatternDimension
+.CHILDREN ->
             getCuedPatterns(node[CUES_FIRST()]);
-        PatternInterface.Dimension.BUMPS ->
+        PatternDimension
+.BUMPS ->
             sequence {
-                super.get(PatternInterface.Dimension.HISTORY).forEach { h ->
-                    h.selectFrom(TRIGGERS(), PatternInterface.Dimension.BUMPS).forEach { t ->
+                super.get(PatternDimension
+.HISTORY).forEach { h ->
+                    h.selectFrom(TRIGGERS(), PatternDimension
+.BUMPS).forEach { t ->
                         properties.manageWith(Event.EventManager()).machinePath.let {mp->
                             if (mp.isNullOrEmpty()) yield(t)
                             else yieldAll(
                                 h.selectAny(
                                     t.node.get( *(mp.map { r -> r() }.toTypedArray()) ),
-                                    PatternInterface.Dimension.BUMPS
+                                    PatternDimension
+.BUMPS
                                 )
                             )
                         }
@@ -65,7 +74,7 @@ class TriggeringTree(
             }
         }
 
-        if (this[PatternInterface.Dimension.CHILDREN].none())
+        if (this[PatternDimension.CHILDREN].none())
         // if empty, then create the CuesFirst
         // note... empty check works even after creating the Contains relationships above
         // because the isEmpty logic checks for CUES_FIRST
@@ -88,9 +97,11 @@ class TriggeringTree(
         CUES_LAST.create(node.key, cues.last().key)
     }
 
-    override fun extend(dimension: PatternInterface.Dimension, vararg nodes: LanguageNode) {
+    override fun extend(dimension: PatternDimension
+, vararg nodes: LanguageNode) {
         when (dimension) {
-            PatternInterface.Dimension.CHILDREN -> extendChildren(*nodes)
+            PatternDimension
+.CHILDREN -> extendChildren(*nodes)
             else -> super.extend(dimension, *nodes)
         }
     }

@@ -1,7 +1,7 @@
 package rain.language
 
-import rain.interfaces.LanguageRelationship
-import rain.interfaces.RelationshipSelectable
+import rain.language.interfaces.LanguageRelationship
+import rain.language.interfaces.RelationshipSelectable
 import rain.utils.autoKey
 
 open class Relationship(
@@ -19,8 +19,8 @@ open class Relationship(
 
     override fun toString():String = "(${source.key} $labelName ${target.key} | $key) $properties"
 
-    override val source: Node by lazy { Node(sourceKey) }
-    override val target: Node by lazy { Node(targetKey) }
+    override val source: Node by lazy { Node.get(sourceKey) }
+    override val target: Node by lazy { Node.get(targetKey) }
 
 }
 

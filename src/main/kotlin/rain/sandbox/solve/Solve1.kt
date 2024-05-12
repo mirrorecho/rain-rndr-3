@@ -1,4 +1,4 @@
-//package rain.sandbox.solve
+package rain.sandbox.solve
 //
 //import rain.language.Palette
 //import rain.patterns.nodes.Cell

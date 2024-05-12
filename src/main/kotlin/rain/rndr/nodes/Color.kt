@@ -10,8 +10,8 @@ import rain.patterns.nodes.*
 
 open class Color(
     key:String = autoKey(),
-): RndrMachine(key) {
-    companion object : NodeLabel<Color>(Color::class, RndrMachine, { k -> Color(k) })
+): Machine(key) {
+    companion object : NodeLabel<Color>(Color::class, Machine, { k -> Color(k) })
     override val label: NodeLabel<out Color> = Color
 
     val h = cachedTarget(H, Value)
@@ -33,19 +33,3 @@ open class Color(
 }
 
 
-var Trigger<Color>.h: Double get() = properties["h"] as Double
-    set(value) {properties["h"]=value}
-var Trigger<Color>.s: Double get() = properties["s"] as Double
-    set(value) {properties["s"]=value}
-var Trigger<Color>.v: Double get() = properties["v"] as Double
-    set(value) {properties["v"]=value}
-var Trigger<Color>.a: Double get() = properties["a"] as Double
-    set(value) {properties["a"]=value}
-
-//fun NodeLabel<Color>.triggering(properties: Map<String, Any?>): object: Trigger(properties) {
-//
-//}
-
-//inner class ColorTrigger(val properties: Map<String, Any?>) {
-//
-//}

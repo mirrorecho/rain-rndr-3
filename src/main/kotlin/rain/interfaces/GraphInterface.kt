@@ -1,6 +1,6 @@
 package rain.interfaces
 
-import rain.graph.GraphNode
+import rain.language.interfaces.SelectInterface
 
 
 interface GraphInterface {

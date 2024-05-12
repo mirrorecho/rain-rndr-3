@@ -7,13 +7,13 @@ import rain.utils.*
 
 import org.openrndr.Program
 import org.openrndr.math.Vector2
-import rain.patterns.nodes.Trigger
+import rain.patterns.nodes.Machine
 
 
 open class Position(
     key:String = autoKey(),
-): RndrMachine(key) {
-    companion object : NodeLabel<Position>(Position::class, RndrMachine, { k -> Position(k) })
+): Machine(key) {
+    companion object : NodeLabel<Position>(Position::class, Machine, { k -> Position(k) })
     override val label: NodeLabel<out Position> = Position
 
     val x = cachedTarget(X, Value)
@@ -27,7 +27,3 @@ open class Position(
     )
 }
 
-var Trigger<Position>.x: Double get() = properties["x"] as Double
-    set(value) {properties["x"]=value}
-var Trigger<Position>.y: Double get() = properties["y"] as Double
-    set(value) {properties["y"]=value}

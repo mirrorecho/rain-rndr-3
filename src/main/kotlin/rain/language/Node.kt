@@ -1,6 +1,9 @@
 package rain.language
 
 import rain.interfaces.*
+import rain.language.interfaces.LanguageNode
+import rain.language.interfaces.SelectDirection
+import rain.language.interfaces.manageWith
 import rain.utils.autoKey
 import kotlin.reflect.KProperty0
 
@@ -23,7 +26,7 @@ open class Node protected constructor(
 //    override fun getPattern(previous: Pattern?): Pattern = SelfPattern(this)
 
 //    override val manager by lazy {  NodeManager(this) }
-    override val manager by lazy {  properties.manageWith(NodeManager(this)) }
+    override val manager by lazy { Manager().apply { use(this@Node) } }
 
     fun autoTarget() {
         targetProperties.forEach {
@@ -34,7 +37,7 @@ open class Node protected constructor(
         }
     }
 
-    fun <T:Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>, direction:SelectDirection=SelectDirection.RIGHT) =
+    fun <T:Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>, direction: SelectDirection = SelectDirection.RIGHT) =
         CachedTarget(this, rLabel, nLabel, direction)
 
     // TODO: maybe implement this...?
@@ -63,11 +66,10 @@ open class SpecialNode protected constructor(
     companion object : NodeLabel<SpecialNode>(SpecialNode::class, Node, { k -> SpecialNode(k) })
     override val label: NodeLabel<SpecialNode> = SpecialNode
 
-    class SpecialNodeManager : NodeManager {
+    class SpecialNodeManager : Manager() {
         var special: String? by properties
     }
-
-    override val manager by lazy { SpecialNodeManager(this) }
+    override val manager by lazy { SpecialNodeManager().apply { use(this@SpecialNode) } }
 
 
 //    companion object : NodeCompanion<SpecialNode>(Node.childLabel { k -> SpecialNode(k) })

@@ -1,6 +1,8 @@
 package rain.language
 
-import rain.interfaces.*
+import rain.language.interfaces.*
+import rain.language.interfaces.Context
+
 fun <T:Node>Sequence<T>.select():SelectNodes =
     SelectNodes(keys = this.toList().map { it.key } )
 
@@ -24,8 +26,8 @@ open class SelectNodes(
     override val properties: Map<String, Any?>? = null,
     override val labelName: String? = null,
     override var selectFrom: SelectInterface? = null,
-    override var context: ContextInterface = LocalContext // TODO maybe: explicitly pass context along when selecting?
-    ):SelectInterface, NodeSelectable {
+    override var context: Context = LocalContext // TODO maybe: explicitly pass context along when selecting?
+    ): SelectInterface, NodeSelectable {
 
     override val selectMe get() = this
 
@@ -51,7 +53,7 @@ open class SelectNodes(
 
     fun contains(key: String): Boolean = this.indexOfFirst(key) > -1
 
-    fun <T:Node>first(label:NodeLabelInterface<T>): T? = this(label).firstOrNull()
+    fun <T:Node>first(label: NodeLabelInterface<T>): T? = this(label).firstOrNull()
 
     val first: LanguageNode? get() = this().firstOrNull()
 
@@ -78,8 +80,8 @@ open class SelectRelationships(
     override val labelName: String? = null,
     override val direction: SelectDirection? = null,
     override var selectFrom: SelectInterface? = null,
-    override var context: ContextInterface = LocalContext // TODO maybe: explicitly pass context along when selecting?
-):SelectInterface, RelationshipSelectable {
+    override var context: Context = LocalContext // TODO maybe: explicitly pass context along when selecting?
+): SelectInterface, RelationshipSelectable {
 
     override val selectMe get() = this
 

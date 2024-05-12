@@ -2,12 +2,13 @@ package rain.language
 
 import rain.graph.Graph
 import rain.interfaces.*
-import kotlin.reflect.KType
-import kotlin.reflect.typeOf
+import rain.language.interfaces.*
+import rain.language.interfaces.Context
 
-open class Context<G:GraphInterface>(
+// TODO: seems like most of this logic could move to the interface
+open class BaseContext<G:GraphInterface>(
     override val graph: G
-): ContextInterface {
+): Context {
 
     // TODO maybe: consider tracking node labels with the context
     override val nodeLabels:MutableMap<String, NodeLabel<*>> = mutableMapOf()
@@ -31,7 +32,7 @@ open class Context<G:GraphInterface>(
         return fancyProperties[universalName] as FancyProperty<T>
     }
 
-    override fun <T : LanguageNode>selectNodes(select: SelectInterface, label:NodeLabelInterface<T>): Sequence<T> = sequence {
+    override fun <T : LanguageNode>selectNodes(select: SelectInterface, label: NodeLabelInterface<T>): Sequence<T> = sequence {
         graph.selectGraphNodes(select).forEach {
             yield(label.from(it))
         }
@@ -39,11 +40,11 @@ open class Context<G:GraphInterface>(
 
     override fun selectNodes(select: SelectInterface): Sequence<LanguageNode> = sequence {
         graph.selectGraphNodes(select).forEach {
-            this@Context.nodeLabels[it.labelName]?.from(it)?.let { n -> yield(n) }
+            this@BaseContext.nodeLabels[it.labelName]?.from(it)?.let { n -> yield(n) }
         }
     }
 
-    override fun <T : LanguageRelationship>selectRelationships(select: SelectInterface, label:RelationshipLabelInterface<T>): Sequence<T> = sequence {
+    override fun <T : LanguageRelationship>selectRelationships(select: SelectInterface, label: RelationshipLabelInterface<T>): Sequence<T> = sequence {
         graph.selectGraphRelationships(select).forEach {
             yield(label.from(it))
         }
@@ -64,4 +65,4 @@ open class Context<G:GraphInterface>(
 
 }
 
-object LocalContext:Context<GraphInterface>(graph = Graph())
+object LocalContext:BaseContext<GraphInterface>(graph = Graph())

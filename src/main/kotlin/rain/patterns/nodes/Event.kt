@@ -1,11 +1,14 @@
 package rain.patterns.nodes
 
-import rain.interfaces.Gate
 import rain.language.*
-import rain.machines.nodes.Machine
-import rain.rndr.nodes.Color
 import rain.utils.autoKey
 
+enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
+    ON(true, null),
+    OFF(null, false),
+    ON_OFF(true, false),
+    NONE(null, null),
+}
 
 // TODO: make this an interface!
 open class Event protected constructor(
@@ -22,7 +25,7 @@ open class Event protected constructor(
         var simultaneous: Boolean by properties.apply { putIfAbsent("simultaneous", false) }
 
         init {
-            setPatternFactory { n, p, d -> TriggeringTree(n, p, d) }
+            updatePatternFactory { n, p, d -> TriggeringTree(n, p, d) }
         }
     }
     override val manager = EventManager()

@@ -1,9 +1,9 @@
 package rain.language
 
-import rain.interfaces.ContextInterface
-import rain.interfaces.RelationshipLabelInterface
-import rain.interfaces.RelationshipSelectable
-import rain.interfaces.SelectDirection
+import rain.language.interfaces.Context
+import rain.language.interfaces.RelationshipLabelInterface
+import rain.language.interfaces.RelationshipSelectable
+import rain.language.interfaces.SelectDirection
 
 class RelationshipLabel(
     override val labelName:String,
@@ -14,7 +14,7 @@ class RelationshipLabel(
     override val selectMe = SelectRelationships(labelName=labelName, direction = direction)
     override val allNames: List<String> = listOf(labelName)
 
-    override var context: ContextInterface = LocalContext
+    override var context: Context = LocalContext
 
     override fun toString() = labelName
 

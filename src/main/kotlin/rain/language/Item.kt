@@ -1,6 +1,6 @@
 package rain.language
 
-import rain.interfaces.*
+import rain.language.interfaces.LanguageItem
 
 
 // ===========================================================================================================

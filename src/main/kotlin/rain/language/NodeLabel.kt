@@ -1,9 +1,8 @@
 package rain.language
 
-import rain.graph.GraphNode
-import rain.interfaces.*
-import rain.patterns.nodes.*
-import rain.utils.autoKey
+import rain.language.interfaces.Context
+import rain.language.interfaces.NodeLabelInterface
+import rain.language.interfaces.NodeSelectable
 import kotlin.reflect.KClass
 
 open class NodeLabel<T:Node>(
@@ -25,7 +24,7 @@ open class NodeLabel<T:Node>(
 
     override val selectMe:SelectNodes = SelectNodes(labelName=getName(myClass))
 
-    final override var context: ContextInterface = LocalContext // TODO: ok to just default to LocalContext here?
+    final override var context: Context = LocalContext // TODO: ok to just default to LocalContext here?
 
     override val receives: Manager get() = Manager()
 

@@ -2,16 +2,20 @@ package rain.rndr.nodes
 
 import rain.interfaces.*
 import rain.language.*
+import rain.language.interfaces.*
+import rain.patterns.interfaces.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
+import rain.patterns.nodes.Machine
+
 import org.openrndr.Program
-import rain.machines.nodes.*
+
 
 open class Circle(
     key:String = autoKey(),
-    ): RndrMachine(key) {
-    companion object : NodeLabel<Circle>(Circle::class, RndrMachine, { k -> Circle(k) }) {
+    ): Machine(key) {
+    companion object : NodeLabel<Circle>(Circle::class, Machine, { k -> Circle(k) }) {
         override val receives: ReceivingManger get() = ReceivingManger()
     }
     override val label: NodeLabel<out Circle> = Circle

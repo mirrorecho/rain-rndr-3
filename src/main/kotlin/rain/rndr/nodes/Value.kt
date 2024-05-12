@@ -3,16 +3,16 @@ package rain.rndr.nodes
 import org.openrndr.Program
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
-import rain.interfaces.SelectDirection
+import rain.language.interfaces.SelectDirection
 import rain.language.*
-import rain.patterns.nodes.Trigger
+import rain.patterns.nodes.Machine
 import rain.patterns.relationships.TRIGGERS
 import rain.utils.*
 import kotlin.math.absoluteValue
 
 abstract class ValueController(
     key:String = autoKey(),
-): RndrMachine(key) {
+): Machine(key) {
     abstract var controlValue: Double? // would it be simpler to not allow nulls here?
 
     val targetValue = cachedTarget(TRIGGERS, Value, SelectDirection.LEFT)
@@ -25,7 +25,7 @@ abstract class ValueController(
 open class AnimateValue(
     key:String = autoKey(),
     ): ValueController(key) {
-    companion object : NodeLabel<AnimateValue>(AnimateValue::class, RndrMachine, { k -> AnimateValue(k) })
+    companion object : NodeLabel<AnimateValue>(AnimateValue::class, Machine, { k -> AnimateValue(k) })
     override val label: NodeLabel<out AnimateValue> = AnimateValue
 
     class AnimationValue(
@@ -37,7 +37,7 @@ open class AnimateValue(
     override var controlValue:Double? get() = animationValue.value
         set(v) { v?.let { animationValue.value = it } }
 
-    override fun trigger(properties: Map<String, Any?>) {
+    override fun trigger(properties: MutableMap<String, Any?>) {
 
         val triggerValue = properties["value"] as Double?
         val initValue = properties["initValue"] as Double?
@@ -88,14 +88,14 @@ open class AnimateValue(
 
 open class Value(
     key:String = autoKey(),
-    ): RndrMachine(key) {
-    companion object : NodeLabel<Value>(Value::class, RndrMachine, { k -> Value(k) })
+    ): Machine(key) {
+    companion object : NodeLabel<Value>(Value::class, Machine, { k -> Value(k) })
     override val label: NodeLabel<out Value> = Value
 
     var value:Double by this.properties.apply { putIfAbsent("value", 0.0) } // TODO maybe: don't use by this.properties?
 
 
-    override fun trigger(properties: Map<String, Any?>) {
+    override fun trigger(properties: MutableMap<String, Any?>) {
         properties["value"]?.let{ value = it as Double }
     }
 
@@ -105,14 +105,3 @@ open class Value(
 
 }
 
-var Trigger<Value>.value: Double get() = this.properties["value"] as Double
-    set(value:Double) {this.properties["value"]=value}
-
-var Trigger<AnimateValue>.value: Double get() = this.properties["value"] as Double
-    set(value:Double) {this.properties["value"]=value}
-var Trigger<AnimateValue>.initValue: Double get() = this.properties["initValue"] as Double
-    set(value:Double) {this.properties["initValue"]=value}
-var Trigger<AnimateValue>.easing: String? get() = this.properties["easing"] as String?
-    set(value:String?) {this.properties["easing"]=value}
-var Trigger<AnimateValue>.animateDur: Double get() = this.properties["animateDur"] as Double
-    set(value:Double) {this.properties["animateDur"]=value}
