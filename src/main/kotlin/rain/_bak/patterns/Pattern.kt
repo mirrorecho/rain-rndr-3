@@ -1,5 +1,5 @@
 package rain._bak.patterns
-//import rain.interfaces.*
+//import rain.graph.interfaces.*
 //import rain.language.*
 //import rain.patterns.selects.CuePath
 

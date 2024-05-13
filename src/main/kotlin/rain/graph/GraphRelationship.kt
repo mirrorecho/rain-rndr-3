@@ -1,6 +1,6 @@
 package rain.graph
 
-import rain.interfaces.*
+import rain.graph.interfaces.*
 
 class GraphRelationship(
     override val key:String,

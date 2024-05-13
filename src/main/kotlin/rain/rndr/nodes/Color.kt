@@ -11,7 +11,9 @@ import rain.patterns.nodes.*
 open class Color(
     key:String = autoKey(),
 ): Machine(key) {
-    companion object : NodeLabel<Color>(Color::class, Machine, { k -> Color(k) })
+    companion object : NodeLabel<Color>(Color::class, Machine, { k -> Color(k) }){
+        override val receives: ReceivingManger get() = ReceivingManger()
+    }
     override val label: NodeLabel<out Color> = Color
 
     val h = cachedTarget(H, Value)
@@ -20,6 +22,13 @@ open class Color(
     val a = cachedTarget(A, Value)
 
     override val targetProperties = listOf(::h, ::s, ::v, ::a)
+
+    class ReceivingManger : ReceivingManager() {
+        var h: Double by properties
+        var s: Double by properties
+        var v: Double by properties
+        var a: Double by properties
+    }
 
     fun colorHSVa() = ColorHSVa(
         h.target?.value ?: 90.0,

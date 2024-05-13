@@ -2,6 +2,8 @@ package rain.patterns.nodes
 
 import rain.language.*
 import rain.patterns.interfaces.Pattern
+import rain.rndr.nodes.Circle
+import rain.rndr.nodes.Value
 
 
 open class Machine(
@@ -10,16 +12,8 @@ open class Machine(
     companion object : NodeLabel<Machine>(Machine::class, Node, { k -> Machine(k) })
     override val label: NodeLabel<out Machine> = Machine
 
-//    open class MachineManager : Manager() {
-//
-//        init {
-//            setPatternFactory { n, p, d -> MachinePattern(n, p, d) }
-//        }
-//    }
-//    override val manager = MachineManager()
-
     open class ReceivingManager : Event.EventManager()
-    open val receivingManager by lazy { ReceivingManager() }
+//    open val receivingManager by lazy { ReceivingManager() }
 
     override fun gate(onOff: Boolean) {
         isRunning = onOff;
@@ -33,6 +27,12 @@ open class Machine(
         fromPatterns.forEach { trigger(it.properties) }
     }
 
+    // TODO: maybe this should ACTUALLY trigger the underlying value machine?
+    // TODO: move back to a base class for all RndrMachines?????
+    fun triggerValue(cTarget: CachedTarget<Value>, value:Double?) {
+        cTarget.target?.apply { value?.let { this.value = it }   }
+    }
+
     open fun trigger(properties: MutableMap<String, Any?>) {
         // TODO: implement?
         println("TRIGGERING $key: $properties - WARNING: no machine trigger defined")
@@ -44,18 +44,19 @@ open class Machine(
 open class Printer(
     key:String = rain.utils.autoKey(),
 ): Machine(key) {
-    companion object : NodeLabel<Printer>(Printer::class, Node, { k -> Printer(k) })
-
+    companion object : NodeLabel<Printer>(Printer::class, Node, { k -> Printer(k) }){
+        override val receives: ReceivingManager get() = ReceivingManager()
+    }
     override val label: NodeLabel<out Printer> = Printer
 
     open class ReceivingManager : Machine.ReceivingManager() {
         var message: String by properties.apply { putIfAbsent("message", "No Message Defined") }
     }
 
-    override val receivingManager by lazy { ReceivingManager() }
+//    override val receivingManager by lazy { ReceivingManager() }
 
     override fun trigger(properties: MutableMap<String, Any?>) {
-        receivingManager.apply {
+        receives.apply {
             this.properties = properties
             println("PRINTER $key: $message")
             println("--------------------------------")

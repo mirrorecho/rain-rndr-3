@@ -1,6 +1,5 @@
 package rain.patterns.nodes
 
-import rain.interfaces.*
 import rain.language.*
 import rain.language.interfaces.*
 import rain.patterns.interfaces.*
@@ -11,37 +10,41 @@ import rain.patterns.relationships.*
 class TriggeringTree(
     node: LanguageNode,
     historyPattern: Pattern? = null,
-    historyDimension: PatternDimension
-? = null,
+    historyDimension: PatternDimension? = null,
 ): BasicPattern(node, historyPattern, historyDimension) {
 
+    override fun dimensionPatternFactory(dimension: PatternDimension): (LanguageNode) -> Pattern =
+        when (dimension) {
+            PatternDimension.CHILDREN ->
+                {n->TriggeringTree(n, this@TriggeringTree, dimension) }
+//            PatternDimension.BUMPS ->
+//                {n->MachinePattern(n, this@MachinePattern, dimension) } // TODO maybe: implement?
+            else ->
+                super.dimensionPatternFactory(dimension)
+        }
+
+
+
     private fun getCuedPatterns(qCue: SelectNodes): Sequence<Pattern> = sequence {
-        this@TriggeringTree.selectAny(qCue[CUES()], PatternDimension
-.CHILDREN).forEach {
+        this@TriggeringTree.selectAny(qCue[CUES()], PatternDimension.CHILDREN).forEach {
             yield(it)
             yieldAll(getCuedPatterns(qCue[CUES_NEXT()]))
         }
     }
 
-    override operator fun get(dimension: PatternDimension
-) = when (dimension) {
-        PatternDimension
-.CHILDREN ->
+    override operator fun get(dimension: PatternDimension) = when (dimension) {
+        PatternDimension.CHILDREN ->
             getCuedPatterns(node[CUES_FIRST()]);
-        PatternDimension
-.BUMPS ->
+        PatternDimension.BUMPS ->
             sequence {
-                super.get(PatternDimension
-.HISTORY).forEach { h ->
-                    h.selectFrom(TRIGGERS(), PatternDimension
-.BUMPS).forEach { t ->
-                        properties.manageWith(Event.EventManager()).machinePath.let {mp->
+                super.get(PatternDimension.HISTORY).forEach { h ->
+                    h.selectFrom(TRIGGERS(), PatternDimension.BUMPS).forEach { t ->
+                        properties.manageWith(Event.EventManager()).machinePath.let { mp->
                             if (mp.isNullOrEmpty()) yield(t)
                             else yieldAll(
                                 h.selectAny(
                                     t.node.get( *(mp.map { r -> r() }.toTypedArray()) ),
-                                    PatternDimension
-.BUMPS
+                                    PatternDimension.BUMPS
                                 )
                             )
                         }
@@ -97,11 +100,9 @@ class TriggeringTree(
         CUES_LAST.create(node.key, cues.last().key)
     }
 
-    override fun extend(dimension: PatternDimension
-, vararg nodes: LanguageNode) {
+    override fun extend(dimension: PatternDimension, vararg nodes: LanguageNode) {
         when (dimension) {
-            PatternDimension
-.CHILDREN -> extendChildren(*nodes)
+            PatternDimension.CHILDREN -> extendChildren(*nodes)
             else -> super.extend(dimension, *nodes)
         }
     }

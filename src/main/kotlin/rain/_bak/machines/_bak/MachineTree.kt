@@ -1,6 +1,6 @@
 package rain._bak.machines._bak
 
-//import rain.interfaces.*
+//import rain.graph.interfaces.*
 //import rain.language.*
 //import rain.patterns.*
 

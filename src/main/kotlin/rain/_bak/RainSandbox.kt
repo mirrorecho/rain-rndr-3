@@ -1,11 +1,5 @@
 package rain._bak
 
-import rain.interfaces.*
-import rain.language.*
-import rain.patterns.*
-import rain.rndr.*
-import kotlin.random.Random
-
 //fun main() {
 //
 ////

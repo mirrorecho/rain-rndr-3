@@ -1,9 +1,7 @@
 package rain.rndr.nodes
 
-import rain.interfaces.*
 import rain.language.*
 import rain.language.interfaces.*
-import rain.patterns.interfaces.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
@@ -30,12 +28,6 @@ open class Circle(
 
     class ReceivingManger : ReceivingManager() {
         var radius: Double? by properties
-    }
-//    val manageTrigger = TriggerManager(mutableMapOf())
-
-    // TODO: maybe this should ACTUALLY trigger the underlying value machine?
-    fun triggerValue(cTarget: CachedTarget<Value>, value:Double?) {
-        cTarget.target?.apply { value?.let { this.value = it }   }
     }
 
 

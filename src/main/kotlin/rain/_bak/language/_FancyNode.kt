@@ -3,7 +3,7 @@ package rain._bak.language
 // TODO: remove when ready (for sandbox/testing purposes only)
 
 
-//import rain.interfaces.*
+//import rain.graph.interfaces.*
 //
 //open class FancyNode(
 //    key:String = rain.utils.autoKey(),

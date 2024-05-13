@@ -1,7 +1,6 @@
 package rain.language.interfaces
 
-import rain.interfaces.GraphableNode
-import rain.interfaces.GraphableRelationship
+import rain.graph.interfaces.*
 import rain.utils.autoKey
 
 interface LabelInterface<T: LanguageItem> {
@@ -65,21 +64,29 @@ interface NodeLabelInterface<T: LanguageNode>: LabelInterface<T> {
         block: (MT.() -> Unit)? = null,
     ): T =
         factory(key).apply {
+            block?.invoke(manager)
             this.updatePropertiesFrom(manager.properties)
+            this.manageWith(manager)
             context.graph.create(this)
+            manager.postCreate()
             registry[key] = this
         }
 
     fun <MT : ManagerInterface> sends(
-//        targetLabel: NodeLabelInterface<*>,
+        key: String,
         receivingManager: MT,
-        key: String = autoKey(),
         block: (MT.() -> Unit)? = null,
     ): T =
-//        create(key, targetLabel.targetingManager())
-        create(key, receivingManager)
+        create<MT>(key, receivingManager, block)
+
+    fun <MT : ManagerInterface> sends(
+        receivingManager: MT,
+        block: (MT.() -> Unit)? = null,
+    ): T =
+        sends(autoKey(), receivingManager, block)
 
 }
+
 
 interface RelationshipLabelInterface<T: LanguageRelationship>: LabelInterface<T> {
     override val isRelationship: Boolean get() = true

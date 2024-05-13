@@ -1,9 +1,8 @@
 package rain.language
 
-import rain.interfaces.*
 import rain.language.interfaces.LanguageNode
+import rain.language.interfaces.ManagerInterface
 import rain.language.interfaces.SelectDirection
-import rain.language.interfaces.manageWith
 import rain.utils.autoKey
 import kotlin.reflect.KProperty0
 
@@ -23,10 +22,14 @@ open class Node protected constructor(
     // TODO maybe: consider moving this to the manager class?
     protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
 
-//    override fun getPattern(previous: Pattern?): Pattern = SelfPattern(this)
-
-//    override val manager by lazy {  NodeManager(this) }
-    override val manager by lazy { Manager().apply { use(this@Node) } }
+//    override val manager by lazy { this.manageWith(Manager()) }
+//
+////    override fun getPattern(previous: Pattern?): Pattern = SelfPattern(this)
+////    override val manager by lazy {  NodeManager(this) }
+//
+//    private var myManager: ManagerInterface? = null
+////    override var manager get() = myManager ?: Manager()
+////        set(manager:ManagerInterface) {this.myManager = manager}
 
     fun autoTarget() {
         targetProperties.forEach {
@@ -53,8 +56,6 @@ open class Node protected constructor(
     // TODO: maybe implement this...?
 //    fun invoke()
 
-
-
 }
 
 // ===========================================================================================================
@@ -69,9 +70,6 @@ open class SpecialNode protected constructor(
     class SpecialNodeManager : Manager() {
         var special: String? by properties
     }
-    override val manager by lazy { SpecialNodeManager().apply { use(this@SpecialNode) } }
+//    override val manager by lazy { SpecialNodeManager().apply { manage(this@SpecialNode) } }
 
-
-//    companion object : NodeCompanion<SpecialNode>(Node.childLabel { k -> SpecialNode(k) })
-//    override val label: NodeLabel<out SpecialNode> = SpecialNode.label
 }

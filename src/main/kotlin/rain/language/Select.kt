@@ -40,12 +40,13 @@ open class SelectNodes(
 //        println(vals.toList())
 //    }
 
-    override fun toString():String = "SELECT NODES - keys:$keys, properties:$properties, labelName:$labelName, selectFrom:${selectFrom!=null}"
+    override fun toString():String = "SELECT NODES - keys:$keys, properties:$properties, labelName:$labelName, selectFrom:${selectFrom!=null}, "
 
     operator fun <T:Node>invoke(label: NodeLabelInterface<T>):Sequence<T> = context.selectNodes(this, label)
 
-    // TODO: test this!!!
     operator fun invoke():Sequence<LanguageNode> = context.selectNodes(this)
+
+    fun forEach(block: (LanguageNode)->Unit) = invoke().forEach(block)
 
     override fun selectKeys(): Sequence<String> = context.selectNodeKeys(this)
 

@@ -1,7 +1,7 @@
 package rain.language
 
 import rain.graph.Graph
-import rain.interfaces.*
+import rain.graph.interfaces.*
 import rain.language.interfaces.*
 import rain.language.interfaces.Context
 

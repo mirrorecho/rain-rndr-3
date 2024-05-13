@@ -1,6 +1,6 @@
 package rain.graph
 
-import rain.interfaces.*
+import rain.graph.interfaces.*
 import rain.language.interfaces.SelectDirection
 import rain.language.interfaces.SelectInterface
 import kotlin.Exception
@@ -167,7 +167,7 @@ class Graph: GraphInterface {
     }
 
 
-    override fun selectGraphRelationships(select: SelectInterface):Sequence<GraphRelationship> =
+    override fun selectGraphRelationships(select:SelectInterface):Sequence<GraphRelationship> =
         (select.selectFrom?.let {sf ->
             (if (sf.isRelationships) selectGraphRelationships(sf)
             else when (select.direction) {
@@ -183,6 +183,7 @@ class Graph: GraphInterface {
             (select.labelName?.let { relationshipLabelIndex[select.labelName].orEmpty() } ?: graphRelationships
                     ).sequenceKeys(select.keys)
         }).filterProperties( select.properties )
+
 
 
 //    private fun selectLocalItems(select:SelectInterface<*>):Sequence<GraphItem> {

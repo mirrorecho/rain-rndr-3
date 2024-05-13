@@ -1,10 +1,11 @@
 package rain.language.interfaces
 
 import org.openrndr.Program
-import rain.interfaces.*
+import rain.graph.interfaces.*
 import rain.language.Relationship
 import rain.language.RelationshipLabel
 import rain.patterns.interfaces.Pattern
+import rain.patterns.interfaces.PatternDimension
 import rain.utils.autoKey
 
 // TODO: this extra inheritance is odd here...
@@ -36,9 +37,13 @@ interface LanguageNode: LanguageItem, NodeSelectable, GraphableNode {
 
     override val graph: GraphInterface get() = this.context.graph
 
-    // TODO: OK with separation of concerns?????
-    val manager: ManagerInterface
-//    fun getPattern(previous: Pattern? = null): Pattern // should represent a new pattern, with this node as the origin
+//    val manager: ManagerInterface
+
+    fun <T: ManagerInterface>manageWith(manager:T, block: (T.()->Unit)?=null): T {
+        manager.manage(this)
+        block?.invoke(manager)
+        return manager
+    }
 
     fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
 

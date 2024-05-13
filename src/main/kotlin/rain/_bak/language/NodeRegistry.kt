@@ -1,6 +1,6 @@
 package rain._bak.language
 
-//import rain.interfaces.*
+//import rain.graph.interfaces.*
 //
 //// A registry of nodes of a given type/label. Used to ensure that queried nodes
 //// can return the same object instances (in cases where state management is important)

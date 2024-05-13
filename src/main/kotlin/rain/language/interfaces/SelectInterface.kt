@@ -1,6 +1,6 @@
 package rain.language.interfaces
 
-import rain.interfaces.GraphInterface
+import rain.graph.interfaces.GraphInterface
 import rain.language.*
 
 enum class SelectDirection(val shortForm: String) {

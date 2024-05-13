@@ -28,7 +28,7 @@ open class Event protected constructor(
             updatePatternFactory { n, p, d -> TriggeringTree(n, p, d) }
         }
     }
-    override val manager = EventManager()
+//    override val manager = EventManager()
 
     // TODO: bring back the below?
 //    val triggers = cachedTarget(TRIGGERS, machine!!)

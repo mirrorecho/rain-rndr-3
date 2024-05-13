@@ -2,6 +2,7 @@ package rain.language.interfaces
 
 import rain.patterns.interfaces.Pattern
 import rain.patterns.interfaces.PatternDimension
+import rain.patterns.nodes.PatternPlayer
 import kotlin.reflect.KMutableProperty
 
 interface ManagerInterface {
@@ -15,18 +16,18 @@ interface ManagerInterface {
 
     var patternFactory: (LanguageNode, Pattern?, PatternDimension?)-> Pattern
 
-    fun use(properties: MutableMap<String, Any?>)
-    fun use(node: LanguageNode)
-    fun use(pattern: Pattern)
+    fun manage(properties: MutableMap<String, Any?>)
+    fun manage(node: LanguageNode)
+    fun manage(pattern: Pattern)
 
     fun <T>getAs(name:String):T = properties[name] as T
 
-    var deferredBlock: ((Pattern)->Unit)
+    var deferredBlocks: MutableList<((Pattern)->Unit)>
 
     fun postCreate() {
-        pattern?.let {
-            this.deferredBlock(it)
-            this.deferredBlock = {p-> }
+        pattern?.let {p->
+            deferredBlocks.forEach { it.invoke(p) }
+            deferredBlocks.clear()
             return
         }
         throw Exception("calling postCreate on $this even though pattern is null")
@@ -37,7 +38,7 @@ interface ManagerInterface {
             block(it)
             return
         }
-        deferredBlock = { p-> deferredBlock(p); block(p)  }
+        deferredBlocks.add(block)
     }
 
     fun extend(vararg nodes: LanguageNode) =
@@ -52,10 +53,26 @@ interface ManagerInterface {
 
     fun updatePatternFactory(factory: (LanguageNode, Pattern?, PatternDimension?)-> Pattern)
 
+    fun getPatterns(dimension: PatternDimension): Sequence<Pattern> {
+        pattern?.let {p->
+            return p[dimension]
+        }
+        return sequenceOf()
+    }
+
+    fun play() = pattern?.let { PatternPlayer(it).play() }
+
 }
 
 fun <T: ManagerInterface>MutableMap<String, Any?>.manageWith(manager:T, block: (T.()->Unit)?=null): T {
-    manager.use(this)
+    manager.manage(this)
     block?.invoke(manager)
     return manager
 }
+
+
+//fun <T: ManagerInterface>Pattern.manageWith(manager:T, block: (T.()->Unit)?=null): T {
+//    manager.manage(this)
+//    block?.invoke(manager)
+//    return manager
+//}

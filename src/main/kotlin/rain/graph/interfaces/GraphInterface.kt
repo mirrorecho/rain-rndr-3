@@ -1,4 +1,4 @@
-package rain.interfaces
+package rain.graph.interfaces
 
 import rain.language.interfaces.SelectInterface
 

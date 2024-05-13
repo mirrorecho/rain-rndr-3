@@ -1,5 +1,5 @@
 // NOTE: using plural "interface" to avoid name clash with "interface" keyword
-package rain.interfaces
+package rain.graph.interfaces
 
 // NOTE: unlike in the python implementation, not using data classes for subsclasses of this
 // (because Kotlin data classes don't allow inheritance, and inheritance

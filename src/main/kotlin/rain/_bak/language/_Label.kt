@@ -1,6 +1,6 @@
 package rain._bak.language
 //
-//import rain.interfaces.*
+//import rain.graph.interfaces.*
 //
 //// the POINT of a Label:
 //// MOST IMPORTANT: a factory for a type of language item ->

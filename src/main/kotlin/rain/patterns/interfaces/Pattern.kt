@@ -32,6 +32,8 @@ interface Pattern {
 //    val dimensions: Map<Dimension, Sequence<Pattern>>
     val properties: MutableMap<String, Any?> get() = node.properties
 
+    fun dimensionPatternFactory(dimension: PatternDimension): (LanguageNode) -> Pattern
+
     fun descendants(dimension: PatternDimension): Sequence<Pattern> = sequence {
         yield(this@Pattern)
         yieldAll(this@Pattern[dimension])
@@ -49,9 +51,8 @@ interface Pattern {
         }
     }
 
-
     operator fun invoke() { println("WARNING: invoke not implemented for $this") }
-    fun play() = PatternPlayer(this).play()
+
     fun sendTo(dimension: PatternDimension, block: ((Pattern)->Unit)?=null) =
         this[dimension].forEach { it.receive(dimension, this); block?.invoke(it) }   // used for things like sending/triggering
     fun receive(dimension: PatternDimension, sender: Pattern) {
@@ -65,10 +66,12 @@ interface Pattern {
 
     fun extend(dimension: PatternDimension, vararg nodes: LanguageNode) { println("WARNING: extend not implemented for $dimension  for $this") } // used for things like triggering
 
+    //selects from the current pattern's node
     fun selectFrom(nodeQuery:SelectNodes, dimension: PatternDimension): Sequence<Pattern> = selectAny(node[nodeQuery], dimension)
 
+    //selects anywhere
     fun selectAny(anyQuery:SelectNodes, dimension: PatternDimension): Sequence<Pattern> = sequence {
-        anyQuery().forEach { n-> n.manager.makePattern(this@Pattern, dimension) }
+        anyQuery().forEach { n-> this@Pattern.dimensionPatternFactory(dimension)(n) }
     }
 
     // TODO: confirm this works!
