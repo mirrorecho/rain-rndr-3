@@ -24,10 +24,10 @@ open class Color(
     override val targetProperties = listOf(::h, ::s, ::v, ::a)
 
     class ReceivingManger : ReceivingManager() {
-        var h: Double by properties.withDefault(90.0)
-        var s: Double by properties.withDefault(0.8)
-        var v: Double by properties.withDefault(0.8)
-        var a: Double by properties.withDefault(0.8)
+        var h: Double by defaultable(90.0)
+        var s: Double by defaultable(0.8)
+        var v: Double by defaultable(0.8)
+        var a: Double by defaultable(0.8)
     }
 
     fun colorHSVa() = ColorHSVa(

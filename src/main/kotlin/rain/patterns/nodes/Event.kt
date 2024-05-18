@@ -26,11 +26,11 @@ open class Event protected constructor(
     // TODO: figure out a more elegant way to use by properties with defaults (esp. null values)
     open class EventManager : Manager() {
         // TODO: is machine lavel even needed anymore?
-        var machine: NodeLabel<out Machine>? by properties.withNull()
-        var machinePath: Array<RelationshipLabel>? by properties.withNull()
-        var dur: Double? by properties.withNull()
-        var gate: Gate by properties.withDefault(Gate.NONE)
-        var simultaneous: Boolean by properties.withDefault(false)
+        var machine: NodeLabel<out Machine>? by nullable()
+        var machinePath: Array<RelationshipLabel>? by nullable()
+        var dur: Double? by nullable()
+        var gate: Gate by defaultable(Gate.NONE)
+        var simultaneous: Boolean by defaultable(false)
 
         override var pattern: Pattern? by lazyish {
             node?.let { n ->

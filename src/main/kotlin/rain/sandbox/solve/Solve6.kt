@@ -27,20 +27,13 @@ fun main() {
     }
 
     e.manageWith(Color.receives) {
-        println(h)
         get(DimensionLabel.CHILDREN)?.forEach {
-            println(it.node)
-            val vm = Value.receives
-            vm.manage(it)
-            vm.apply {
-                println(properties)
+            it.node.properties.manageWith(Value.receives) {
+                println(dur)
+//                println(properties)
+////                println(value)
+////                println(it.cascadingProperties)
             }
-//            it.node.properties.manageWith(Value.receives) {
-//                println(dur)
-////                println(properties)
-//////                println(value)
-//////                println(it.cascadingProperties)
-//            }
         }
     }
 

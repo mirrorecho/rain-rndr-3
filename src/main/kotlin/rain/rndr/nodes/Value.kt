@@ -28,7 +28,7 @@ open class Value(
     override val label: NodeLabel<out Value> = Value
 
     open class ReceivingManager : Machine.ReceivingManager() {
-        var value: Double? by properties
+        var value: Double? by nullable()
     }
 
     var value:Double by this.properties.withDefault(0.0)
