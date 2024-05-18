@@ -46,7 +46,7 @@ open class SelectNodes(
 
     operator fun invoke():Sequence<LanguageNode> = context.selectNodes(this)
 
-    fun forEach(block: (LanguageNode)->Unit) = invoke().forEach(block)
+    inline fun forEach(block: (LanguageNode)->Unit) = invoke().forEach(block)
 
     override fun selectKeys(): Sequence<String> = context.selectNodeKeys(this)
 

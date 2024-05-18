@@ -1,40 +1,60 @@
 package rain.sandbox.solve
 
-import rain.patterns.interfaces.PatternDimension
-import rain.patterns.nodes.Cue
+import rain.language.interfaces.manage
+import rain.language.interfaces.manageWith
+import rain.patterns.interfaces.DimensionLabel
+import rain.patterns.interfaces.forEach
+import rain.patterns.interfaces.manageWith
 import rain.patterns.nodes.Event
-import rain.patterns.nodes.TriggeringTree
-import rain.patterns.relationships.*
 import rain.rndr.nodes.Color
 import rain.rndr.nodes.Value
-import rain.rndr.relationships.H
-import rain.rndr.relationships.S
 
 fun main() {
 
 
-    val e = Event.sends(Color.receives) {
+    val m = Color.receives
+    val e = Event.sends(m) {
         h = 200.0
+        machine = Color
 //        simultaneous = false
         // TODO: need a method that can create the TRIGGERS relationship
+
         extend(
-            Event.sends(Value.receives) { value = 0.4; dur = 1.0 },
+            Event.sends(Value.receives) { value = 0.4; dur = 1.0; machine=Value },
             Event.sends(Value.receives) { value = 0.9; dur = 2.0 },
             Event.sends(Value.receives) { value = 0.0; dur = 1.0 }
         )
     }
 
-
-    e.manageWith(Event.EventManager()) {
-
-        getPatterns(PatternDimension.CHILDREN).forEach { println(it.node) }
-        node?.let {n->
-            n[CUES_FIRST(), CUES_NEXT(), CUES()].forEach { println(it) }
+    e.manageWith(Color.receives) {
+        println(h)
+        get(DimensionLabel.CHILDREN)?.forEach {
+            println(it.node)
+            val vm = Value.receives
+            vm.manage(it)
+            vm.apply {
+                println(properties)
+            }
+//            it.node.properties.manageWith(Value.receives) {
+//                println(dur)
+////                println(properties)
+//////                println(value)
+//////                println(it.cascadingProperties)
+//            }
         }
-
-//        println(pattern)
-//        getPatterns(PatternDimension.CHILDREN).forEach { println(it.node) }
     }
+
+
+//    e.manageWith(Event.EventManager()) {
+//
+//        getPatterns(DimensionLabel.CHILDREN).forEach { println(it.node) }
+////        node?.let {n->
+////            n[CUES_FIRST(), CUES_NEXT(), CUES_NEXT(), CUES()].forEach { println(it) }
+////        }
+//
+////        println(pattern)
+////        getPatterns(PatternDimension.CHILDREN).forEach { println(it.node) }
+//    }
 
 
 //    println(e.manager.pattern)

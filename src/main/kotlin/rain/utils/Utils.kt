@@ -1,11 +1,47 @@
 package rain.utils
 
 import kotlin.math.abs
+import kotlin.reflect.KProperty
 
 fun autoKey(): String {
     // TODO: consider a better implementation for this?
     return  abs((100..999999999999).random()).toString()
 }
+
+fun <T>lazyish(block: ()->T) = Lazyish(block)
+
+class Lazyish<T>(val block: ()->T) {
+    private var myValue: T? = null
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = myValue ?: block().also { setValue(thisRef, property, it) }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {myValue = value}
+
+}
+
+//class NullableMap<T>(val map: MutableMap<String,Any?>, val default:T?=null) {
+//
+//    operator fun getValue(thisRef: Any?, property: KProperty<*>): T? = (map[property.name] ?: default) as T?
+//
+//    operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {map[property.name] = value}
+//
+//}
+
+class DefaultableMap<T>(val map: MutableMap<String,Any?>, val default:T) {
+
+    // TODO: is this the right logic here, or should we check for key existence instead of null check?
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = map.getOrDefault(property.name, default) as T
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {map[property.name] = value}
+
+}
+
+fun <T>MutableMap<String, Any?>.withNull(default:T?=null) = DefaultableMap(this, default)
+
+fun <T>MutableMap<String, Any?>.withDefault(default:T) = DefaultableMap(this, default)
+
+//fun nullableMap<T>(val map: MutableMap<String,Any?>, val default:T?=null) = NullableMap
+
 
 // slick way to create infinite cycle:
 // https://stackoverflow.com/questions/48007311/how-do-i-infinitely-repeat-a-sequence-in-kotlin

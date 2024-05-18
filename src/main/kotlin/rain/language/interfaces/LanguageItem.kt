@@ -2,10 +2,10 @@ package rain.language.interfaces
 
 import org.openrndr.Program
 import rain.graph.interfaces.*
+import rain.language.Manager
 import rain.language.Relationship
 import rain.language.RelationshipLabel
 import rain.patterns.interfaces.Pattern
-import rain.patterns.interfaces.PatternDimension
 import rain.utils.autoKey
 
 // TODO: this extra inheritance is odd here...
@@ -39,11 +39,7 @@ interface LanguageNode: LanguageItem, NodeSelectable, GraphableNode {
 
 //    val manager: ManagerInterface
 
-    fun <T: ManagerInterface>manageWith(manager:T, block: (T.()->Unit)?=null): T {
-        manager.manage(this)
-        block?.invoke(manager)
-        return manager
-    }
+    var manager: ManagerInterface
 
     fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
 
@@ -74,7 +70,16 @@ interface LanguageNode: LanguageItem, NodeSelectable, GraphableNode {
 
 }
 
+inline fun <T: ManagerInterface>LanguageNode.manageWith(manager:T, block: T.()->Unit): T {
+    manager.manage(this)
+    block(manager)
+    return manager
+}
+
+inline fun LanguageNode.manage(block: (ManagerInterface.()->Unit)) = manageWith(manager, block)
+
 // ===========================================================================================================
+
 
 interface LanguageRelationship: LanguageItem, GraphableRelationship {
     fun save() = graph.save(this)

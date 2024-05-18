@@ -66,7 +66,7 @@ interface NodeLabelInterface<T: LanguageNode>: LabelInterface<T> {
         factory(key).apply {
             block?.invoke(manager)
             this.updatePropertiesFrom(manager.properties)
-            this.manageWith(manager)
+            this.manageWith(manager) {}
             context.graph.create(this)
             manager.postCreate()
             registry[key] = this

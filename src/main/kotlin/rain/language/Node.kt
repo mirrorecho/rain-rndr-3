@@ -3,7 +3,10 @@ package rain.language
 import rain.language.interfaces.LanguageNode
 import rain.language.interfaces.ManagerInterface
 import rain.language.interfaces.SelectDirection
+import rain.patterns.interfaces.Pattern
+import rain.patterns.nodes.Event
 import rain.utils.autoKey
+import rain.utils.lazyish
 import kotlin.reflect.KProperty0
 
 // TODO: consider making Node abstract?
@@ -21,6 +24,8 @@ open class Node protected constructor(
 
     // TODO maybe: consider moving this to the manager class?
     protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
+
+    override var manager: ManagerInterface by lazyish { Manager() }
 
 //    override val manager by lazy { this.manageWith(Manager()) }
 //

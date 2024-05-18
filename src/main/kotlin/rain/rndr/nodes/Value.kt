@@ -31,7 +31,7 @@ open class Value(
         var value: Double? by properties
     }
 
-    var value:Double by this.properties.apply { putIfAbsent("value", 0.0) } // TODO maybe: don't use by this.properties?
+    var value:Double by this.properties.withDefault(0.0)
 
 
     override fun trigger(properties: MutableMap<String, Any?>) {

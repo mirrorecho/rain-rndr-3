@@ -28,19 +28,19 @@ open class PatternPlayer(
     }
 
     private suspend fun playPattern(pattern: Pattern, program: Program, addDelay: Double? = null) {
-        val eventManager = pattern.properties.manageWith(Event.EventManager())
+        val eventManager = pattern.cascadingProperties.manageWith(Event.EventManager())
         val threads: MutableList<Job> = mutableListOf()
-        val machines = pattern[PatternDimension.BUMPS]
+        val machines = pattern[DimensionLabel.TRIGGERS]
 
-        pattern.sendTo(PatternDimension.BUMPS) { m->
+        pattern[DimensionLabel.TRIGGERS].forEach { m->
+            m.node.bump()
             eventManager.gate.startGate?.let { gateMachine(m.node, it) }
         }
 
-
         addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
 
-        pattern[PatternDimension.CHILDREN].forEach { child ->
-            val childManager = child.properties.manageWith(Event.EventManager())
+        pattern[DimensionLabel.CHILDREN]().forEach { child ->
+            val childManager = child.cascadingProperties.manageWith(Event.EventManager())
             if (eventManager.simultaneous)
                 threads.add(program.launch { playPattern(child, program, childManager.dur) })
             else
@@ -48,7 +48,7 @@ open class PatternPlayer(
         }
         threads.joinAll()
 
-        pattern.sendTo(PatternDimension.BUMPS) { m->
+        pattern[DimensionLabel.TRIGGERS].forEach { m->
             eventManager.gate.endGate?.let { gateMachine(m.node, it) }
         }
 

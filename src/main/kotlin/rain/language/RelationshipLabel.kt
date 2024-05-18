@@ -7,8 +7,15 @@ import rain.language.interfaces.SelectDirection
 
 class RelationshipLabel(
     override val labelName:String,
+    val direction: SelectDirection = SelectDirection.RIGHT,
 ): RelationshipSelectable, RelationshipLabelInterface<Relationship> {
-    override val selectMe = SelectRelationships(labelName=this.labelName)
+    val left =
+        if (direction==SelectDirection.RIGHT)
+            RelationshipLabel(labelName, SelectDirection.LEFT)
+        else
+            this
+
+    override val selectMe get() = SelectRelationships(labelName=labelName, direction = direction)
     override val allNames: List<String> = listOf(labelName)
 
     override var context: Context = LocalContext
@@ -20,7 +27,7 @@ class RelationshipLabel(
     }
 
     operator fun invoke(keys:List<String>?=null, properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
-        SelectRelationships(labelName=this.labelName, direction= SelectDirection.RIGHT).nodes(keys, properties, label?.labelName)
+        selectMe.nodes(keys, properties, label?.labelName)
 
     operator fun invoke(vararg keys:String, label:NodeLabel<*>?=null) =
         invoke(keys.asList(), null, label)
@@ -28,14 +35,14 @@ class RelationshipLabel(
     operator fun invoke(properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
         invoke(null, properties, label)
 
-    fun left(keys:List<String>?=null, properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
-        SelectRelationships(labelName=this.labelName, direction= SelectDirection.LEFT).nodes(keys, properties, label?.labelName)
-
-    fun left(vararg keys:String, label:NodeLabel<*>?=null) =
-        left(keys.asList(), null, label)
-
-    fun left(properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
-        left(null, properties, label)
+//    fun left(keys:List<String>?=null, properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
+//        SelectRelationships(labelName=this.labelName, direction= SelectDirection.LEFT).nodes(keys, properties, label?.labelName)
+//
+//    fun left(vararg keys:String, label:NodeLabel<*>?=null) =
+//        left(keys.asList(), null, label)
+//
+//    fun left(properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
+//        left(null, properties, label)
 
 }
 

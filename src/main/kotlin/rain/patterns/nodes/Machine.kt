@@ -24,7 +24,7 @@ open class Machine(
 
 
     override fun bump(vararg fromPatterns: Pattern) {
-        fromPatterns.forEach { trigger(it.properties) }
+        fromPatterns.forEach { trigger(it.cascadingProperties) }
     }
 
     // TODO: maybe this should ACTUALLY trigger the underlying value machine?

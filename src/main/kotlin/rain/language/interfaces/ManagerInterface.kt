@@ -1,7 +1,8 @@
 package rain.language.interfaces
 
+import rain.patterns.interfaces.Dimension
 import rain.patterns.interfaces.Pattern
-import rain.patterns.interfaces.PatternDimension
+import rain.patterns.interfaces.DimensionLabel
 import rain.patterns.nodes.PatternPlayer
 import kotlin.reflect.KMutableProperty
 
@@ -10,22 +11,22 @@ interface ManagerInterface {
     var properties: MutableMap<String, Any?>
 //    val label: NodeLabelInterface<*> // TODO: consider whether we'll need this
 
-    val pattern: Pattern?
     val node: LanguageNode?
-    var extendDimension: PatternDimension
-
-    var patternFactory: (LanguageNode, Pattern?, PatternDimension?)-> Pattern
+    var pattern: Pattern?
+    var extendDimension: DimensionLabel
 
     fun manage(properties: MutableMap<String, Any?>)
     fun manage(node: LanguageNode)
     fun manage(pattern: Pattern)
+
+    operator fun get(label: DimensionLabel): Dimension? = pattern?.get(label)
 
     fun <T>getAs(name:String):T = properties[name] as T
 
     var deferredBlocks: MutableList<((Pattern)->Unit)>
 
     fun postCreate() {
-        pattern?.let {p->
+        pattern?.let { p->
             deferredBlocks.forEach { it.invoke(p) }
             deferredBlocks.clear()
             return
@@ -42,23 +43,12 @@ interface ManagerInterface {
     }
 
     fun extend(vararg nodes: LanguageNode) =
-        deferBlock { p-> p.extend(extendDimension, *nodes) }
+        deferBlock { p-> p[extendDimension].extend(*nodes) }
 
     fun <T:Any?> KMutableProperty<T>.stream(extendLabel: NodeLabelInterface<*>, vararg values:T) =
-        deferBlock { p-> p.stream(extendDimension, this.name, extendLabel, *values) }
+        deferBlock { p-> p[extendDimension].stream(this.name, extendLabel, *values) }
     fun <T:Any?> KMutableProperty<T>.stream(vararg values:T) =
-        deferBlock { p-> p.stream(extendDimension, this.name, p.node.label, *values) }
-
-    fun makePattern(historyPattern: Pattern?, historyDimension: PatternDimension?): Pattern?
-
-    fun updatePatternFactory(factory: (LanguageNode, Pattern?, PatternDimension?)-> Pattern)
-
-    fun getPatterns(dimension: PatternDimension): Sequence<Pattern> {
-        pattern?.let {p->
-            return p[dimension]
-        }
-        return sequenceOf()
-    }
+        deferBlock { p-> p[extendDimension].stream(this.name, p.node.label, *values) }
 
     fun play() = pattern?.let { PatternPlayer(it).play() }
 

@@ -1,7 +1,13 @@
 package rain.patterns.nodes
 
 import rain.language.*
+import rain.language.interfaces.ManagerInterface
+import rain.patterns.interfaces.Pattern
+import rain.patterns.relationships.TRIGGERS
 import rain.utils.autoKey
+import rain.utils.lazyish
+import rain.utils.withDefault
+import rain.utils.withNull
 
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
     ON(true, null),
@@ -17,18 +23,26 @@ open class Event protected constructor(
     companion object : NodeLabel<Event>(Event::class, Node, { k -> Event(k) })
     override val label: NodeLabel<out Event> = Event
 
+    // TODO: figure out a more elegant way to use by properties with defaults (esp. null values)
     open class EventManager : Manager() {
-        var machine: NodeLabel<out Machine>? by properties
-        var machinePath: List<RelationshipLabel>? by properties
-        var dur: Double? by properties
-        var gate: Gate by properties.apply { putIfAbsent("simultaneous", Gate.NONE) }
-        var simultaneous: Boolean by properties.apply { putIfAbsent("simultaneous", false) }
+        // TODO: is machine lavel even needed anymore?
+        var machine: NodeLabel<out Machine>? by properties.withNull()
+        var machinePath: Array<RelationshipLabel>? by properties.withNull()
+        var dur: Double? by properties.withNull()
+        var gate: Gate by properties.withDefault(Gate.NONE)
+        var simultaneous: Boolean by properties.withDefault(false)
 
-        init {
-            updatePatternFactory { n, p, d -> TriggeringTree(n, p, d) }
+        override var pattern: Pattern? by lazyish {
+            node?.let { n ->
+                Pattern(n, CuedChildrenDimension).add(
+                    { p -> RelatesHistoryDimension(p, TRIGGERS, *(machinePath.orEmpty())) }
+                )
+            }
         }
+
     }
-//    override val manager = EventManager()
+
+    override var manager: ManagerInterface by lazyish { EventManager() }
 
     // TODO: bring back the below?
 //    val triggers = cachedTarget(TRIGGERS, machine!!)
