@@ -2,6 +2,8 @@ package rain.rndr.relationships
 
 import rain.language.RelationshipLabel
 
+val ANIMATES = RelationshipLabel("ANIMATES")
+
 val STROKE_WEIGHT = RelationshipLabel("STROKE_WEIGHT")
 
 val STROKE_COLOR = RelationshipLabel("STROKE_COLOR")

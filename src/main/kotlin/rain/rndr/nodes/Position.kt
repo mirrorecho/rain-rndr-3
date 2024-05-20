@@ -13,7 +13,7 @@ open class Position(
     key:String = autoKey(),
 ): Machine(key) {
     companion object : NodeLabel<Position>(Position::class, Machine, { k -> Position(k) }){
-        override val receives: Circle.ReceivingManger get() = Circle.ReceivingManger()
+        override val receives: ReceivingManager get() = ReceivingManager()
     }
     override val label: NodeLabel<out Position> = Position
 
@@ -22,7 +22,8 @@ open class Position(
 
     override val targetProperties = listOf(::x, ::y)
 
-    class ReceivingManger : ReceivingManager() {
+    class ReceivingManager : Machine.ReceivingManager() {
+        // TODO: use new delegates
         var x: Double? by properties
         var y: Double? by properties
     }

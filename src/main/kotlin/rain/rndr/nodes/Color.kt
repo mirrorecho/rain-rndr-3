@@ -12,7 +12,7 @@ open class Color(
     key:String = autoKey(),
 ): Machine(key) {
     companion object : NodeLabel<Color>(Color::class, Machine, { k -> Color(k) }){
-        override val receives: ReceivingManger get() = ReceivingManger()
+        override val receives: ReceivingManager get() = ReceivingManager()
     }
     override val label: NodeLabel<out Color> = Color
 
@@ -23,11 +23,11 @@ open class Color(
 
     override val targetProperties = listOf(::h, ::s, ::v, ::a)
 
-    class ReceivingManger : ReceivingManager() {
-        var h: Double by defaultable(90.0)
-        var s: Double by defaultable(0.8)
-        var v: Double by defaultable(0.8)
-        var a: Double by defaultable(0.8)
+    class ReceivingManager : Machine.ReceivingManager() {
+        var h: Double by defaultable("h", 90.0)
+        var s: Double by defaultable("s", 0.8)
+        var v: Double by defaultable("v", 0.8)
+        var a: Double by defaultable("a", 0.8)
     }
 
     fun colorHSVa() = ColorHSVa(

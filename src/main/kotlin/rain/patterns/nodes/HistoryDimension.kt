@@ -11,5 +11,5 @@ class HistoryDimension(override val pattern: Pattern): Dimension {
     override fun copy(anotherPattern: Pattern): Dimension = HistoryDimension(anotherPattern)
 
     override fun invoke(): Sequence<Pattern> =
-            sequence { pattern.historyPattern?.let { yield(it); yieldAll(it[DimensionLabel.HISTORY]()) } }
+            sequence { yield(pattern); pattern.historyPattern?.let { yieldAll(it.history()) } }
 }

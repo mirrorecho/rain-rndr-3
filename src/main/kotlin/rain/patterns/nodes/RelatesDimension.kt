@@ -18,7 +18,7 @@ open class RelatesDimension(
 
     override fun copy(anotherPattern: Pattern): Dimension = RelatesDimension(anotherPattern, relationshipLabel, *extendedRelationships)
 
-    fun getQuery(node: LanguageNode =pattern.node) = node.get( relationshipLabel(), *( extendedRelationships.map { it() }.toTypedArray()) )
+    fun getQuery(node: LanguageNode = pattern.node) = node.get( relationshipLabel(), *( extendedRelationships.map { it() }.toTypedArray()) )
 
     override fun invoke() = sequence { getQuery().forEach { n->
             yield(Pattern(n, this@RelatesDimension.pattern, this@RelatesDimension.label))

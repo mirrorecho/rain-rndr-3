@@ -27,24 +27,26 @@ open class PatternPlayer(
         }
     }
 
-    private suspend fun playPattern(pattern: Pattern, program: Program, addDelay: Double? = null) {
+    private suspend fun playPattern(pattern: Pattern, program: Program) {
         val eventManager = pattern.cascadingProperties.manageWith(Event.EventManager())
         val threads: MutableList<Job> = mutableListOf()
         val machines = pattern[DimensionLabel.TRIGGERS]
 
-        pattern[DimensionLabel.TRIGGERS].forEach { m->
-            m.node.bump()
-            eventManager.gate.startGate?.let { gateMachine(m.node, it) }
+        pattern[DimensionLabel.TRIGGERS].forEach { pm->
+            eventManager.gate.startGate?.let { gateMachine(pm.node, it) }
+            pm.node.bump(pm)
         }
 
-        addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
+//        println("adding delay: $addDelay")
+        eventManager.dur?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
+//        addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
 
         pattern[DimensionLabel.CHILDREN]().forEach { child ->
             val childManager = child.cascadingProperties.manageWith(Event.EventManager())
             if (eventManager.simultaneous)
-                threads.add(program.launch { playPattern(child, program, childManager.dur) })
+                threads.add(program.launch { playPattern(child, program) })
             else
-                playPattern(child, program, childManager.dur)
+                playPattern(child, program)
         }
         threads.joinAll()
 

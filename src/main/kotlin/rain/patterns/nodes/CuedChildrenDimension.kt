@@ -16,8 +16,7 @@ class CuedChildrenDimension(
 
     override fun copy(anotherPattern: Pattern): Dimension = CuedChildrenDimension(anotherPattern)
 
-    override fun makeHistory(node:LanguageNode) =
-        Pattern(node, pattern, label).apply { add(*(dimensions.map {copy(this)}.toTypedArray()) ) }
+//    override fun makeHistory(node:LanguageNode) = makeHistoryCopyingDimensions(node)
 
     override val label: DimensionLabel = Companion.label
 

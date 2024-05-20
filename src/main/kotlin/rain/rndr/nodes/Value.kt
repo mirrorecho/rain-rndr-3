@@ -28,13 +28,13 @@ open class Value(
     override val label: NodeLabel<out Value> = Value
 
     open class ReceivingManager : Machine.ReceivingManager() {
-        var value: Double? by nullable()
+        var value: Double? by nullable("value")
     }
 
-    var value:Double by this.properties.withDefault(0.0)
-
+    var value:Double by this.properties.apply { putIfAbsent("value", 0.0) }
 
     override fun trigger(properties: MutableMap<String, Any?>) {
+//        println(properties)
         properties["value"]?.let{ value = it as Double }
     }
 

@@ -9,7 +9,9 @@ import rain.rndr.nodes.Value
 open class Machine(
     key:String = rain.utils.autoKey(),
 ): Node(key) {
-    companion object : NodeLabel<Machine>(Machine::class, Node, { k -> Machine(k) })
+    companion object : NodeLabel<Machine>(Machine::class, Node, { k -> Machine(k) }) {
+        override val receives: ReceivingManager get() = ReceivingManager()
+    }
     override val label: NodeLabel<out Machine> = Machine
 
     open class ReceivingManager : Event.EventManager()
@@ -24,7 +26,11 @@ open class Machine(
 
 
     override fun bump(vararg fromPatterns: Pattern) {
-        fromPatterns.forEach { trigger(it.cascadingProperties) }
+        fromPatterns.forEach {
+            val machinePath: Array<RelationshipLabel>? = it.cascadingProperties.remove("machinePath") as Array<RelationshipLabel>?
+            println("triggering $this, machinePath=${machinePath?.map {mp-> mp.labelName }}, with ${it.cascadingProperties}")
+            trigger(it.cascadingProperties)
+        }
     }
 
     // TODO: maybe this should ACTUALLY trigger the underlying value machine?

@@ -34,7 +34,7 @@ interface ManagerInterface {
         throw Exception("calling postCreate on $this even though pattern is null")
     }
 
-    private fun deferBlock(block: (Pattern)->Unit) {
+    fun deferToPattern(block: (Pattern)->Unit) {
         pattern?.let {
             block(it)
             return
@@ -43,14 +43,12 @@ interface ManagerInterface {
     }
 
     fun extend(vararg nodes: LanguageNode) =
-        deferBlock { p-> p[extendDimension].extend(*nodes) }
+        deferToPattern { p-> p[extendDimension].extend(*nodes) }
 
     fun <T:Any?> KMutableProperty<T>.stream(extendLabel: NodeLabelInterface<*>, vararg values:T) =
-        deferBlock { p-> p[extendDimension].stream(this.name, extendLabel, *values) }
+        deferToPattern { p-> p[extendDimension].stream(this.name, extendLabel, *values) }
     fun <T:Any?> KMutableProperty<T>.stream(vararg values:T) =
-        deferBlock { p-> p[extendDimension].stream(this.name, p.node.label, *values) }
-
-    fun play() = pattern?.let { PatternPlayer(it).play() }
+        deferToPattern { p-> p[extendDimension].stream(this.name, p.node.label, *values) }
 
 }
 

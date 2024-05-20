@@ -2,12 +2,11 @@ package rain.patterns.nodes
 
 import rain.language.*
 import rain.language.interfaces.ManagerInterface
+import rain.patterns.interfaces.DimensionLabel
 import rain.patterns.interfaces.Pattern
 import rain.patterns.relationships.TRIGGERS
 import rain.utils.autoKey
 import rain.utils.lazyish
-import rain.utils.withDefault
-import rain.utils.withNull
 
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
     ON(true, null),
@@ -25,22 +24,34 @@ open class Event protected constructor(
 
     // TODO: figure out a more elegant way to use by properties with defaults (esp. null values)
     open class EventManager : Manager() {
-        // TODO: is machine lavel even needed anymore?
-        var machine: NodeLabel<out Machine>? by nullable()
-        var machinePath: Array<RelationshipLabel>? by nullable()
-        var dur: Double? by nullable()
-        var gate: Gate by defaultable(Gate.NONE)
-        var simultaneous: Boolean by defaultable(false)
+        // TODO: is machine label even needed anymore?
+        open var machineLabel: NodeLabel<out Machine>? by nullable("machineLabel")
+        var machinePath: Array<RelationshipLabel>? by nullable("machinePath")
+        var dur: Double? by nullable("dur")
+        var gate: Gate by defaultable("gate", Gate.NONE)
+        var simultaneous: Boolean by defaultable("simultaneous", false)
 
-        override var pattern: Pattern? by lazyish {
-            node?.let { n ->
-                Pattern(n, CuedChildrenDimension).add(
-                    { p -> RelatesHistoryDimension(p, TRIGGERS, *(machinePath.orEmpty())) }
-                )
-            }
+        fun addTrigger(key: String= autoKey(),  autoTarget: Boolean=true): Machine? {
+            return machineLabel?.create(key)?.apply { if (autoTarget) autoTarget(); addTrigger(this); }
         }
 
+        fun addTrigger(machine: Machine): Machine {
+            deferToPattern {
+                it[DimensionLabel.TRIGGERS].extend(machine)
+            }
+            return machine
+        }
+
+        fun play() = deferToPattern { println("Playing $it"); PatternPlayer(it).play() }
+
     }
+
+    override fun makePattern(historyPattern: Pattern?, historyDimension: DimensionLabel?): Pattern =
+        Pattern(this, historyPattern, historyDimension, CuedChildrenDimension).add(
+            { p -> RelatesHistoryDimension(p, TRIGGERS,
+                *((p.cascadingProperties["machinePath"] as Array<RelationshipLabel>?).orEmpty())
+            ) }
+        )
 
     override var manager: ManagerInterface by lazyish { EventManager() }
 
@@ -100,6 +111,35 @@ open class Event protected constructor(
 //    }
 
 }
+
+// SHORTCUT HELPERS:
+
+// TODO: remove the intermediary "sends" implementation
+fun <MT : ManagerInterface> event(
+    key:String,
+    receiver:MT,
+    label:NodeLabel<out Event> = Event,
+    block: (MT.() -> Unit)? = null,
+) = label.sends(key, receiver, block)
+
+
+fun <MT : ManagerInterface> event(
+    receiver:MT,
+    label:NodeLabel<out Event> = Event,
+    block: (MT.() -> Unit)? = null,
+) = event(autoKey(), receiver, label, block)
+
+
+fun event(
+    key:String = autoKey(),
+    label:NodeLabel<out Event> = Event,
+    block: (Machine.ReceivingManager.() -> Unit)? = null,
+) = event(key, Machine.receives, Event, block)
+
+fun event(
+    label:NodeLabel<out Event> = Event,
+    block: (Machine.ReceivingManager.() -> Unit)? = null,
+) = event(autoKey(), Machine.receives, Event, block)
 
 // just for testing purposes
 class SubEvent(

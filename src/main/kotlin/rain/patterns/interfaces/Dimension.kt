@@ -26,7 +26,13 @@ interface Dimension {
     val pattern:Pattern
     val label:DimensionLabel
 
-    fun makeHistory(node:LanguageNode) = Pattern(node, pattern, label)
+//    fun makeHistory(node:LanguageNode) = Pattern(node, pattern, label)
+
+//    fun makeHistoryCopyingDimensions(node:LanguageNode): Pattern {
+//        return Pattern(node, pattern, label).apply {
+//            add(*(this@Dimension.pattern.dimensions.map { it.copy(this) }.toTypedArray()))
+//        }
+//    }
 
     fun copy(anotherPattern: Pattern): Dimension
 
@@ -92,7 +98,8 @@ interface Dimension {
 
     //selects anywhere
     fun selectAny(anyQuery: SelectNodes): Sequence<Pattern> =
-        anyQuery().map { n-> makeHistory(n) }
+//        anyQuery().map { n-> makeHistory(n) }
+        anyQuery().map { n-> n.makePattern(pattern, label) }
 
 }
 

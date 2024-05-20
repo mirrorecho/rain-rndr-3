@@ -5,6 +5,7 @@ import rain.graph.interfaces.*
 import rain.language.Manager
 import rain.language.Relationship
 import rain.language.RelationshipLabel
+import rain.patterns.interfaces.DimensionLabel
 import rain.patterns.interfaces.Pattern
 import rain.utils.autoKey
 
@@ -39,7 +40,10 @@ interface LanguageNode: LanguageItem, NodeSelectable, GraphableNode {
 
 //    val manager: ManagerInterface
 
-    var manager: ManagerInterface
+    var manager: ManagerInterface // TODO: needed?
+
+    fun makePattern(historyPattern: Pattern?=null, historyDimension: DimensionLabel?=null): Pattern =
+        Pattern(this, historyPattern, historyDimension)
 
     fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
 

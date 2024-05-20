@@ -27,6 +27,7 @@ class Pattern(
         vararg dimensions: DimensionCompanion
     ) : this(node, null, null, *dimensions)
 
+    override fun toString():String = "Pattern with dimensions ${dimensions.map { it.label }}"
 
     private val myDimensions: MutableMap<DimensionLabel, Dimension> =
         dimensions.associate { it.label to it.factory(this) }.toMutableMap()
@@ -53,7 +54,7 @@ class Pattern(
     val labels: Set<DimensionLabel> get() = myDimensions.keys
 
     val cascadingProperties: MutableMap<String, Any?> by lazy {
-        (historyPattern?.cascadingProperties.orEmpty() + node.properties).toMutableMap()
+        historyPattern?.cascadingProperties.orEmpty().toMutableMap().apply { putAll(node.properties) }
     }
 
 }
