@@ -1,22 +1,23 @@
-package rain.language.interfaces
+package rain.language.interfacing
 
+import rain.language.Node
 import rain.patterns.interfaces.Dimension
 import rain.patterns.interfaces.Pattern
 import rain.patterns.interfaces.DimensionLabel
-import rain.patterns.nodes.PatternPlayer
 import kotlin.reflect.KMutableProperty
 
+// TODO: why an interface? Even worth it?
 interface ManagerInterface {
 
     var properties: MutableMap<String, Any?>
 //    val label: NodeLabelInterface<*> // TODO: consider whether we'll need this
 
-    val node: LanguageNode?
+    val node: Node?
     var pattern: Pattern?
     var extendDimension: DimensionLabel
 
     fun manage(properties: MutableMap<String, Any?>)
-    fun manage(node: LanguageNode)
+    fun manage(node: Node)
     fun manage(pattern: Pattern)
 
     operator fun get(label: DimensionLabel): Dimension? = pattern?.get(label)
@@ -42,10 +43,10 @@ interface ManagerInterface {
         deferredBlocks.add(block)
     }
 
-    fun extend(vararg nodes: LanguageNode) =
+    fun extend(vararg nodes: Node) =
         deferToPattern { p-> p[extendDimension].extend(*nodes) }
 
-    fun <T:Any?> KMutableProperty<T>.stream(extendLabel: NodeLabelInterface<*>, vararg values:T) =
+    fun <T:Any?> KMutableProperty<T>.stream(extendLabel: NodeLabel<*>, vararg values:T) =
         deferToPattern { p-> p[extendDimension].stream(this.name, extendLabel, *values) }
     fun <T:Any?> KMutableProperty<T>.stream(vararg values:T) =
         deferToPattern { p-> p[extendDimension].stream(this.name, p.node.label, *values) }

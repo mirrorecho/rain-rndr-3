@@ -1,8 +1,8 @@
 package rain.graph
 
-import rain.graph.interfaces.*
-import rain.language.interfaces.SelectDirection
-import rain.language.interfaces.SelectInterface
+import rain.graph.interfaceable.*
+import rain.language.interfacing.queries.Query
+import rain.language.interfacing.queries.QueryMethod
 import kotlin.Exception
 
 class Graph: GraphInterface {
@@ -62,8 +62,8 @@ class Graph: GraphInterface {
                         target,
                         relationship.properties
                     ).also {
-                        source.sourcesFor[it] = target
-                        target.targetsFor[it] = source
+                        source.connectRelationship(it, true)
+                        target.connectRelationship(it, false)
                         addLabelIndex(it.labelName, it)
                     }
                 )?.let {
@@ -100,6 +100,17 @@ class Graph: GraphInterface {
         throw Exception("Relationship ${relationship.key} not found in graph; could not be read.")
     }
 
+    // =================================================================================
+
+    override fun getNode(key:String):GraphableNode {
+        graphNodes[key]?.let { return it; }
+        throw Exception("Node ${key} not found in graph; could not get.")
+    }
+
+    override fun getRelationship(key:String): GraphableRelationship {
+        graphRelationships[key]?.let { return it; }
+        throw Exception("Relationship ${key} not found in graph; could not get.")
+    }
     // =================================================================================
 
     override fun save(node: GraphableNode) {
@@ -141,48 +152,111 @@ class Graph: GraphInterface {
     // =================================================================================
     // =================================================================================
 
+    override fun queryNodes(query: Query<*>): Sequence<GraphNode> = sequence {
+        when (query.method) {
+            QueryMethod.SELECT -> {
+                yieldAll( ( query.labelName?.let { nodeLabelIndex[it].orEmpty() } ?: graphNodes ).sequenceKeys(query.selectKeys) )
+            }
+            QueryMethod.CONNECTED -> {
+                query.queryConnected?.let { q->
+                    yieldAll(
+                        queryRelationships(q).map { r->
+                            r.directedTarget(q.directionRight ?: true)
+                        }.let { qs-> query.labelName?.let { ln-> qs.filter {n-> n.labelName==ln} } ?: qs }
+                    )
+                }
+            }
+            QueryMethod.FROM -> {
+                query.queryFrom?.let { it.forEach { q-> yieldAll(queryNodes(q)) } }
+            }
+        }
+    }.let { s-> query.predicate?.let { s.filter(it) } ?: s }
+
+
+    override fun queryRelationships(query: Query<*>): Sequence<GraphRelationship> = sequence {
+        when (query.method) {
+            QueryMethod.SELECT -> {
+                yieldAll((query.labelName?.let { relationshipLabelIndex[it].orEmpty() }
+                    ?: graphRelationships).sequenceKeys(query.selectKeys))
+            }
+            QueryMethod.CONNECTED -> {
+                query.queryConnected?.let { q -> queryNodes(q).forEach { n ->
+                    n.getLabelsToRelationships(q.directionRight ?: true).let { ltr ->
+                        if (query.labelName == null)
+                            ltr.values.forEach { rs -> yieldAll(rs) }
+                        else
+                            ltr[query.labelName]?.let { rs -> yieldAll(rs) }
+                    }
+                } }
+            }
+            QueryMethod.FROM -> {
+                query.queryFrom?.let { it.forEach { q -> yieldAll(queryRelationships(q)) } }
+            }
+        }
+    }.let { s-> query.predicate?.let { s.filter(it) } ?: s }
 
     // =================================================================================
 
-
-    override fun selectGraphNodes(select: SelectInterface): Sequence<GraphNode> {
-        fun getNewSequence() = (
-                select.labelName?.let { nodeLabelIndex[select.labelName].orEmpty() } ?: graphNodes
-                ).sequenceKeys(select.keys).filterProperties(select.properties)
-
-        select.selectFrom?.let { sf ->
-            val fromSequence = (when (sf.direction) {
-                SelectDirection.RIGHT -> selectGraphRelationships(sf).map { r -> r.target }
-                SelectDirection.LEFT -> selectGraphRelationships(sf).map { r -> r.source }
-                else -> selectGraphNodes(sf) // TODO: test this
-            })
-            if (sf.direction == SelectDirection.CONCAT) return sequence {
-                yieldAll(fromSequence); yieldAll(getNewSequence());
-            }
-            else return fromSequence.filterKeys(select.keys).filterLabel(select.labelName)
-                .filterProperties(select.properties)
-
-        }
-        return getNewSequence()
-    }
-
-
-    override fun selectGraphRelationships(select: SelectInterface):Sequence<GraphRelationship> =
-        (select.selectFrom?.let {sf ->
-            (if (sf.isRelationships) selectGraphRelationships(sf)
-            else when (select.direction) {
-                SelectDirection.RIGHT -> sequence {
-                    selectGraphNodes(sf).forEach { n -> yieldAll(n.sourcesFor.map{ it.key }) }
-                }
-                SelectDirection.LEFT ->  sequence {
-                    selectGraphNodes(sf).forEach { n -> yieldAll(n.targetsFor.map{ it.key }) }
-                }
-                else -> selectGraphRelationships(sf) // TODO: test this (should simply further filter the select
-            }).filterLabel(select.labelName).filterKeys(select.keys)
-        } ?: run {
-            (select.labelName?.let { relationshipLabelIndex[select.labelName].orEmpty() } ?: graphRelationships
-                    ).sequenceKeys(select.keys)
-        }).filterProperties( select.properties )
+//    override fun queryGraphNodes(select: SelectInterface): Sequence<GraphNode> {
+//        fun getNewSequence() = (
+//                select.labelName?.let { nodeLabelIndex[select.labelName].orEmpty() } ?: graphNodes
+//                ).sequenceKeys(select.keys).filterProperties(select.properties)
+//
+//        select.selectFrom?.let { sf ->
+//            val fromSequence = (when (sf.direction) {
+//                SelectDirection.RIGHT -> selectGraphRelationships(sf).map { r -> r.target }
+//                SelectDirection.LEFT -> selectGraphRelationships(sf).map { r -> r.source }
+//                else -> selectGraphNodes(sf) // TODO: test this
+//            })
+//            if (sf.direction == SelectDirection.CONCAT) return sequence {
+//                yieldAll(fromSequence); yieldAll(getNewSequence());
+//            }
+//            else return fromSequence.filterKeys(select.keys).filterLabel(select.labelName)
+//                .filterProperties(select.properties)
+//
+//        }
+//        return getNewSequence()
+//    }
+//
+//
+//    override fun selectGraphNodes(select: SelectInterface): Sequence<GraphNode> {
+//        fun getNewSequence() = (
+//                select.labelName?.let { nodeLabelIndex[select.labelName].orEmpty() } ?: graphNodes
+//                ).sequenceKeys(select.keys).filterProperties(select.properties)
+//
+//        select.selectFrom?.let { sf ->
+//            val fromSequence = (when (sf.direction) {
+//                SelectDirection.RIGHT -> selectGraphRelationships(sf).map { r -> r.target }
+//                SelectDirection.LEFT -> selectGraphRelationships(sf).map { r -> r.source }
+//                else -> selectGraphNodes(sf) // TODO: test this
+//            })
+//            if (sf.direction == SelectDirection.CONCAT) return sequence {
+//                yieldAll(fromSequence); yieldAll(getNewSequence());
+//            }
+//            else return fromSequence.filterKeys(select.keys).filterLabel(select.labelName)
+//                .filterProperties(select.properties)
+//
+//        }
+//        return getNewSequence()
+//    }
+//
+//
+//    override fun selectGraphRelationships(select: SelectInterface):Sequence<GraphRelationship> =
+//        (select.selectFrom?.let {sf ->
+//            (if (sf.isRelationships) selectGraphRelationships(sf)
+//            else when (select.direction) {
+//                SelectDirection.RIGHT -> sequence {
+//                    selectGraphNodes(sf).forEach { n -> yieldAll(n.sourcesFor.map{ it.key }) }
+//                }
+//                SelectDirection.LEFT ->  sequence {
+//                    selectGraphNodes(sf).forEach { n -> yieldAll(n.targetsFor.map{ it.key }) }
+//                }
+//                else -> selectGraphRelationships(sf) // TODO: test this (should simply further filter the select
+//            }).filterLabel(select.labelName).filterKeys(select.keys)
+//        } ?: run {
+//            (select.labelName?.let { relationshipLabelIndex[select.labelName].orEmpty() } ?: graphRelationships
+//                    ).sequenceKeys(select.keys)
+//        }).filterProperties( select.properties )
 
 
 //    private fun selectLocalItems(select:SelectInterface<*>):Sequence<GraphItem> {
@@ -230,25 +304,25 @@ class Graph: GraphInterface {
 
 }
 
-fun <T:GraphItem>Map<String, T>.sequenceKeys(keys:List<String>?=null):Sequence<T> {
-    keys?.let { ks-> return ks.asSequence().mapNotNull { k-> this[k] } }
-    return this.asSequence().map { it.value }
+fun <T:GraphableItem>Map<String, T>.sequenceKeys(keys:Array<out String>):Sequence<T> {
+    return if (keys.isEmpty()) this.asSequence().map { it.value }
+    else keys.asSequence().mapNotNull { k-> this[k] }
 }
 
-fun <T:GraphItem>Sequence<T>.filterLabel(labelName:String?):Sequence<T> {
-    labelName?.let { return this.filter { it.labels.contains(labelName) } }
-    return this
-}
-
-fun <T:GraphItem>Sequence<T>.filterKeys(keys:List<String>?=null):Sequence<T> {
-    keys?.let { ks-> return this.filter { ks.contains(it.key) } }
-    return this
-}
-
-fun <T:GraphItem>Sequence<T>.filterProperties(properties:Map<String, Any?>?=null):Sequence<T> {
-    properties?.let { ps-> return this.filter { it.anyPropertyMatches(ps) } }
-    return this
-}
+//fun <T:GraphItem>Sequence<T>.filterLabel(labelName:String?):Sequence<T> {
+//    labelName?.let { return this.filter { it.labels.contains(labelName) } }
+//    return this
+//}
+//
+//fun <T:GraphItem>Sequence<T>.filterKeys(keys:List<String>?=null):Sequence<T> {
+//    keys?.let { ks-> return this.filter { ks.contains(it.key) } }
+//    return this
+//}
+//
+//fun <T:GraphItem>Sequence<T>.filterProperties(properties:Map<String, Any?>?=null):Sequence<T> {
+//    properties?.let { ps-> return this.filter { it.anyPropertyMatches(ps) } }
+//    return this
+//}
 
 //fun Sequence<GraphRelationship>.filterProperties(properties:Map<String, Any?>?=null):Sequence<GraphRelationship> {
 //    properties?.let { ps-> return this.filter { it.anyPropertyMatches(ps) } }

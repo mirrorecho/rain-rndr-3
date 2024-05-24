@@ -1,13 +1,9 @@
 package rain.language
 
-import rain.language.interfaces.*
+import rain.language.interfacing.*
 import rain.patterns.interfaces.*
-import rain.utils.DefaultableMap
 import rain.utils.lazyish
-import rain.utils.withDefault
-import rain.utils.withNull
 import kotlin.reflect.KProperty
-import kotlin.properties.Delegates
 
 class DefaultableManager<T>(val manager: ManagerInterface, name:String, default:T) {
 
@@ -15,8 +11,6 @@ class DefaultableManager<T>(val manager: ManagerInterface, name:String, default:
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T = manager.properties[property.name] as T
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {manager.properties[property.name] = value}
-
-
 
     init {
         default?.let { manager.properties[name] = it }
@@ -35,15 +29,14 @@ open class Manager: ManagerInterface {
     final override val node by lazyish { myNode }
     override var pattern: Pattern? by lazyish { node?.makePattern() }
 
-    private var myNode: LanguageNode? = null
+    private var myNode: Node? = null
 
     override var extendDimension = DimensionLabel.CHILDREN
 
     override var deferredBlocks = mutableListOf<((Pattern)->Unit)>()
 
-    // TODO: this doesn't work...!!!
     override fun manage(properties: MutableMap<String, Any?>) {this.properties = properties}
-    override fun manage(node: LanguageNode) {node.manager = this; myNode = node;  manage(node.properties)}
+    override fun manage(node: Node) {node.manager = this; myNode = node;  manage(node.properties)}
     override fun manage(pattern: Pattern) {this.pattern=pattern; manage(pattern.node)}
 
 }

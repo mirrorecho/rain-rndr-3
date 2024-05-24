@@ -1,7 +1,7 @@
 package rain.patterns.interfaces
 
-import rain.language.interfaces.LanguageNode
-import rain.language.interfaces.ManagerInterface
+import rain.language.Node
+import rain.language.interfacing.ManagerInterface
 import rain.patterns.nodes.HistoryDimension
 
 // at its most basic level, a pattern represents:
@@ -17,15 +17,14 @@ import rain.patterns.nodes.HistoryDimension
 
 
 class Pattern(
-    val node: LanguageNode,
-    val historyPattern: Pattern?,
-    val historyDimension: DimensionLabel?,
+    val node: Node,
+    val historyDimension: Dimension?,
     vararg dimensions: DimensionCompanion,
 ){
     constructor(
-        node: LanguageNode,
+        node: Node,
         vararg dimensions: DimensionCompanion
-    ) : this(node, null, null, *dimensions)
+    ) : this(node, null,  *dimensions)
 
     override fun toString():String = "Pattern with dimensions ${dimensions.map { it.label }}"
 
@@ -54,7 +53,7 @@ class Pattern(
     val labels: Set<DimensionLabel> get() = myDimensions.keys
 
     val cascadingProperties: MutableMap<String, Any?> by lazy {
-        historyPattern?.cascadingProperties.orEmpty().toMutableMap().apply { putAll(node.properties) }
+        historyDimension?.pattern?.cascadingProperties.orEmpty().toMutableMap().apply { putAll(node.properties) }
     }
 
 }

@@ -5,7 +5,8 @@ import kotlinx.coroutines.*
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.launch
-import rain.language.interfaces.*
+import rain.language.Node
+import rain.language.interfacing.*
 import rain.patterns.interfaces.*
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -15,9 +16,9 @@ import kotlin.time.toDuration
 open class PatternPlayer(
     val pattern: Pattern
 ) {
-    private val runningMachines: MutableMap<String, LanguageNode> = mutableMapOf()
+    private val runningMachines: MutableMap<String, Node> = mutableMapOf()
 
-    fun gateMachine(machine: LanguageNode, gate: Boolean) {
+    fun gateMachine(machine: Node, gate: Boolean) {
 //        println("gating $gate - $machine")
         machine.gate(gate)
         if (gate) {

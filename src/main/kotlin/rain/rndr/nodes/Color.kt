@@ -1,11 +1,11 @@
 package rain.rndr.nodes
 
-import rain.language.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
+import rain.language.interfacing.NodeLabel
 import rain.patterns.nodes.*
 
 open class Color(

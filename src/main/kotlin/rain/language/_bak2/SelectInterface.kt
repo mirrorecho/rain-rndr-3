@@ -1,7 +1,8 @@
-package rain.language.interfaces
+package rain.language._bak2
 
-import rain.graph.interfaces.GraphInterface
+import rain.graph.interfaceable.GraphInterface
 import rain.language.*
+import rain.language.Context
 
 enum class SelectDirection(val shortForm: String) {
     RIGHT("->"),
@@ -65,7 +66,7 @@ interface NodeSelectable: Selectable {
         relates(null, null, label, direction)
 
     // TODO: Test!!!
-    operator fun get(vararg selects: SelectNodes):SelectNodes {
+    operator fun get(vararg selects: SelectNodes): SelectNodes {
         var returnSelect: SelectNodes = selectMe
         selects.forEach { it.rootSelect = returnSelect; returnSelect = it}
 //        fun printSelects(s:SelectInterface) {

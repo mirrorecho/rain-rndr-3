@@ -1,20 +1,28 @@
 package rain.language
 
-import rain.language.interfaces.LanguageRelationship
-import rain.language.interfaces.RelationshipSelectable
+import rain.graph.interfaceable.GraphableRelationship
+import rain.language._bak2.SelectRelationships
+import rain.language.interfacing.queries.Query
+import rain.language.interfacing.queries.Queryable
 import rain.utils.autoKey
 
-open class Relationship(
+final class Relationship(
     key:String = autoKey(),
     override val label: RelationshipLabel,
     var sourceKey: String,
     var targetKey: String,
-): LanguageRelationship, RelationshipSelectable, Item(key) {
+): Queryable, GraphableRelationship, Item(key) {
+
+    fun save() = graph.save(this)
+
+    fun read() = graph.read(this)
+
+    fun delete() = graph.deleteRelationship(this.key)
 
     override val context get() = label.context
     override val graph get() = context.graph
 
-    override val selectMe get() = SelectRelationships(keys=listOf(this.key))
+    override val queryMe: Query get() = SelectRelationships(keys=listOf(this.key))
     override val labelName get() = label.labelName
 
     override fun toString():String = "(${source.key} $labelName ${target.key} | $key) $properties"

@@ -1,40 +1,65 @@
 package rain.language
 
-import rain.language.interfaces.LanguageNode
-import rain.language.interfaces.ManagerInterface
-import rain.language.interfaces.SelectDirection
+import org.openrndr.Program
+import rain.graph.interfaceable.GraphableNode
+import rain.language.interfacing.ManagerInterface
+import rain.language._bak2.SelectDirection
+import rain.language.interfacing.NodeLabel
+import rain.language.interfacing.queries.NodeQueryable
+import rain.patterns.interfaces.Dimension
 import rain.patterns.interfaces.Pattern
-import rain.patterns.nodes.Event
 import rain.utils.autoKey
 import rain.utils.lazyish
 import kotlin.reflect.KProperty0
 
-// TODO: consider making Node abstract?
-open class Node protected constructor(
+// ===========================================================================================================
+
+abstract class Node protected constructor(
     key:String = autoKey(),
-): LanguageNode, Item(key) {
-    companion object : NodeLabel<Node>(Node::class, null, {k->Node(k) })
-    override val label:NodeLabel<out Node> = Node
+): NodeQueryable, GraphableNode, Item(key) {
+    //    companion object : NodeLabel<Node>(Node::class, null, { k->Node(k) })
+    abstract override val label: NodeLabel<out Node>
 
     override val context get() = label.context
-    override val graph get() = context.graph
 
-    override val selectMe get() = SelectNodes(keys=listOf(this.key))
-    override val labelName get() = label.labelName
+    override val queryMe get() = SelectNodes(keys=listOf(this.key))
 
     // TODO maybe: consider moving this to the manager class?
     protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
 
-    override var manager: ManagerInterface by lazyish { Manager() }
+    var manager: ManagerInterface by lazyish { Manager() } // TODO: needed?
 
-//    override val manager by lazy { this.manageWith(Manager()) }
-//
-////    override fun getPattern(previous: Pattern?): Pattern = SelfPattern(this)
-////    override val manager by lazy {  NodeManager(this) }
-//
-//    private var myManager: ManagerInterface? = null
-////    override var manager get() = myManager ?: Manager()
-////        set(manager:ManagerInterface) {this.myManager = manager}
+//    val manager: ManagerInterface
+
+    fun makePattern(historyDimension: Dimension?=null): Pattern =
+        Pattern(this, historyDimension)
+
+    fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
+
+    fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
+
+    fun render(program: Program) { println("render not implemented for $this") }
+
+    fun save() = graph.save(this)
+
+    fun read() = graph.read(this)
+
+    fun delete() {
+        graph.deleteNode(this.key)
+        label.registry.remove(this.key)
+    }
+
+    fun relate(
+        rLabel: RelationshipLabel,
+        targetKey:String,
+        key:String = autoKey()
+    ): Relationship = rLabel.create(this.key, targetKey, key)
+
+    fun relate(
+        rLabel: RelationshipLabel,
+        targetNode: Node,
+        key:String = autoKey()
+    ): Relationship = rLabel.create(this.key, targetNode.key, key)
 
     fun autoTarget() {
         targetProperties.forEach {
@@ -45,7 +70,7 @@ open class Node protected constructor(
         }
     }
 
-    fun <T:Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>, direction: SelectDirection = SelectDirection.RIGHT) =
+    fun <T: Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>, direction: SelectDirection = SelectDirection.RIGHT) =
         CachedTarget(this, rLabel, nLabel, direction)
 
     // TODO: maybe implement this...?
@@ -63,18 +88,24 @@ open class Node protected constructor(
 
 }
 
-// ===========================================================================================================
+inline fun <T: ManagerInterface> Node.manageWith(manager:T, block: T.()->Unit): T {
+    manager.manage(this)
+    block(manager)
+    return manager
+}
+
+inline fun Node.manage(block: (ManagerInterface.()->Unit)) = manageWith(manager, block)
 
 // just for fiddling around purposes...
-open class SpecialNode protected constructor(
+open class Thingy protected constructor(
     key:String = autoKey(),
 ): Node(key) {
-    companion object : NodeLabel<SpecialNode>(SpecialNode::class, Node, { k -> SpecialNode(k) })
-    override val label: NodeLabel<SpecialNode> = SpecialNode
+    companion object : NodeLabel<Thingy>(Thingy::class, null, { k -> Thingy(k) })
+    override val label: NodeLabel<Thingy> = Thingy
 
-    class SpecialNodeManager : Manager() {
-        var special: String? by properties
+    class ThingyManager : Manager() {
+        var thingName: String? by properties
     }
-//    override val manager by lazy { SpecialNodeManager().apply { manage(this@SpecialNode) } }
+//    override val manager by lazy { ThingyManager().apply { manage(this@Thingy) } }
 
 }

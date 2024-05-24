@@ -1,8 +1,8 @@
 package rain.rndr.nodes
 
 import org.openrndr.Program
-import rain.language.interfaces.SelectDirection
-import rain.language.*
+import rain.language._bak2.SelectDirection
+import rain.language.interfacing.NodeLabel
 import rain.patterns.nodes.Machine
 import rain.patterns.relationships.TRIGGERS
 import rain.utils.*

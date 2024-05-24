@@ -1,27 +1,30 @@
-package rain.language
+package rain.language._bak2
 
-import rain.language.interfaces.*
-import rain.language.interfaces.Context
+import rain.language.LocalContext
+import rain.language.Node
+import rain.language.Relationship
+import rain.language.interfacing.*
+import rain.language.Context
 
-fun <T:Node>Sequence<T>.select():SelectNodes =
-    SelectNodes(keys = this.toList().map { it.key } )
+//fun <T: Node>Sequence<T>.select(): SelectNodes =
+//    SelectNodes(keys = this.toList().map { it.key } )
+//
+//fun <T: Relationship>Sequence<T>.select(): SelectRelationships =
+//    SelectRelationships(keys = this.toList().map { it.key })
+//
+//fun Sequence<String>.selectNodes(): SelectNodes =
+//    SelectNodes(keys = this.toList())
+//
+//fun List<String>.selectNodes(): SelectNodes =
+//    SelectNodes(keys = this)
+//
+//fun select(
+//    vararg keys:String,
+//    properties:Map<String,Any>?=null,
+//    labelName: String? = null,
+//) = SelectNodes(keys.asList(), properties, labelName)
 
-fun <T:Relationship>Sequence<T>.select():SelectRelationships =
-    SelectRelationships(keys = this.toList().map { it.key })
-
-fun Sequence<String>.selectNodes():SelectNodes =
-    SelectNodes(keys = this.toList())
-
-fun List<String>.selectNodes():SelectNodes =
-    SelectNodes(keys = this)
-
-fun select(
-    vararg keys:String,
-    properties:Map<String,Any>?=null,
-    labelName: String? = null,
-) = SelectNodes(keys.asList(), properties, labelName)
-
-open class SelectNodes(
+open class SelectNodesOld(
     override val keys: List<String>? = null,
     override val properties: Map<String, Any?>? = null,
     override val labelName: String? = null,
@@ -42,11 +45,11 @@ open class SelectNodes(
 
     override fun toString():String = "SELECT NODES - keys:$keys, properties:$properties, labelName:$labelName, selectFrom:${selectFrom!=null}, "
 
-    operator fun <T:Node>invoke(label: NodeLabelInterface<T>):Sequence<T> = context.selectNodes(this, label)
+    operator fun <T: Node>invoke(label: NodeLabel<T>):Sequence<T> = context.queryNodes(this, label)
 
-    operator fun invoke():Sequence<LanguageNode> = context.selectNodes(this)
+    operator fun invoke():Sequence<Node> = context.queryNodes(this)
 
-    inline fun forEach(block: (LanguageNode)->Unit) = invoke().forEach(block)
+    inline fun forEach(block: (Node)->Unit) = invoke().forEach(block)
 
     override fun selectKeys(): Sequence<String> = context.selectNodeKeys(this)
 
@@ -54,9 +57,9 @@ open class SelectNodes(
 
     fun contains(key: String): Boolean = this.indexOfFirst(key) > -1
 
-    fun <T:Node>first(label: NodeLabelInterface<T>): T? = this(label).firstOrNull()
+    fun <T: Node>first(label: NodeLabel<T>): T? = this(label).firstOrNull()
 
-    val first: LanguageNode? get() = this().firstOrNull()
+    val first: Node? get() = this().firstOrNull()
 
     // TODO: yay, caching! Maybe make use of something like this?
 //    val <T:Node>cachedItems: List<T> by lazy { this().toList() }
@@ -75,7 +78,7 @@ open class SelectNodes(
 
 // ===========================================================================================================
 
-open class SelectRelationships(
+open class SelectRelationshipsOld(
     override val keys: List<String>? = null,
     override val properties: Map<String, Any?>? = null,
     override val labelName: String? = null,
@@ -90,7 +93,7 @@ open class SelectRelationships(
 
     override fun toString():String = "SELECT RELATIONSHIPS - keys:$keys, properties:$properties, labelName:$labelName, direction:$direction, selectFrom:${selectFrom!=null}"
 
-    operator fun <T:Relationship>invoke(label: RelationshipLabelInterface<T>):Sequence<T> = context.selectRelationships(this, label)
+    operator fun <T: Relationship>invoke(label: RelationshipLabelInterface<T>):Sequence<T> = context.queryRelationships(this, label)
 
     override fun selectKeys(): Sequence<String> = context.selectRelationshipKeys(this)
 

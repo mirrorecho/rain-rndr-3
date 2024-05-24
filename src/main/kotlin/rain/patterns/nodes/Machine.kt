@@ -1,8 +1,8 @@
 package rain.patterns.nodes
 
 import rain.language.*
+import rain.language.interfacing.NodeLabel
 import rain.patterns.interfaces.Pattern
-import rain.rndr.nodes.Circle
 import rain.rndr.nodes.Value
 
 

@@ -1,5 +1,5 @@
 // NOTE: using plural "interface" to avoid name clash with "interface" keyword
-package rain.graph.interfaces
+package rain.graph.interfaceable
 
 // NOTE: unlike in the python implementation, not using data classes for subsclasses of this
 // (because Kotlin data classes don't allow inheritance, and inheritance
@@ -27,6 +27,7 @@ interface GraphableItem {
 
     operator fun set(name:String, value:Any?) { this.properties[name]=value }
 
+    // TODO: used?
     fun anyPropertyMatches(matchProperties: Map<String, Any?>): Boolean {
         return matchProperties.asIterable().indexOfFirst {
             // TODO is this the fastest implementation...? maybe another indexOfFirst instead?
@@ -55,5 +56,7 @@ interface GraphableRelationship: GraphableItem {
 
     val source: GraphableNode
     val target: GraphableNode
+
+    fun directedTarget(directionRight:Boolean=true): GraphableNode = if (directionRight) target else source
 
 }

@@ -1,11 +1,11 @@
 package rain.rndr.nodes
 
-import rain.language.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.Program
 import org.openrndr.math.Vector2
+import rain.language.interfacing.NodeLabel
 import rain.patterns.nodes.Machine
 
 

@@ -1,27 +1,39 @@
 package rain.patterns.nodes
 
-import rain.language.*
-import rain.language.interfaces.*
+import rain.language.interfacing.queries.Query
+import rain.language.Context
+import rain.language.Node
+import rain.language._bak2.SelectNodes
+import rain.language.interfacing.*
 import rain.patterns.interfaces.*
 
 import rain.patterns.relationships.*
 
 class CuedChildrenDimension(
-    override val pattern:Pattern,
-): Dimension {
+    pattern:Pattern,
+): Dimension(pattern, DimensionLabel.CHILDREN) {
     companion object : DimensionCompanion {
         override val label: DimensionLabel = DimensionLabel.CHILDREN
         override val factory: DimensionFactory = { p-> CuedChildrenDimension(p)}
     }
 
-    override fun copy(anotherPattern: Pattern): Dimension = CuedChildrenDimension(anotherPattern)
+    override fun asKeys(): Sequence<String> = this().map { it.key }
+
+    override val selectKeys get() = asKeys().toList().toTypedArray()
+
+    override val context: Context get() = pattern.node.context
+
+    override var fromQuery: Query? = pattern.historyDimension  // TODO maybe: is this a reasonable way to handle history?
+
+
+//    override fun copy(anotherPattern: Pattern): Dimension = CuedChildrenDimension(anotherPattern)
 
 //    override fun makeHistory(node:LanguageNode) = makeHistoryCopyingDimensions(node)
 
     override val label: DimensionLabel = Companion.label
 
-    private fun getChildCues(qCue: SelectNodes): Sequence<Pattern> = sequence {
-        this@CuedChildrenDimension.selectAny(qCue[CUES()]).forEach {
+    private fun getChildCues(qCue: SelectNodes): Sequence<Node> = sequence {
+        qCue[CUES()].forEach {
             yield(it)
             yieldAll(getChildCues(qCue[CUES_NEXT()]))
         }
@@ -29,7 +41,7 @@ class CuedChildrenDimension(
 
     override fun invoke() = getChildCues(pattern.node[CUES_FIRST()])
 
-    override fun extend(vararg nodes: LanguageNode) {
+    override fun extend(vararg nodes: Node) {
         // creates all Cue nodes for the extension (inc. Contains and Cues relationships)
         val cues = nodes.map { childNode ->
             Cue.create().also { cue ->

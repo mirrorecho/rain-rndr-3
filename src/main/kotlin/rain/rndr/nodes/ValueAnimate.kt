@@ -3,12 +3,10 @@ package rain.rndr.nodes
 import org.openrndr.Program
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
-import rain.language.CachedTarget
-import rain.language.NodeLabel
-import rain.language.interfaces.manageWith
+import rain.language.interfacing.NodeLabel
+import rain.language.interfacing.manageWith
 import rain.patterns.nodes.Machine
 import rain.rndr.relationships.ANIMATES
-import rain.rndr.relationships.STROKE_WEIGHT
 import rain.utils.autoKey
 import kotlin.math.absoluteValue
 

@@ -12,7 +12,7 @@ class RelatesHistoryDimension(
     vararg extendedRelationships: RelationshipLabel
 ): RelatesDimension(pattern, relationshipLabel, *extendedRelationships) {
 
-    override fun copy(anotherPattern: Pattern): Dimension = RelatesHistoryDimension(anotherPattern, relationshipLabel, *extendedRelationships)
+//    override fun copy(anotherPattern: Pattern): Dimension = RelatesHistoryDimension(anotherPattern, relationshipLabel, *extendedRelationships)
 
     override fun invoke() = sequence {
         pattern.history.forEach { h ->

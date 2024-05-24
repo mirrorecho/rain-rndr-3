@@ -1,7 +1,9 @@
 package rain.patterns.nodes
 
 import rain.language.*
-import rain.language.interfaces.ManagerInterface
+import rain.language.interfacing.ManagerInterface
+import rain.language.interfacing.NodeLabel
+import rain.patterns.interfaces.Dimension
 import rain.patterns.interfaces.DimensionLabel
 import rain.patterns.interfaces.Pattern
 import rain.patterns.relationships.TRIGGERS
@@ -46,8 +48,8 @@ open class Event protected constructor(
 
     }
 
-    override fun makePattern(historyPattern: Pattern?, historyDimension: DimensionLabel?): Pattern =
-        Pattern(this, historyPattern, historyDimension, CuedChildrenDimension).add(
+    override fun makePattern(historyDimension: Dimension?): Pattern =
+        Pattern(this, historyDimension, CuedChildrenDimension).add(
             { p -> RelatesHistoryDimension(p, TRIGGERS,
                 *((p.cascadingProperties["machinePath"] as Array<RelationshipLabel>?).orEmpty())
             ) }
@@ -118,26 +120,26 @@ open class Event protected constructor(
 fun <MT : ManagerInterface> event(
     key:String,
     receiver:MT,
-    label:NodeLabel<out Event> = Event,
+    label: NodeLabel<out Event> = Event,
     block: (MT.() -> Unit)? = null,
 ) = label.sends(key, receiver, block)
 
 
 fun <MT : ManagerInterface> event(
     receiver:MT,
-    label:NodeLabel<out Event> = Event,
+    label: NodeLabel<out Event> = Event,
     block: (MT.() -> Unit)? = null,
 ) = event(autoKey(), receiver, label, block)
 
 
 fun event(
     key:String = autoKey(),
-    label:NodeLabel<out Event> = Event,
+    label: NodeLabel<out Event> = Event,
     block: (Machine.ReceivingManager.() -> Unit)? = null,
 ) = event(key, Machine.receives, Event, block)
 
 fun event(
-    label:NodeLabel<out Event> = Event,
+    label: NodeLabel<out Event> = Event,
     block: (Machine.ReceivingManager.() -> Unit)? = null,
 ) = event(autoKey(), Machine.receives, Event, block)
 

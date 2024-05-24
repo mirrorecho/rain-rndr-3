@@ -1,7 +1,6 @@
 package rain.rndr.nodes
 
-import rain.language.*
-import rain.language.interfaces.*
+import rain.language.interfacing.*
 import rain.rndr.relationships.*
 import rain.utils.*
 

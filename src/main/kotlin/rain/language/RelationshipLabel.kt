@@ -1,39 +1,79 @@
 package rain.language
 
-import rain.language.interfaces.Context
-import rain.language.interfaces.RelationshipLabelInterface
-import rain.language.interfaces.RelationshipSelectable
-import rain.language.interfaces.SelectDirection
+import rain.graph.interfaceable.GraphableRelationship
+import rain.language._bak2.SelectRelationships
+import rain.language.interfacing.RelationshipLabelInterface
+import rain.language._bak2.RelationshipSelectable
+import rain.language._bak2.SelectDirection
+import rain.language.interfacing.NodeLabel
+import rain.utils.autoKey
 
 class RelationshipLabel(
     override val labelName:String,
     val direction: SelectDirection = SelectDirection.RIGHT,
 ): RelationshipSelectable, RelationshipLabelInterface<Relationship> {
     val left =
-        if (direction==SelectDirection.RIGHT)
+        if (direction== SelectDirection.RIGHT)
             RelationshipLabel(labelName, SelectDirection.LEFT)
         else
             this
 
     override val selectMe get() = SelectRelationships(labelName=labelName, direction = direction)
-    override val allNames: List<String> = listOf(labelName)
 
     override var context: Context = LocalContext
 
     override fun toString() = labelName
 
-    override fun factory(sourceKey:String, targetKey:String, key:String): Relationship {
+    fun factory(sourceKey:String, targetKey:String, key:String): Relationship {
         return Relationship(key, this, sourceKey, targetKey)
     }
 
-    operator fun invoke(keys:List<String>?=null, properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
+    fun from(gRelationship: GraphableRelationship):T = gRelationship.run {
+        factory(source.key, target.key, key).also { it.updatePropertiesFrom(this) }
+    }
+
+    // TODO: is all this complexity necessary for relationships???
+
+    fun merge(
+        sourceKey:String,
+        targetKey:String,
+        key:String,
+        properties:Map<String,Any?>?=null,
+        blockBefore:( LanguageRelationship.()->Unit )?=null,
+        blockAfter:( LanguageRelationship.()->Unit )?=null
+    ):LanguageRelationship =
+        factory(sourceKey, targetKey, key).apply {
+            properties?.let{ this.properties.putAll(it) };
+            blockBefore?.invoke(this);
+            context.graph.merge(this);
+            blockAfter?.invoke(this);
+        }
+
+    fun create(
+        sourceKey:String,
+        targetKey:String,
+        key:String = autoKey(),
+        properties:Map<String,Any?>?=null,
+        blockBefore:( LanguageRelationship.()->Unit )?=null,
+        blockAfter:( LanguageRelationship.()->Unit )?=null
+    ):LanguageRelationship =
+        factory(sourceKey, targetKey, key).apply {
+            properties?.let{ this.properties.putAll(it) };
+            blockBefore?.invoke(this);
+            context.graph.create(this);
+            blockAfter?.invoke(this);
+        }
+
+    operator fun invoke(keys:List<String>?=null, properties: Map<String, Any>?= null, label: NodeLabel<*>?=null) =
         selectMe.nodes(keys, properties, label?.labelName)
 
-    operator fun invoke(vararg keys:String, label:NodeLabel<*>?=null) =
+    operator fun invoke(vararg keys:String, label: NodeLabel<*>?=null) =
         invoke(keys.asList(), null, label)
 
-    operator fun invoke(properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
+    operator fun invoke(properties: Map<String, Any>?= null, label: NodeLabel<*>?=null) =
         invoke(null, properties, label)
+
+
 
 //    fun left(keys:List<String>?=null, properties: Map<String, Any>?= null, label:NodeLabel<*>?=null) =
 //        SelectRelationships(labelName=this.labelName, direction= SelectDirection.LEFT).nodes(keys, properties, label?.labelName)

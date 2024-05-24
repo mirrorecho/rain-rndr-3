@@ -1,7 +1,7 @@
 package rain.patterns.nodes
 
 import rain.language.*
-import rain.patterns.relationships.*
+import rain.language.interfacing.NodeLabel
 
 
 // TODO... long and nasty with all the class inheritance and companion objects ... REFACTOR!!!!

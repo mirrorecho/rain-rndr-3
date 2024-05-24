@@ -1,15 +1,9 @@
 package rain.sandbox.solve
 
-import rain.language.interfaces.manageWith
-import rain.patterns.interfaces.DimensionLabel
-import rain.patterns.interfaces.forEach
+import rain.language.interfacing.manageWith
 import rain.patterns.nodes.*
 import rain.rndr.nodes.Circle
 import rain.rndr.nodes.Value
-import rain.rndr.nodes.ValueAnimate
-import rain.rndr.relationships.ANIMATES
-import rain.rndr.relationships.FILL_COLOR
-import rain.rndr.relationships.H
 import rain.rndr.relationships.RADIUS
 
 
