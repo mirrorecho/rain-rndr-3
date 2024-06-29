@@ -1,62 +1,104 @@
 package rain.sandbox.solve
 
-import rain.language.interfacing.manageWith
+
+import rain.language.CachedTarget
+import rain.language.Thingy
+import rain.language.manageWith
+import rain.patterns.DimensionLabel
+import rain.patterns.nodes.Gate
+import rain.patterns.nodes.event
 import rain.patterns.nodes.*
+import rain.patterns.relationships.TRIGGERS
 import rain.rndr.nodes.Circle
 import rain.rndr.nodes.Value
 import rain.rndr.relationships.RADIUS
 
 
+
+
+
 fun solve1() {
+//
+//    // TODO: remove "sends" method
+//
 
-    // TODO: remove "sends" method
+    val crm = Circle.ReceivingManager2()
 
-    val cr = Circle.receives
-    val e = event("E1", cr) {
+    val e1 = event() {
+
+    }
+
+    val e = event("E1", Circle.receives) {
+        addTrigger("C1")
         gate = Gate.ON_OFF
         simultaneous = true
-        addTrigger("C1")
+        radius.value = 0.0
+
+
+//        targeting(radius) {
+//
+//        }
+//
+//        targeting(fillColor.h) {
+//
+//        }
+
+        fun <T:Machine>event2(key:String, targeting:CachedTarget<T>): T {
+
+        }
+
+        val m = event2("E1", CachedTarget<Circle>())
+        m.manager.extend()
+
         extend(
+
             event("E1-1", Value.receives) {
-//                gate = Gate.NONE // TODO: shouldn't have to specify this
-//                simultaneous = false // TODO: shouldn't have to specify this
+
+                deferToPattern {
+                    it.historyDimension?.pattern
+                }
+//                gate = Gate.NONE // NOTE: shouldn't have to specify this
+//                simultaneous = false // NOTE: shouldn't have to specify this
 //                deferToPattern { p-> ValueAnimate.create().relate(ANIMATES, p.node) }
 //                machinePath = arrayOf(RADIUS, ANIMATES.left)
-                // TODO: cascading properties + defaults not working correctly !!!!!!!!!
+                // TODO: are cascading properties + defaults working correctly?
                 machinePath = arrayOf(RADIUS)
 //                ::initValue.stream(0.0)
                 ::dur.stream(2.0, 0.5, 4.0)
                 ::value.stream(90.0, 200.0, 9.0)
-
             }
         )
-
     }
+//    println(Circle.get("C1"))
 
     e.manageWith(cr) {
-
-            play()
-//        val child = this[DimensionLabel.CHILDREN]?.invoke()?.first()
-//        val grandChildren = child?.get(DimensionLabel.CHILDREN)
-//        grandChildren?.forEach { println(it.cascadingProperties) }
-
-//        val child = this[DimensionLabel.CHILDREN]?.invoke()?.first()
-//        println(child?.node)
-//        println(child?.history?.invoke()?.first()?.node)
-//        print(child?.history?.invoke()?.toList())
-//        val machineDimension = child?.get(DimensionLabel.TRIGGERS) as RelatesHistoryDimension?
-//        val machine = machineDimension?.invoke()?.first()
-//        println(machineDimension?.extendedRelationships?.toList())
-//        println(child?.node)
-//        println(machine?.node)
-
-//        play()
-    }
-//        this[DimensionLabel.CHILDREN]?.forEach {
-////            println(it.historyPattern)
-////            println(it)
-//        }
+//
+//            play()
+////        val child = this[DimensionLabel.CHILDREN]?.invoke()?.first()
+////        val grandChildren = child?.get(DimensionLabel.CHILDREN)
+////        grandChildren?.forEach { println(it.cascadingProperties) }
+//
+////        val child = this[DimensionLabel.CHILDREN]?.invoke()?.first()
+////        println(child?.node)
+////        println(child?.history?.invoke()?.first()?.node)
+////        print(child?.history?.invoke()?.toList())
+////        val machineDimension = child?.get(DimensionLabel.TRIGGERS) as RelatesHistoryDimension?
+////        val machine = machineDimension?.invoke()?.first()
+////        println(machineDimension?.extendedRelationships?.toList())
+////        println(child?.node)
+////        println(machine?.node)
+//
+////        play()
 //    }
+        this[DimensionLabel.CHILDREN]?.asPatterns()?.forEach {
+//            println(it.historyDimension)
+//            println(it.historyDimension?.pattern?.node)
+            println(it.node)
+            it[DimensionLabel.CHILDREN].asPatterns().forEach { it2 ->
+                println(it2.cascadingProperties)
+            }
+        }
+    }
 
 
 

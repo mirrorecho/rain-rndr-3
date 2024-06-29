@@ -1,7 +1,7 @@
 package rain.language
 
-import rain.language.interfacing.*
-import rain.patterns.interfaces.*
+import rain.patterns.DimensionLabel
+import rain.patterns.Pattern
 import rain.utils.lazyish
 import kotlin.reflect.KProperty
 

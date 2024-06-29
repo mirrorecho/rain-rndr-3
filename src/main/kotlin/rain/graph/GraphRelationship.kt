@@ -1,6 +1,6 @@
 package rain.graph
 
-import rain.graph.interfaceable.*
+import rain.graph.interfacing.*
 
 class GraphRelationship(
     override val key:String,
@@ -17,7 +17,7 @@ class GraphRelationship(
     // TODO: replace with label instance
     override val labels get() = listOf(labelName)
 
-    override fun directedTarget(directionRight:Boolean): GraphNode = if (directionRight) target else source
+    override fun directedTarget(directionIsRight:Boolean): GraphNode = if (directionIsRight) target else source
 
     fun cleanup(graph: Graph) {
         graph.discardLabelIndex(labelName, this)

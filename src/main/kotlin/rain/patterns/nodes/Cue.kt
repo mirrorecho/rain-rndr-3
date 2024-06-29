@@ -1,7 +1,7 @@
 package rain.patterns.nodes
 
-import rain.language.*
-import rain.language.interfacing.NodeLabel
+import rain.language.Node
+import rain.language.NodeLabel
 
 
 // TODO... long and nasty with all the class inheritance and companion objects ... REFACTOR!!!!
@@ -9,7 +9,7 @@ import rain.language.interfacing.NodeLabel
 open class Cue(
     key:String = rain.utils.autoKey(),
 ): Node(key) {
-    companion object : NodeLabel<Cue>(Cue::class, Node, { k -> Cue(k) })
+    companion object : NodeLabel<Cue>(Cue::class, null, { k -> Cue(k) })
     override val label: NodeLabel<out Cue> = Cue
 
     // TODO: these all need tests!

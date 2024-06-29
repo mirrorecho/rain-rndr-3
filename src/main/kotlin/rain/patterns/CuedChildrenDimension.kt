@@ -1,45 +1,36 @@
-package rain.patterns.nodes
+package rain.patterns
 
-import rain.language.interfacing.queries.Query
+import rain.graph.interfacing.GraphableNode
+import rain.language.Query
 import rain.language.Context
 import rain.language.Node
-import rain.language._bak2.SelectNodes
-import rain.language.interfacing.*
-import rain.patterns.interfaces.*
+import rain.patterns.nodes.Cue
 
 import rain.patterns.relationships.*
 
 class CuedChildrenDimension(
-    pattern:Pattern,
+    pattern: Pattern,
 ): Dimension(pattern, DimensionLabel.CHILDREN) {
     companion object : DimensionCompanion {
         override val label: DimensionLabel = DimensionLabel.CHILDREN
-        override val factory: DimensionFactory = { p-> CuedChildrenDimension(p)}
+        override val factory: DimensionFactory = { p-> CuedChildrenDimension(p) }
     }
-
-    override fun asKeys(): Sequence<String> = this().map { it.key }
-
-    override val selectKeys get() = asKeys().toList().toTypedArray()
 
     override val context: Context get() = pattern.node.context
 
-    override var fromQuery: Query? = pattern.historyDimension  // TODO maybe: is this a reasonable way to handle history?
+//    override var fromQuery: Query? = pattern.historyDimension  // TODO maybe: is this a reasonable way to handle history?
 
-
-//    override fun copy(anotherPattern: Pattern): Dimension = CuedChildrenDimension(anotherPattern)
-
-//    override fun makeHistory(node:LanguageNode) = makeHistoryCopyingDimensions(node)
 
     override val label: DimensionLabel = Companion.label
 
-    private fun getChildCues(qCue: SelectNodes): Sequence<Node> = sequence {
-        qCue[CUES()].forEach {
+    private fun getChildCues(qCue: Query): Sequence<GraphableNode> = sequence {
+        qCue[CUES()].graphableNodes.forEach {
             yield(it)
             yieldAll(getChildCues(qCue[CUES_NEXT()]))
         }
     }
 
-    override fun invoke() = getChildCues(pattern.node[CUES_FIRST()])
+    override val graphableNodes = getChildCues(pattern.node[CUES_FIRST()])
 
     override fun extend(vararg nodes: Node) {
         // creates all Cue nodes for the extension (inc. Contains and Cues relationships)
@@ -50,7 +41,7 @@ class CuedChildrenDimension(
             }
         }
 
-        if (this().none())
+        if (graphableNodes.none())
         // if empty, then create the CuesFirst
         // note... empty check works even after creating the Contains relationships above
         // because the isEmpty logic checks for CUES_FIRST
@@ -58,10 +49,11 @@ class CuedChildrenDimension(
         else {
             // otherwise create a CuesNext relationship from the existing CuesLast target node to the start of extension cue nodes
             // and remove the CuesLast
-            pattern.node.relates(CUES_LAST)(CUES_LAST).first().let {
+            pattern.node.getRelationships(CUES_LAST).first().also {
                 CUES_NEXT.create(it.targetKey, cues[0].key)
                 it.delete()
             }
+
         }
 
         // creates CuesNext relationships between all the Cue nodes

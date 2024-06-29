@@ -1,13 +1,12 @@
-package rain.patterns.nodes
+package rain.patterns
 
 import kotlinx.coroutines.*
 
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.launch
-import rain.language.Node
-import rain.language.interfacing.*
-import rain.patterns.interfaces.*
+import rain.language.*
+import rain.patterns.nodes.Event
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -33,16 +32,16 @@ open class PatternPlayer(
         val threads: MutableList<Job> = mutableListOf()
         val machines = pattern[DimensionLabel.TRIGGERS]
 
-        pattern[DimensionLabel.TRIGGERS].forEach { pm->
-            eventManager.gate.startGate?.let { gateMachine(pm.node, it) }
-            pm.node.bump(pm)
+        pattern[DimensionLabel.TRIGGERS].forEach { n ->
+            eventManager.gate.startGate?.let { gateMachine(n, it) }
+            n.bump(pattern)
         }
 
 //        println("adding delay: $addDelay")
         eventManager.dur?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
 //        addDelay?.let { delay(it.toDuration(DurationUnit.SECONDS)) }
 
-        pattern[DimensionLabel.CHILDREN]().forEach { child ->
+        pattern[DimensionLabel.CHILDREN].asPatterns().forEach { child ->
             val childManager = child.cascadingProperties.manageWith(Event.EventManager())
             if (eventManager.simultaneous)
                 threads.add(program.launch { playPattern(child, program) })
@@ -52,7 +51,7 @@ open class PatternPlayer(
         threads.joinAll()
 
         pattern[DimensionLabel.TRIGGERS].forEach { m->
-            eventManager.gate.endGate?.let { gateMachine(m.node, it) }
+            eventManager.gate.endGate?.let { gateMachine(m, it) }
         }
 
     }

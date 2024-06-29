@@ -1,17 +1,20 @@
 package rain.language
 
 import rain.graph.Graph
-import rain.graph.interfaceable.GraphInterface
-import rain.graph.interfaceable.GraphableNode
-import rain.language.interfacing.NodeLabel
-import rain.language.interfacing.queries.Query
-import rain.language.interfacing.RelationshipLabelInterface
+import rain.graph.interfacing.GraphInterface
+import rain.graph.interfacing.GraphableNode
 
 abstract class Context {
     abstract val graph: GraphInterface
 
     // TODO: interaction with nodeLabels should happen here
     val nodeLabels:MutableMap<String, NodeLabel<*>> = mutableMapOf()
+
+    fun nodeFrom(node: GraphableNode): Node? =
+        nodeLabels[node.labelName]?.from(node)
+
+    fun nodeFrom(key:String): Node? =
+        nodeFrom(graph.getNode(key))
 
 //    fun queryNodes(query: Query<GraphableNode>): Sequence<GraphableNode> = sequence {  }
 
@@ -76,7 +79,7 @@ abstract class Context {
 
 }
 
-object LocalContext:Context() {
+object LocalContext: Context() {
     override val graph: GraphInterface = Graph()
 }
 

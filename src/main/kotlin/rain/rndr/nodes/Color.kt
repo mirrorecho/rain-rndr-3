@@ -5,8 +5,8 @@ import rain.utils.*
 
 import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
-import rain.language.interfacing.NodeLabel
-import rain.patterns.nodes.*
+import rain.language.NodeLabel
+import rain.patterns.nodes.Machine
 
 open class Color(
     key:String = autoKey(),

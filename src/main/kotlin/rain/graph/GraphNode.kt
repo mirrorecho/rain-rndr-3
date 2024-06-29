@@ -1,12 +1,12 @@
 package rain.graph
 
-import rain.graph.interfaceable.*
+import rain.graph.interfacing.*
 
 typealias LabelsToRelationships =  MutableMap<String, MutableSet<GraphRelationship>>
 
 class GraphNode(
     override val key:String,
-    override val labels: List<String>,
+    override val labels: List<String>, // TODO: make array?
     properties: Map<String, Any?> = mapOf()
 ) : GraphableNode {
 
@@ -19,19 +19,19 @@ class GraphNode(
         mutableMapOf(), mutableMapOf(),
     )
 
-    fun getLabelsToRelationships(directionRight: Boolean): LabelsToRelationships =
-        if (directionRight) connectedRelationships.first else connectedRelationships.second
+    fun getLabelsToRelationships(directionIsRight: Boolean): LabelsToRelationships =
+        if (directionIsRight) connectedRelationships.first else connectedRelationships.second
 
-    fun connectRelationship(relationship: GraphRelationship, directionRight: Boolean) {
-        getLabelsToRelationships(directionRight).getOrPut(relationship.labelName) { mutableSetOf() }.add(relationship)
+    fun connectRelationship(relationship: GraphRelationship, directionIsRight: Boolean) {
+        getLabelsToRelationships(directionIsRight).getOrPut(relationship.labelName) { mutableSetOf() }.add(relationship)
     }
 
-    fun disconnectRelationship(relationship: GraphRelationship, directionRight: Boolean) {
-        getLabelsToRelationships(directionRight)[relationship.labelName]?.remove(relationship)
+    fun disconnectRelationship(relationship: GraphRelationship, directionIsRight: Boolean) {
+        getLabelsToRelationships(directionIsRight)[relationship.labelName]?.remove(relationship)
     }
 
-    fun getRelationships(relationshipLabel: String, directionRight: Boolean): Set<GraphRelationship> =
-        getLabelsToRelationships(directionRight)[relationshipLabel].orEmpty()
+    fun getRelationships(relationshipLabel: String, directionIsRight: Boolean): Set<GraphRelationship> =
+        getLabelsToRelationships(directionIsRight)[relationshipLabel].orEmpty()
 
     //maps for faster indexing ... keys are relationships, values are the target nodes
 //    internal val sourcesFor = mutableMapOf<GraphRelationship, GraphNode>()

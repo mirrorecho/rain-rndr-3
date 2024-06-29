@@ -1,13 +1,9 @@
 package rain.language
 
 import org.openrndr.Program
-import rain.graph.interfaceable.GraphableNode
-import rain.language.interfacing.ManagerInterface
-import rain.language._bak2.SelectDirection
-import rain.language.interfacing.NodeLabel
-import rain.language.interfacing.queries.NodeQueryable
-import rain.patterns.interfaces.Dimension
-import rain.patterns.interfaces.Pattern
+import rain.graph.interfacing.*
+import rain.patterns.Dimension
+import rain.patterns.Pattern
 import rain.utils.autoKey
 import rain.utils.lazyish
 import kotlin.reflect.KProperty0
@@ -16,36 +12,34 @@ import kotlin.reflect.KProperty0
 
 abstract class Node protected constructor(
     key:String = autoKey(),
-): NodeQueryable, GraphableNode, Item(key) {
+): Queryable, GraphableNode, Item(key) {
     //    companion object : NodeLabel<Node>(Node::class, null, { k->Node(k) })
     abstract override val label: NodeLabel<out Node>
 
     override val context get() = label.context
 
-    override val queryMe get() = SelectNodes(keys=listOf(this.key))
+    override val queryMe get() = Query(selectKeys = arrayOf(this.key))
 
     // TODO maybe: consider moving this to the manager class?
     protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
 
-    var manager: ManagerInterface by lazyish { Manager() } // TODO: needed?
+    open var manager: ManagerInterface by lazyish { Manager() } // TODO: needed?
 
-//    val manager: ManagerInterface
-
-    fun makePattern(historyDimension: Dimension?=null): Pattern =
+    open fun makePattern(historyDimension: Dimension?=null): Pattern =
         Pattern(this, historyDimension)
 
-    fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
+    open fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
 
-    fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
+    open fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
 
-    fun render(program: Program) { println("render not implemented for $this") }
+    open fun render(program: Program) { println("render not implemented for $this") }
 
-    fun save() = graph.save(this)
+    fun save() = context.graph.save(this)
 
-    fun read() = graph.read(this)
+    fun read() = context.graph.read(this)
 
     fun delete() {
-        graph.deleteNode(this.key)
+        context.graph.deleteNode(this.key)
         label.registry.remove(this.key)
     }
 
@@ -70,8 +64,14 @@ abstract class Node protected constructor(
         }
     }
 
-    fun <T: Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>, direction: SelectDirection = SelectDirection.RIGHT) =
-        CachedTarget(this, rLabel, nLabel, direction)
+    fun <T: Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>) =
+        CachedTarget(this, rLabel, nLabel)
+
+    fun getGraphableRelationships(relationshipLabelName:String, directionIsRight:Boolean=true) =
+        context.graph.getRelationships(this.key, relationshipLabelName, directionIsRight)
+
+    fun getRelationships(relationshipLabel:RelationshipLabel, directionIsRight:Boolean=true) =
+        getGraphableRelationships(relationshipLabel.labelName, directionIsRight).map { relationshipLabel.from(it) }
 
     // TODO: maybe implement this...?
 //    fun <T:Node>targetsOrMake(

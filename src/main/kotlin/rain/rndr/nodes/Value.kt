@@ -1,8 +1,7 @@
 package rain.rndr.nodes
 
 import org.openrndr.Program
-import rain.language._bak2.SelectDirection
-import rain.language.interfacing.NodeLabel
+import rain.language.NodeLabel
 import rain.patterns.nodes.Machine
 import rain.patterns.relationships.TRIGGERS
 import rain.utils.*
@@ -12,7 +11,7 @@ abstract class ValueController(
 ): Machine(key) {
     abstract var controlValue: Double? // would it be simpler to not allow nulls here?
 
-    val targetValue = cachedTarget(TRIGGERS, Value, SelectDirection.LEFT)
+    val targetValue = cachedTarget(TRIGGERS.left, Value) // TODO: is left correct here?
 
     override fun render(program: Program) {
         controlValue?.let { targetValue.target?.value = it }

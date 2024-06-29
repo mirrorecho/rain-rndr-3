@@ -1,10 +1,8 @@
-package rain.graph.interfaceable
+package rain.graph.interfacing
 
 import rain.graph.Graph
 import rain.graph.GraphNode
-import rain.graph.GraphRelationship
-import rain.language._bak2.SelectInterface
-import rain.language.interfacing.queries.Query
+import rain.language.Query
 
 typealias LabelDirected = Pair<String, Boolean?>
 
@@ -39,6 +37,10 @@ interface GraphInterface {
 
     fun getRelationship(key:String): GraphableRelationship
 
+    fun getRelationships(nodeKey:String, relationshipLabel:String, directionIsRight:Boolean=true): Set<GraphableRelationship>
+
+//    fun getRelationships(node:GraphableNode, relationshipLabel:String, directionIsRight:Boolean=true): Set<GraphableRelationship>
+
     fun save(node:GraphableNode)
 
     fun save(relationship:GraphableRelationship)
@@ -47,11 +49,7 @@ interface GraphInterface {
 
     fun deleteRelationship(key: String)
 
-    fun queryNodes(query: Query<*>): Sequence<GraphNode>
-
-    fun queryRelationships(query: Query<*>): Sequence<GraphRelationship>
-
-//    fun <T: LanguageItem>selectItems(select: SelectInterface, factory:):Sequence<T>
+    fun queryNodes(query: QueryInterface): Sequence<GraphNode>
 
 }
 

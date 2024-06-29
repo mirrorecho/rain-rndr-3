@@ -1,26 +1,19 @@
 package rain.language
 
-import rain.graph.interfaceable.GraphableRelationship
-import rain.language._bak2.SelectRelationships
-import rain.language.interfacing.RelationshipLabelInterface
-import rain.language._bak2.RelationshipSelectable
-import rain.language._bak2.SelectDirection
-import rain.language.interfacing.NodeLabel
+import rain.graph.interfacing.*
 import rain.utils.autoKey
 
 class RelationshipLabel(
     override val labelName:String,
-    val direction: SelectDirection = SelectDirection.RIGHT,
-): RelationshipSelectable, RelationshipLabelInterface<Relationship> {
+    val directionIsRight: Boolean = true,
+): Label<Relationship>() {
     val left =
-        if (direction== SelectDirection.RIGHT)
-            RelationshipLabel(labelName, SelectDirection.LEFT)
+        if (directionIsRight)
+            RelationshipLabel(labelName, false)
         else
             this
 
-    override val selectMe get() = SelectRelationships(labelName=labelName, direction = direction)
-
-    override var context: Context = LocalContext
+    override val allNames: List<String> = listOf(labelName)
 
     override fun toString() = labelName
 
@@ -28,7 +21,7 @@ class RelationshipLabel(
         return Relationship(key, this, sourceKey, targetKey)
     }
 
-    fun from(gRelationship: GraphableRelationship):T = gRelationship.run {
+    fun from(gRelationship: GraphableRelationship):Relationship = gRelationship.run {
         factory(source.key, target.key, key).also { it.updatePropertiesFrom(this) }
     }
 
@@ -39,14 +32,10 @@ class RelationshipLabel(
         targetKey:String,
         key:String,
         properties:Map<String,Any?>?=null,
-        blockBefore:( LanguageRelationship.()->Unit )?=null,
-        blockAfter:( LanguageRelationship.()->Unit )?=null
-    ):LanguageRelationship =
+    ):Relationship =
         factory(sourceKey, targetKey, key).apply {
             properties?.let{ this.properties.putAll(it) };
-            blockBefore?.invoke(this);
             context.graph.merge(this);
-            blockAfter?.invoke(this);
         }
 
     fun create(
@@ -54,24 +43,18 @@ class RelationshipLabel(
         targetKey:String,
         key:String = autoKey(),
         properties:Map<String,Any?>?=null,
-        blockBefore:( LanguageRelationship.()->Unit )?=null,
-        blockAfter:( LanguageRelationship.()->Unit )?=null
-    ):LanguageRelationship =
+    ):Relationship =
         factory(sourceKey, targetKey, key).apply {
             properties?.let{ this.properties.putAll(it) };
-            blockBefore?.invoke(this);
             context.graph.create(this);
-            blockAfter?.invoke(this);
         }
 
-    operator fun invoke(keys:List<String>?=null, properties: Map<String, Any>?= null, label: NodeLabel<*>?=null) =
-        selectMe.nodes(keys, properties, label?.labelName)
+    operator fun invoke(predicate: Filter?=null) =
+        Query(
+            QueryMethod.related(directionIsRight),
+            selectLabelName = labelName
+        )
 
-    operator fun invoke(vararg keys:String, label: NodeLabel<*>?=null) =
-        invoke(keys.asList(), null, label)
-
-    operator fun invoke(properties: Map<String, Any>?= null, label: NodeLabel<*>?=null) =
-        invoke(null, properties, label)
 
 
 

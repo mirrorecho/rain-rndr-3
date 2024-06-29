@@ -1,12 +1,13 @@
-package rain.patterns.interfaces
+package rain.patterns
 
 import rain.language.Node
-import rain.language.interfacing.ManagerInterface
-import rain.patterns.nodes.HistoryDimension
+import rain.language.ManagerInterface
+import rain.utils.lazyish
+import kotlin.reflect.KProperty
 
 // at its most basic level, a pattern represents:
-// - necessarily, an origin node
-// - properties, which may simply be
+// - a set of named relationship paths between some source node and destination nodes/patterns
+// - properties, which may simply be the nodes properties
 // - dimensions relative to surrounding relationships in nodes, in some kind of defined "pattern"
 
 // TYPES OF PATTERNS
@@ -15,9 +16,20 @@ import rain.patterns.nodes.HistoryDimension
 // - random x number of destinations
 // - combine streams
 
+open class MessageSpace(
+    val pattern: Pattern
+) {
 
+}
+
+class CircleMessageSpace(pattern: Pattern): MessageSpace(pattern=pattern) {
+    var dur: Double by this.pattern
+}
+
+
+// TODO: node can be Null!
 class Pattern(
-    val node: Node,
+    val node: Node? = null,
     val historyDimension: Dimension?,
     vararg dimensions: DimensionCompanion,
 ){
@@ -34,6 +46,10 @@ class Pattern(
     val history by lazy { HistoryDimension(this) }
 
     val dimensions get() = myDimensions.values.toTypedArray()
+
+    operator fun <T>getValue(thisRef: Any?, property: KProperty<*>): T = cascadingProperties[property.name] as T
+
+    operator fun <T>setValue(thisRef: Any?, property: KProperty<*>, value:T) {map[property.name] = value}
 
     operator fun get(label: DimensionLabel): Dimension = myDimensions[label]!!
 
@@ -52,16 +68,18 @@ class Pattern(
 
     val labels: Set<DimensionLabel> get() = myDimensions.keys
 
-    val cascadingProperties: MutableMap<String, Any?> by lazy {
-        historyDimension?.pattern?.cascadingProperties.orEmpty().toMutableMap().apply { putAll(node.properties) }
+    // TODO: does this work with lazyish!!!!?
+    val cascadingProperties: MutableMap<String, Any?> by lazyish {
+        historyDimension?.pattern?.cascadingProperties.orEmpty().toMutableMap().apply { putAll(node?.properties.orEmpty()) }
     }
 
 }
 
-inline fun <T: ManagerInterface>Pattern.manageWith(manager:T, block: T.()->Unit): T {
+inline fun <T: ManagerInterface> Pattern.manageWith(manager:T, block: T.()->Unit): T {
     manager.manage(this)
     block(manager)
     return manager
 }
 
-inline fun Pattern.manage(block: (ManagerInterface.()->Unit)) = manageWith(node.manager, block)
+
+//inline fun Pattern.manage(block: (ManagerInterface.()->Unit)) = manageWith(node.manager, block)

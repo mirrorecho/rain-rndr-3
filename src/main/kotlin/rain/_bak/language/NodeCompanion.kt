@@ -1,7 +1,7 @@
 package rain._bak.language
 //
 //import rain.language.interfaces.ContextInterface
-//import rain.language._bak2.NodeSelectable
+//import rain._bak.language.NodeSelectable
 //import rain.utils.autoKey
 //
 //// TODO maybe: should this simply be merged into the label so that the companion IS the label?

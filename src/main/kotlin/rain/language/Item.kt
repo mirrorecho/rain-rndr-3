@@ -1,7 +1,6 @@
 package rain.language
 
-import rain.graph.interfaceable.GraphableItem
-import rain.language.interfacing.Label
+import rain.graph.interfacing.GraphableItem
 
 
 // ===========================================================================================================

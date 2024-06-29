@@ -1,4 +1,4 @@
-package rain.language._bak2
+package rain._bak.language
 
 //// TODO: this extra inheritance is odd here...
 //interface Labelable<T: LanguageItem> {

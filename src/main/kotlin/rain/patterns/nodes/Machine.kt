@@ -1,15 +1,16 @@
 package rain.patterns.nodes
 
 import rain.language.*
-import rain.language.interfacing.NodeLabel
-import rain.patterns.interfaces.Pattern
+import rain.language.Node
+import rain.language.NodeLabel
+import rain.patterns.Pattern
 import rain.rndr.nodes.Value
 
 
 open class Machine(
     key:String = rain.utils.autoKey(),
 ): Node(key) {
-    companion object : NodeLabel<Machine>(Machine::class, Node, { k -> Machine(k) }) {
+    companion object : NodeLabel<Machine>(Machine::class, null, { k -> Machine(k) }) {
         override val receives: ReceivingManager get() = ReceivingManager()
     }
     override val label: NodeLabel<out Machine> = Machine
@@ -50,7 +51,7 @@ open class Machine(
 open class Printer(
     key:String = rain.utils.autoKey(),
 ): Machine(key) {
-    companion object : NodeLabel<Printer>(Printer::class, Node, { k -> Printer(k) }){
+    companion object : NodeLabel<Printer>(Printer::class, Machine, { k -> Printer(k) }){
         override val receives: ReceivingManager get() = ReceivingManager()
     }
     override val label: NodeLabel<out Printer> = Printer

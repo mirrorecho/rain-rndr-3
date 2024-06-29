@@ -1,6 +1,6 @@
 package rain._bak.patterns
 
-//import rain.language.interfacing.NodeLabel
+//import rain.language.NodeLabel
 //import rain.language._bak2.SelectNodes
 //import rain.patterns.relationships.CUES
 //import rain.patterns.relationships.CUES_FIRST

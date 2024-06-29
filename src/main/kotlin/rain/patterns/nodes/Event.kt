@@ -1,11 +1,10 @@
 package rain.patterns.nodes
 
 import rain.language.*
-import rain.language.interfacing.ManagerInterface
-import rain.language.interfacing.NodeLabel
-import rain.patterns.interfaces.Dimension
-import rain.patterns.interfaces.DimensionLabel
-import rain.patterns.interfaces.Pattern
+import rain.language.Node
+import rain.language.ManagerInterface
+import rain.language.NodeLabel
+import rain.patterns.*
 import rain.patterns.relationships.TRIGGERS
 import rain.utils.autoKey
 import rain.utils.lazyish
@@ -21,7 +20,7 @@ enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
 open class Event protected constructor(
     key:String = autoKey(),
 ): Node(key) {
-    companion object : NodeLabel<Event>(Event::class, Node, { k -> Event(k) })
+    companion object : NodeLabel<Event>(Event::class, null, { k -> Event(k) })
     override val label: NodeLabel<out Event> = Event
 
     // TODO: figure out a more elegant way to use by properties with defaults (esp. null values)

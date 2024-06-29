@@ -1,9 +1,6 @@
-package rain.language.interfacing
+package rain.language
 
-import rain.graph.interfaceable.*
-import rain.language.*
-import rain.language.interfacing.queries.NodeQueryable
-import rain.language.interfacing.*
+import rain.graph.interfacing.*
 import rain.utils.autoKey
 import kotlin.reflect.KClass
 
@@ -13,13 +10,9 @@ abstract class NodeLabel<T: Node>(
     myClass: KClass<T>,
     parentLabel: NodeLabel<*>? = null,
     val factory: (String)->T,
-    ): NodeQueryable, Label<T>() {
+    ): Queryable, Label<T>() {
 
     private fun getName(cl:KClass<T>) = cl.simpleName ?: "Node"
-
-    final override val isRoot: Boolean = parentLabel==null
-
-    final override val isRelationship: Boolean = false
 
     final override val labelName:String = getName(myClass)
 
@@ -28,7 +21,9 @@ abstract class NodeLabel<T: Node>(
 
     final override val allNames: List<String> = listOf(getName(myClass)) + parentLabel?.allNames.orEmpty()
 
-    final override val queryMe: NodeQuery = SelectNodes(labelName=getName(myClass))
+    final override val queryMe: Query = Query(selectLabelName=labelName)
+
+    operator fun get(vararg keys:String) = Query(selectKeys=keys)
 
     open val receives: Manager get() = Manager()
 

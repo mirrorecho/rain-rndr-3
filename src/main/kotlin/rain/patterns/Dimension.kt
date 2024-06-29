@@ -1,7 +1,9 @@
-package rain.patterns.interfaces
+package rain.patterns
+import rain.graph.interfacing.GraphableNode
 import rain.language.Node
-import rain.language.NodeQuery
-import rain.language.interfacing.*
+import rain.language.NodeLabel
+import rain.language.Query
+import rain.patterns.relationships.CUES_FIRST
 
 typealias DimensionFactory = (Pattern) -> Dimension
 //typealias PatternFactory = (LanguageNode) -> Pattern
@@ -22,18 +24,16 @@ interface DimensionCompanion {
 
 // TODO: consider making this interface itself (and maybe select), an implementation of a Sequence
 abstract class Dimension(
-    val pattern:Pattern,
-    open val label:DimensionLabel,
-): NodeQuery() {
+    val pattern: Pattern,
+    open val label: DimensionLabel,
+): Query() {
 
-    override val queryMe get() = this
+    override val graphableNodes = sequence<GraphableNode> { warningNotImplemented("graphableNodes") }
 
     override fun asPatterns(): Sequence<Pattern> = this().map { it.makePattern(this) }
 
     fun warningNotImplemented(attributeName:String) =
         println("WARNING: '$attributeName' not implemented for {$this@PatternDimension2} on ${this.pattern}")
-
-    val isEmpty: Boolean get() = invoke().none()
 
 
     val descendantPatterns: Sequence<Pattern> get() = sequence {
@@ -44,11 +44,13 @@ abstract class Dimension(
     }
 
 
-    fun saveAll() {
-        descendantPatterns.forEach { it.node.save() }
-    }
+//    fun saveAll() {
+//        descendantPatterns.forEach { it.node.save() }
+//    }
 
     open fun extend(vararg nodes: Node) = warningNotImplemented("extend")
+
+    open fun clear() = warningNotImplemented("clear")
 
     open fun stream(name:String, nodesLabel: NodeLabel<*>, vararg values: Any?) {
         val dimensionIterator = this().iterator()

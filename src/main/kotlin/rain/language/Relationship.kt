@@ -1,34 +1,28 @@
 package rain.language
 
-import rain.graph.interfaceable.GraphableRelationship
-import rain.language._bak2.SelectRelationships
-import rain.language.interfacing.queries.Query
-import rain.language.interfacing.queries.Queryable
+import rain.graph.interfacing.GraphableRelationship
 import rain.utils.autoKey
 
-final class Relationship(
+class Relationship(
     key:String = autoKey(),
     override val label: RelationshipLabel,
     var sourceKey: String,
     var targetKey: String,
-): Queryable, GraphableRelationship, Item(key) {
+): GraphableRelationship, Item(key) {
 
-    fun save() = graph.save(this)
+    fun save() = context.graph.save(this)
 
-    fun read() = graph.read(this)
+    fun read() = context.graph.read(this)
 
-    fun delete() = graph.deleteRelationship(this.key)
+    fun delete() = context.graph.deleteRelationship(this.key)
 
-    override val context get() = label.context
-    override val graph get() = context.graph
-
-    override val queryMe: Query get() = SelectRelationships(keys=listOf(this.key))
-    override val labelName get() = label.labelName
+    val context get() = label.context // TODO: let's avoid this override
 
     override fun toString():String = "(${source.key} $labelName ${target.key} | $key) $properties"
 
-    override val source: Node by lazy { Node.get(sourceKey) }
-    override val target: Node by lazy { Node.get(targetKey) }
+    // TODO: are these ever used?
+    override val source: Node by lazy { context.nodeFrom(sourceKey)!! }
+    override val target: Node by lazy { context.nodeFrom(targetKey)!! }
 
 }
 
@@ -42,6 +36,6 @@ fun relate(
 fun relate(
     sourceNode: Node,
     rLabel:RelationshipLabel,
-    targetNode:Node,
+    targetNode: Node,
     key:String = autoKey()
 ):Relationship = rLabel.create(sourceNode.key, targetNode.key, key)

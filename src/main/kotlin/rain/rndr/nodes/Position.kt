@@ -5,7 +5,7 @@ import rain.utils.*
 
 import org.openrndr.Program
 import org.openrndr.math.Vector2
-import rain.language.interfacing.NodeLabel
+import rain.language.NodeLabel
 import rain.patterns.nodes.Machine
 
 

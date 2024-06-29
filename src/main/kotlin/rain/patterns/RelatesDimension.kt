@@ -1,10 +1,9 @@
-package rain.patterns.nodes
+package rain.patterns
 
 import rain.language.RelationshipLabel
 import rain.language.Node
-import rain.patterns.interfaces.Dimension
-import rain.patterns.interfaces.DimensionLabel
-import rain.patterns.interfaces.Pattern
+import rain.patterns.Pattern
+import rain.patterns.relationships.CUES_FIRST
 
 // base dimension for simple relationship-based items
 open class RelatesDimension(
@@ -14,13 +13,11 @@ open class RelatesDimension(
     vararg val extendedRelationships: RelationshipLabel
     ): Dimension(pattern, DimensionLabel.valueOf(relationshipLabel.labelName)) {
 
-//    override fun copy(anotherPattern: Pattern): Dimension = RelatesDimension(anotherPattern, relationshipLabel, *extendedRelationships)
-
-    fun getQuery(node: Node = pattern.node) = node.get( relationshipLabel(), *( extendedRelationships.map { it() }.toTypedArray()) )
-
-    override fun invoke() = sequence { getQuery().forEach { n->
-            yield(Pattern(n, this@RelatesDimension.pattern, this@RelatesDimension.label))
-        } }
+    override val graphableNodes =
+        pattern.node.get(
+            relationshipLabel(),
+            *( extendedRelationships.map { it() }.toTypedArray() )
+        ).graphableNodes
 
     override fun extend(vararg nodes: Node) {
         nodes.forEach {n-> pattern.node.relate(relationshipLabel, n) }

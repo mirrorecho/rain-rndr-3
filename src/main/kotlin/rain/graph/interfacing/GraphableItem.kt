@@ -1,5 +1,5 @@
 // NOTE: using plural "interface" to avoid name clash with "interface" keyword
-package rain.graph.interfaceable
+package rain.graph.interfacing
 
 // NOTE: unlike in the python implementation, not using data classes for subsclasses of this
 // (because Kotlin data classes don't allow inheritance, and inheritance
@@ -57,6 +57,6 @@ interface GraphableRelationship: GraphableItem {
     val source: GraphableNode
     val target: GraphableNode
 
-    fun directedTarget(directionRight:Boolean=true): GraphableNode = if (directionRight) target else source
+    fun directedTarget(directionIsRight:Boolean=true): GraphableNode = if (directionIsRight) target else source
 
 }

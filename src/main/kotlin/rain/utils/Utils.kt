@@ -13,10 +13,21 @@ fun <T>lazyish(block: ()->T) = Lazyish(block)
 class Lazyish<T>(val block: ()->T) {
     private var myValue: T? = null
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = myValue ?: block().also { setValue(thisRef, property, it) }
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = myValue ?: block().also { myValue=it }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {myValue = value}
 
+}
+
+
+class Caching<T>(val block: ()->T) {
+    fun reset() { myValue = null }
+
+    private var myValue: T? = null
+
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): T = myValue ?: block().also { myValue=it }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {myValue = value}
 }
 
 //class NullableMap<T>(val map: MutableMap<String,Any?>, val default:T?=null) {
