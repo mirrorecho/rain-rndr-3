@@ -18,6 +18,10 @@ open class Circle(
     key:String = autoKey(),
     ): Machine(key) {
     companion object : NodeLabel<Circle>(Circle::class, Machine, { k -> Circle(k) }) {
+
+
+
+
         val radius = CachedTarget(Event.create(), RADIUS, Value)
 
         override val receives: ReceivingManager get() = ReceivingManager()

@@ -1,85 +1,84 @@
 package rain.patterns
 
-import rain.language.Node
-import rain.language.ManagerInterface
-import rain.utils.lazyish
-import kotlin.reflect.KProperty
+import rain.graph.interfacing.GraphableNode
+import rain.language.*
+import rain.utils.autoKey
 
-// at its most basic level, a pattern represents:
-// - a set of named relationship paths between some source node and destination nodes/patterns
-// - properties, which may simply be the nodes properties
-// - dimensions relative to surrounding relationships in nodes, in some kind of defined "pattern"
+// patterns are abstractions of queries
+open class Pattern<ST: Node, DT:Node>(
+    val source: ST, // TODO: consider making this a var to allow for patterns in the abstract
+    val destinationLabel: NodeLabel<DT>,
+    val previous: Pattern<*,ST>? = null,
+//    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
+): Query() {
+    // TODO: timecodes (or other additive values)
+    // TODO: cascading properties
 
-// TYPES OF PATTERNS
-// - simple destinations in order
-// - destinations in random order
-// - random x number of destinations
-// - combine streams
+    fun warningNotImplemented(attributeName:String) =
+        println("WARNING: '$attributeName' not implemented for {$this}")
 
-open class MessageSpace(
-    val pattern: Pattern
-) {
+    override val graphableNodes = sequence<GraphableNode> { warningNotImplemented("graphableNodes") }
 
-}
+    override operator fun <T: Node>invoke(label: NodeLabel<out T>): Sequence<T> {
+        throw NotImplementedError("<T: Node>invoke not implemented for patterns")
+    }
 
-class CircleMessageSpace(pattern: Pattern): MessageSpace(pattern=pattern) {
-    var dur: Double by this.pattern
-}
+    override operator fun invoke(): Sequence<DT> = graphableNodes.map { destinationLabel.from(it) }
 
+    open fun extend(vararg nodes: Node) = warningNotImplemented("extend")
 
-// TODO: node can be Null!
-class Pattern(
-    val node: Node? = null,
-    val historyDimension: Dimension?,
-    vararg dimensions: DimensionCompanion,
-){
-    constructor(
-        node: Node,
-        vararg dimensions: DimensionCompanion
-    ) : this(node, null,  *dimensions)
+    // deletes destinations (and all intermediary nodes/relationships)
+    open fun deleteAll() {
+        // should be overridden in if pattern logic includes intermediary nodes (in order to also delete intermediaries)
+        graphableNodes.forEach {  source.context.graph.deleteNode(it.key) }
+    }
 
-    override fun toString():String = "Pattern with dimensions ${dimensions.map { it.label }}"
+    // deletes relationships (and potentially intermediary nodes), but not destinations
+    open fun clear() = warningNotImplemented("clear")
 
-    private val myDimensions: MutableMap<DimensionLabel, Dimension> =
-        dimensions.associate { it.label to it.factory(this) }.toMutableMap()
+    open fun stream(name:String, nodesLabel: NodeLabel<*>, vararg values: Any?) {
+        val dimensionIterator = this().iterator()
+        val valuesIterator = values.iterator()
+        while (valuesIterator.hasNext()) {
+            if (dimensionIterator.hasNext()) {
+                dimensionIterator.next().apply {
+                    properties[name] = valuesIterator.next()
+                    save()
+                }
+            } else {
+                extend(
+                    nodesLabel.create(properties = mapOf(name to valuesIterator.next()) )
+                )
+            }
+        }
+    }
 
-    val history by lazy { HistoryDimension(this) }
+    // TODO: does this work??? Is it used? Naming?
+    open fun setStream(name: String, vararg values:Any) {
+        this().zip(values.asSequence()).forEach { it.first.properties[name] = it.second }
+    }
 
-    val dimensions get() = myDimensions.values.toTypedArray()
+    val cachedTarget get() = CachedTarget()
 
-    operator fun <T>getValue(thisRef: Any?, property: KProperty<*>): T = cascadingProperties[property.name] as T
+    // NOTE: doesn't actually cache, just mimics the sequence
+    open inner class CachedTarget: TypedCached<DT>() {
 
-    operator fun <T>setValue(thisRef: Any?, property: KProperty<*>, value:T) {map[property.name] = value}
+        private var cachedNode = this.first
 
-    operator fun get(label: DimensionLabel): Dimension = myDimensions[label]!!
+        var target: DT?
+            get() = cachedNode
+            set(node) {
+                cachedNode = node
+                clear()
+                node?.let { extend(it) }
+            }
 
-    fun add(vararg dimensions: Dimension) = this.apply { myDimensions.putAll(dimensions.associateBy { it.label }) }
-
-    fun add(vararg dimensionFactories: DimensionFactory) = add(*(dimensionFactories.map{ it(this) }.toTypedArray()))
-
-    fun add(vararg dimensions: DimensionCompanion) = add(*(dimensions.map{ it.factory }.toTypedArray()))
-
-    // maybe bring these back...
-    //    operator fun set(label: DimensionLabel, dimension: DimensionCompanion) = set(label, dimension.factory)
-    //
-    //    fun set(label: DimensionLabel, dimensionFactory: DimensionFactory)
-    //    { this.myDimensions[label] = dimensionFactory(this) }
-
-
-    val labels: Set<DimensionLabel> get() = myDimensions.keys
-
-    // TODO: does this work with lazyish!!!!?
-    val cascadingProperties: MutableMap<String, Any?> by lazyish {
-        historyDimension?.pattern?.cascadingProperties.orEmpty().toMutableMap().apply { putAll(node?.properties.orEmpty()) }
+        // TODO: implement
+        fun createIfMissing(key:String = autoKey()) {
+            if (cachedNode==null) {
+                cachedNode = destinationLabel.create(key).also { extend(it) }
+            }
+        }
     }
 
 }
-
-inline fun <T: ManagerInterface> Pattern.manageWith(manager:T, block: T.()->Unit): T {
-    manager.manage(this)
-    block(manager)
-    return manager
-}
-
-
-//inline fun Pattern.manage(block: (ManagerInterface.()->Unit)) = manageWith(node.manager, block)

@@ -32,9 +32,9 @@ open class Query(
     // NOTE: this should be the only point of access with the actual graph...
     override val graphableNodes: Sequence<GraphableNode> get() = context.graph.queryNodes(this)
 
-    operator fun <T: Node>invoke(label: NodeLabel<out T>): Sequence<T> = graphableNodes.map { label.from(it) }
+    open operator fun <T: Node>invoke(label: NodeLabel<out T>): Sequence<T> = graphableNodes.map { label.from(it) }
 
-    operator fun invoke(): Sequence<Node> = graphableNodes.mapNotNull {
+    open operator fun invoke(): Sequence<Node> = graphableNodes.mapNotNull {
         context.nodeFrom(it)
     }
 

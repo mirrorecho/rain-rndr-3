@@ -9,7 +9,7 @@ class RelatesHistoryDimension(
     pattern: Pattern,
     relationshipLabel: RelationshipLabel,
     vararg extendedRelationships: RelationshipLabel
-): RelatesDimension(pattern, relationshipLabel, *extendedRelationships) {
+): RelatesPattern(pattern, relationshipLabel, *extendedRelationships) {
 
 //    override fun copy(anotherPattern: Pattern): Dimension = RelatesHistoryDimension(anotherPattern, relationshipLabel, *extendedRelationships)
 

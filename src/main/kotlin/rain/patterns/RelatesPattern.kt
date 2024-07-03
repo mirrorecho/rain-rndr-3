@@ -2,12 +2,10 @@ package rain.patterns
 
 import rain.language.RelationshipLabel
 import rain.language.Node
-import rain.patterns.Pattern
-import rain.patterns.relationships.CUES_FIRST
 
 // base dimension for simple relationship-based items
-open class RelatesDimension(
-    pattern: Pattern,
+open class RelatesPattern<ST:Node, DT:Node>(
+    pattern: Pattern<ST, DT>,
     val relationshipLabel: RelationshipLabel,
     // an optional extended list of relationships, beyond the primary relationship, for querying (but not extending):
     vararg val extendedRelationships: RelationshipLabel
