@@ -42,8 +42,6 @@ open class Query(
 
     fun asKeys(): Sequence<String> = graphableNodes.map { it.key }
 
-    open fun asPatterns(): Sequence<Pattern> = this().map { it.makePattern() }
-
     fun indexOfFirst(key:String): Int = graphableNodes.indexOfFirst {it.key==key}
 
     fun contains(key: String): Boolean = this.indexOfFirst(key) > -1

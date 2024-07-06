@@ -1,8 +1,8 @@
 package rain.language
 
-import rain.patterns.Dimension
+import rain._bak.patterns.Dimension
 import rain.patterns.Pattern
-import rain.patterns.DimensionLabel
+import rain._bak.patterns.DimensionLabel
 import kotlin.reflect.KMutableProperty
 
 // TODO: why an interface? Even worth it?

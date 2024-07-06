@@ -1,40 +1,60 @@
 package rain.patterns
 
 import rain.graph.interfacing.GraphableNode
+import rain.graph.interfacing.QueryMethod
 import rain.language.*
 import rain.utils.autoKey
 
 // patterns are abstractions of queries
-open class Pattern<ST: Node, DT:Node>(
-    val source: ST, // TODO: consider making this a var to allow for patterns in the abstract
+abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generic ty[es are worth it, otherwise KISS!
+
+    // TODO: consider making this a var to allow for patterns in the abstract
+    // TODO: also, is source worthwhile here, or just override query's directly, OR, just make this a arg, not a var
+    val source: ST,
     val destinationLabel: NodeLabel<DT>,
-    val previous: Pattern<*,ST>? = null,
+    val previous: Pattern<T, *, *>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
-): Query() {
+): Query( QueryMethod.GRAPHABLE) {
     // TODO: timecodes (or other additive values)
     // TODO: cascading properties
 
     fun warningNotImplemented(attributeName:String) =
         println("WARNING: '$attributeName' not implemented for {$this}")
 
-    override val graphableNodes = sequence<GraphableNode> { warningNotImplemented("graphableNodes") }
+    // ------------------------------------------------------------------
+
+    // graphableNodes MUST be overridden, as it defines the logic of the query
+    override abstract val graphableNodes: Sequence<GraphableNode>
+
+    // extend MAY be overridden
+    open fun extend(vararg nodes: Node) = warningNotImplemented("extend")
+
+    // deletes relationships and potentially intermediary nodes (and destination nodes if deleteNodes=true)
+    open fun clear(deleteNodes:Boolean=false) = warningNotImplemented("clear")
 
     override operator fun <T: Node>invoke(label: NodeLabel<out T>): Sequence<T> {
         throw NotImplementedError("<T: Node>invoke not implemented for patterns")
     }
 
+    override var queryFrom: Query? = source.queryMe
+
     override operator fun invoke(): Sequence<DT> = graphableNodes.map { destinationLabel.from(it) }
 
-    open fun extend(vararg nodes: Node) = warningNotImplemented("extend")
+    // TODO: this works great... so make sure I understand EXACTLY what's going on
+    //  ... ALSO, consider moving to Query to use on non-patterns?
+    open fun <DT2:T, P:Pattern<T, DT, DT2>>asPatterns(
+        destinationLabel: NodeLabel<DT2>,
+        factory:(source:DT, destinationLabel: NodeLabel<DT2>, previous:Pattern<T, ST,DT>)->P
+    ): Sequence<P> = this().map { factory.invoke(it, destinationLabel, this) }
 
-    // deletes destinations (and all intermediary nodes/relationships)
-    open fun deleteAll() {
-        // should be overridden in if pattern logic includes intermediary nodes (in order to also delete intermediaries)
-        graphableNodes.forEach {  source.context.graph.deleteNode(it.key) }
+    // ------------------------------------------------------------------
+
+    // TODO: Node Type OK here?
+//    val history: HistoryPattern<ST, PT, *> get() = HistoryPattern<ST, PT, Node>(source, )
+
+    val history: Sequence<Pattern<T, *, *>> = sequence {
+        previous?.let { yield(it); yieldAll(it.history) }
     }
-
-    // deletes relationships (and potentially intermediary nodes), but not destinations
-    open fun clear() = warningNotImplemented("clear")
 
     open fun stream(name:String, nodesLabel: NodeLabel<*>, vararg values: Any?) {
         val dimensionIterator = this().iterator()
@@ -73,7 +93,6 @@ open class Pattern<ST: Node, DT:Node>(
                 node?.let { extend(it) }
             }
 
-        // TODO: implement
         fun createIfMissing(key:String = autoKey()) {
             if (cachedNode==null) {
                 cachedNode = destinationLabel.create(key).also { extend(it) }
@@ -82,3 +101,4 @@ open class Pattern<ST: Node, DT:Node>(
     }
 
 }
+

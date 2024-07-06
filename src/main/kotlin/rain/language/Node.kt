@@ -2,11 +2,8 @@ package rain.language
 
 import org.openrndr.Program
 import rain.graph.interfacing.*
-import rain.patterns.Dimension
-import rain.patterns.Pattern
 import rain.utils.autoKey
 import rain.utils.lazyish
-import kotlin.reflect.KProperty0
 
 // ===========================================================================================================
 
@@ -20,15 +17,7 @@ abstract class Node protected constructor(
 
     override val queryMe get() = Query(selectKeys = arrayOf(this.key))
 
-    // TODO maybe: consider moving this to the manager class?
-    protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
-
     open var manager: ManagerInterface by lazyish { Manager() } // TODO: needed?
-
-    open fun makePattern(historyDimension: Dimension?=null): Pattern =
-        Pattern(this, historyDimension)
-
-    open fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
 
     open fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
 
@@ -55,23 +44,36 @@ abstract class Node protected constructor(
         key:String = autoKey()
     ): Relationship = rLabel.create(this.key, targetNode.key, key)
 
-    fun autoTarget() {
-        targetProperties.forEach {
-            it.get().apply {
-                createIfMissing()
-                target?.autoTarget() // cascade down...
-            }
-        }
-    }
-
-    fun <T: Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>) =
-        CachedTarget(this, rLabel, nLabel)
-
     fun getGraphableRelationships(relationshipLabelName:String, directionIsRight:Boolean=true) =
         context.graph.getRelationships(this.key, relationshipLabelName, directionIsRight)
 
     fun getRelationships(relationshipLabel:RelationshipLabel, directionIsRight:Boolean=true) =
         getGraphableRelationships(relationshipLabel.labelName, directionIsRight).map { relationshipLabel.from(it) }
+
+    // TODO: consider re-implementing
+    // TODO maybe if so: consider moving this to the manager class?
+//    protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
+
+    // TODO: consider re-implementing (does this even make sense?)
+//    open fun makePattern(historyDimension: Dimension?=null): Pattern =
+//        Pattern(this, historyDimension)
+
+    // TODO: consider implementing
+//    open fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
+
+    // TODO: consider re-implementing
+//    fun autoTarget() {
+//        targetProperties.forEach {
+//            it.get().apply {
+//                createIfMissing()
+//                target?.autoTarget() // cascade down...
+//            }
+//        }
+//    }
+
+    // TODO: consider re-implementing
+//    fun <T: Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>): Pattern.CachedTarget =
+//        CachedTarget(this, rLabel, nLabel)
 
     // TODO: maybe implement this...?
 //    fun <T:Node>targetsOrMake(
@@ -88,13 +90,14 @@ abstract class Node protected constructor(
 
 }
 
-inline fun <T: ManagerInterface> Node.manageWith(manager:T, block: T.()->Unit): T {
-    manager.manage(this)
-    block(manager)
-    return manager
-}
-
-inline fun Node.manage(block: (ManagerInterface.()->Unit)) = manageWith(manager, block)
+// TODO maybe: re-implement?
+//inline fun <T: ManagerInterface> Node.manageWith(manager:T, block: T.()->Unit): T {
+//    manager.manage(this)
+//    block(manager)
+//    return manager
+//}
+//
+//inline fun Node.manage(block: (ManagerInterface.()->Unit)) = manageWith(manager, block)
 
 // just for fiddling around purposes...
 open class Thingy protected constructor(

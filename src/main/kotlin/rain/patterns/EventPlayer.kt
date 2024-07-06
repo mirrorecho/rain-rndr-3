@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.launch
+import rain._bak.patterns.DimensionLabel
 import rain.language.*
 import rain.patterns.nodes.Event
 import kotlin.time.DurationUnit
@@ -12,8 +13,8 @@ import kotlin.time.toDuration
 
 
 // just for fiddling around purposes...
-open class PatternPlayer(
-    val pattern: Pattern
+open class EventPlayer(
+    val pattern: Pattern<Event, *, *>
 ) {
     private val runningMachines: MutableMap<String, Node> = mutableMapOf()
 
@@ -56,7 +57,7 @@ open class PatternPlayer(
 
     }
 
-    fun play(): PatternPlayer {
+    fun play(): EventPlayer {
         application {
             program {
                 launch { playPattern(pattern, this@program) }

@@ -170,6 +170,10 @@ class Graph: GraphInterface {
                 }
             }.filterBy(query)
 
+            QueryMethod.GRAPHABLE -> sequence {
+                yieldAll(query.graphableNodes.mapNotNull { graphNodes[it.key] })
+            }.filterBy(query) // TODO: worth keeping this filterBy here? (probably yes, for consistency, but not used for Patterns)
+
             QueryMethod.FILTER -> sequence {
                 query.queryFrom?.let { q ->
                     yieldAll(queryNodes(q).filterBy(query))

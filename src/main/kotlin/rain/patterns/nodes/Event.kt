@@ -1,5 +1,6 @@
 package rain.patterns.nodes
 
+import rain._bak.patterns.DimensionLabel
 import rain.language.*
 import rain.language.Node
 import rain.language.ManagerInterface
@@ -43,16 +44,13 @@ open class Event protected constructor(
             return machine
         }
 
-        fun play() = deferToPattern { println("Playing $it"); PatternPlayer(it).play() }
+        fun play() = deferToPattern { println("Playing $it"); EventPlayer(it).play() }
 
     }
 
-    override fun makePattern(historyDimension: Dimension?): Pattern =
-        Pattern(this, historyDimension, CuedChildrenDimension).add(
-            { p -> RelatesHistoryDimension(p, TRIGGERS,
-                *((p.cascadingProperties["machinePath"] as Array<RelationshipLabel>?).orEmpty())
-            ) }
-        )
+    // TODO: implement caching
+    val children get() = CuedChildrenPattern(this, Event).children
+
 
     override var manager: ManagerInterface by lazyish { EventManager() }
 

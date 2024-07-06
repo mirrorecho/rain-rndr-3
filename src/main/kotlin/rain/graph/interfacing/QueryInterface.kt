@@ -9,7 +9,8 @@ enum class QueryMethod(val directionIsRight: Boolean) {
     FILTER(true), // filters only
     CONCAT(true), // concatenates two queries, with an optional filter
     RELATED_RIGHT(true), // queries nodes connected as targets via relationships, optionally filtering the relationships
-    RELATED_LEFT(false); // queries nodes connected as sources via relationships, optionally filtering the relationships
+    RELATED_LEFT(false), // queries nodes connected as sources via relationships, optionally filtering the relationships
+    GRAPHABLE(true); // selects by graphable interface (i.e. sub-queries must re-query by key)
 
     companion object {
         fun related(directionRight: Boolean=true) =

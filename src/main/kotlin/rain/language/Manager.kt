@@ -1,6 +1,6 @@
 package rain.language
 
-import rain.patterns.DimensionLabel
+import rain._bak.patterns.DimensionLabel
 import rain.patterns.Pattern
 import rain.utils.lazyish
 import kotlin.reflect.KProperty

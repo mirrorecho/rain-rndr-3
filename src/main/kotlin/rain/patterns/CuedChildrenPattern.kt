@@ -1,27 +1,18 @@
 package rain.patterns
 
 import rain.graph.interfacing.GraphableNode
-import rain.language.Query
-import rain.language.Context
-import rain.language.Node
+import rain.language.*
 import rain.patterns.nodes.Cue
 
 import rain.patterns.relationships.*
 
-class CuedChildrenDimension(
-    pattern: Pattern,
-): Dimension(pattern, DimensionLabel.CHILDREN) {
-    companion object : DimensionCompanion {
-        override val label: DimensionLabel = DimensionLabel.CHILDREN
-        override val factory: DimensionFactory = { p-> CuedChildrenDimension(p) }
-    }
 
-    override val context: Context get() = pattern.node.context
+open class CuedChildrenPattern<T: Node, ST:T, DT:T>(
+    source: ST,
+    destinationLabel: NodeLabel<DT>,
+    previous: Pattern<T,T, T>? = null,
+): Pattern<T, ST, DT>(source, destinationLabel, previous) {
 
-//    override var fromQuery: Query? = pattern.historyDimension  // TODO maybe: is this a reasonable way to handle history?
-
-
-    override val label: DimensionLabel = Companion.label
 
     private fun getChildCues(qCue: Query): Sequence<GraphableNode> = sequence {
         qCue[CUES()].graphableNodes.forEach {
@@ -30,13 +21,13 @@ class CuedChildrenDimension(
         }
     }
 
-    override val graphableNodes = getChildCues(pattern.node[CUES_FIRST()])
+    override val graphableNodes = getChildCues(this.source[CUES_FIRST()])
 
     override fun extend(vararg nodes: Node) {
         // creates all Cue nodes for the extension (inc. Contains and Cues relationships)
         val cues = nodes.map { childNode ->
             Cue.create().also { cue ->
-                pattern.node.relate(CONTAINS, cue)
+                this.source.relate(CONTAINS, cue)
                 cue.relate(CUES, childNode)
             }
         }
@@ -45,11 +36,11 @@ class CuedChildrenDimension(
         // if empty, then create the CuesFirst
         // note... empty check works even after creating the Contains relationships above
         // because the isEmpty logic checks for CUES_FIRST
-            CUES_FIRST.create(pattern.node.key, cues[0].key)
+            CUES_FIRST.create(this.source.key, cues[0].key)
         else {
             // otherwise create a CuesNext relationship from the existing CuesLast target node to the start of extension cue nodes
             // and remove the CuesLast
-            pattern.node.getRelationships(CUES_LAST).first().also {
+            this.source.getRelationships(CUES_LAST).first().also {
                 CUES_NEXT.create(it.targetKey, cues[0].key)
                 it.delete()
             }
@@ -62,9 +53,15 @@ class CuedChildrenDimension(
         }
 
         // adds CuesLast relationship at the end
-        CUES_LAST.create(pattern.node.key, cues.last().key)
+        CUES_LAST.create(this.source.key, cues.last().key)
     }
 
+    // this is cool... HAH!
+    val children get() = this.asPatterns(destinationLabel) { s, dl, p -> CuedChildrenPattern(s, dl, p) }
+
+
+    // TODO: implement...
+    override fun clear(deleteNodes:Boolean) = warningNotImplemented("clear")
 
 }
 

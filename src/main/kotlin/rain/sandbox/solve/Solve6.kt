@@ -2,13 +2,11 @@ package rain.sandbox.solve
 
 
 import rain.language.CachedTarget
-import rain.language.Thingy
 import rain.language.manageWith
-import rain.patterns.DimensionLabel
+import rain._bak.patterns.DimensionLabel
 import rain.patterns.nodes.Gate
 import rain.patterns.nodes.event
 import rain.patterns.nodes.*
-import rain.patterns.relationships.TRIGGERS
 import rain.rndr.nodes.Circle
 import rain.rndr.nodes.Value
 import rain.rndr.relationships.RADIUS
