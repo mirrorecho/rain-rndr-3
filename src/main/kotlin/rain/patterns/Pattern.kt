@@ -6,7 +6,7 @@ import rain.language.*
 import rain.utils.autoKey
 
 // patterns are abstractions of queries
-abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generic ty[es are worth it, otherwise KISS!
+abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the generic ty[es are worth it, otherwise KISS!
 
     // TODO: consider making this a var to allow for patterns in the abstract
     // TODO: also, is source worthwhile here, or just override query's directly, OR, just make this a arg, not a var
@@ -15,8 +15,9 @@ abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generi
     val previous: Pattern<T, *, *>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
 ): Query( QueryMethod.GRAPHABLE) {
-    // TODO: timecodes (or other additive values)
     // TODO: cascading properties
+    // TODO: cascading target/context node(s) ... i.e. for Machine target in an Event tree
+    // TODO: timecodes (or other additive values)
 
     fun warningNotImplemented(attributeName:String) =
         println("WARNING: '$attributeName' not implemented for {$this}")
@@ -80,10 +81,14 @@ abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generi
 
     val cachedTarget get() = CachedTarget()
 
+    // TODO: is the below note correct? Or or holdover from sandbox?
     // NOTE: doesn't actually cache, just mimics the sequence
     open inner class CachedTarget: TypedCached<DT>() {
 
         private var cachedNode = this.first
+
+        val sourcePattern get() = this@Pattern
+        val sourceNode get() = sourcePattern.source
 
         var target: DT?
             get() = cachedNode

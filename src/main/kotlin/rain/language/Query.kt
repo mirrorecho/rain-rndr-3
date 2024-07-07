@@ -99,5 +99,5 @@ open class Query(
 
 }
 
-
+// TODO: implement ability to create  query from any sequence of Nodes (and Patterns?)
 
