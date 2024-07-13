@@ -8,13 +8,6 @@ import rain.rndr.relationships.RADIUS
 import rain.utils.autoKey
 
 
-// TODO: could this be folded into a standard Message for
-//  any node on the label of the receiver node?????
-open class Message<ST: Node, RT:Node>(
-    val properties: MutableMap<String, Any?> = mutableMapOf()
-) {
-
-}
 
 open class MachineMessage<ST: Event, RT:Machine>(
     properties: MutableMap<String, Any?> = mutableMapOf()
@@ -111,7 +104,14 @@ open class Circle2 protected constructor(
     key:String = autoKey(),
 ): Machine2(key) {
     companion object : NodeLabel<Circle2>(Circle2::class, Machine, { k -> Circle2(k) }) {
-//        val radius = DefinedRelationship(Circle2, RADIUS, Value)
+
+        class Message<ST: Node, RT:Circle2>(
+            val properties: MutableMap<String, Any?> = mutableMapOf()
+        ) {
+
+        }
+
+        //        val radius = DefinedRelationship(Circle2, RADIUS, Value)
         val radius = Field<Double>(RADIUS)
     }
 
