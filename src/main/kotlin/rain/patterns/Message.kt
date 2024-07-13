@@ -9,38 +9,6 @@ import rain.utils.autoKey
 
 
 
-open class MachineMessage<ST: Event, RT:Machine>(
-    properties: MutableMap<String, Any?> = mutableMapOf()
-): Message<ST, RT>(properties) {
-}
-
-// TODO: is ST needed here, or can it simply be a type param on the sends method?
-open class CircleMessage<ST: Event>(
-    properties: MutableMap<String, Any?> = mutableMapOf()
-): MachineMessage<ST, Circle>(properties) {
-
-    // IMPORTANT: this is the crucial link... this defines what kind of machine gets created
-    //  ... as well as all the possible fields
-    val receiver = Circle2
-
-    var dur:Double by properties
-
-
-    fun sends(
-        label:NodeLabel<ST>,
-        block:CircleMessage<ST>.()->Unit,
-    ): ST {
-
-        return label.create("YO", this.properties)
-    }
-
-    // TODO: can this replace bump() on the machine node itself?
-    fun receives(block:CircleMessage<ST>.()->Unit) {
-
-    }
-
-}
-
 class DefinedRelationship<ST:Node, DT:Node>(
     val sourceLabel:NodeLabel<ST>,
     val relationshipLabel: RelationshipLabel,
@@ -60,6 +28,7 @@ class Field<T:Any>(
     val relationshipLabel: RelationshipLabel? = null,
     name: String,
 ) {
+
     fun <PT:Node, ST:PT, DT:PT>cachedFieldValue(
         source:ST,
         destinationLabel: NodeLabel<DT>
@@ -97,6 +66,27 @@ abstract class Machine2(key:String):Machine(key) {
 
 }
 
+class Message<RT:Node>(
+    val receiverLabel:NodeLabel<RT>,
+    val properties: MutableMap<String, Any?> = mutableMapOf()
+) {
+
+    var dur:Double by properties
+
+    fun <ST:Node>sends(
+        senderLabel:NodeLabel<ST>,
+        block:Message<RT>.()->Unit,
+    ): ST {
+
+        return senderLabel.create("YO", this.properties)
+    }
+
+    // TODO: can this replace bump() on the machine node itself?
+    fun receives(block:Message<RT>.()->Unit) {
+
+    }
+}
+
 
 // machine subclasses determine fields, and any logic for bump() and render()
 // fields are defined by a type a relationship label
@@ -105,14 +95,12 @@ open class Circle2 protected constructor(
 ): Machine2(key) {
     companion object : NodeLabel<Circle2>(Circle2::class, Machine, { k -> Circle2(k) }) {
 
-        class Message<ST: Node, RT:Circle2>(
-            val properties: MutableMap<String, Any?> = mutableMapOf()
-        ) {
-
-        }
+    fun receives(
+        properties: MutableMap<String, Any?> = mutableMapOf()
+    ) = Message(Circle2, properties)
 
         //        val radius = DefinedRelationship(Circle2, RADIUS, Value)
-        val radius = Field<Double>(RADIUS)
+        val radius = Field<Double>(RADIUS, "radius")
     }
 
     fun render() {
@@ -128,6 +116,10 @@ open class Circle2 protected constructor(
 
 
     override fun bump(properties: MutableMap<String, Any?>) {
+        val m = Circle2.receives(properties).apply {
+            receiverLabel.radius
+        }
+
         val cm = CircleMessage<Event>(properties).receives {
             println(dur / 2.0)
 
