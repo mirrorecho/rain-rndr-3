@@ -4,6 +4,7 @@ import rain.graph.interfacing.GraphableNode
 import rain.graph.interfacing.QueryMethod
 import rain.language.*
 import rain.utils.autoKey
+import kotlin.reflect.KProperty
 
 // patterns are abstractions of queries
 abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the generic ty[es are worth it, otherwise KISS!
@@ -12,7 +13,7 @@ abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the ge
     // TODO: also, is source worthwhile here, or just override query's directly, OR, just make this a arg, not a var
     val source: ST,
     val destinationLabel: NodeLabel<DT>,
-    val previous: Pattern<T, *, *>? = null,
+    val previous: Pattern<T, *, out ST>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
 ): Query( QueryMethod.GRAPHABLE) {
     // TODO: cascading properties
@@ -83,7 +84,7 @@ abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the ge
 
     // TODO: is the below note correct? Or or holdover from sandbox?
     // NOTE: doesn't actually cache, just mimics the sequence
-    open inner class CachedTarget: TypedCached<DT>() {
+    inner class CachedTarget: TypedCached<DT>() {
 
         private var cachedNode = this.first
 
@@ -98,12 +99,29 @@ abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the ge
                 node?.let { extend(it) }
             }
 
+        // TODO: is this used?
         fun createIfMissing(key:String = autoKey()) {
             if (cachedNode==null) {
                 cachedNode = destinationLabel.create(key).also { extend(it) }
             }
         }
+
+        inner class FieldValue<T:Any>(
+            val name:String,
+        ) {
+            // TODO: implement defaults, caching
+            //  TODO maybe: ANIMATION????
+
+            operator fun getValue(thisRef: Any?, property: KProperty<*>): T? =
+                this@CachedTarget.target?.properties?.get(name) as T?
+
+            operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {
+                this@CachedTarget.target!!.properties[name] = value
+            }
+        }
+
     }
+
 
 }
 

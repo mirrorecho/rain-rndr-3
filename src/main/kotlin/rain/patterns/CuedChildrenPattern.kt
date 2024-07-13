@@ -7,10 +7,10 @@ import rain.patterns.nodes.Cue
 import rain.patterns.relationships.*
 
 
-open class CuedChildrenPattern<T: Node, ST:T, DT:T>(
+open class CuedChildrenPattern<T: Node, out ST:T, DT:T>(
     source: ST,
     destinationLabel: NodeLabel<DT>,
-    previous: Pattern<T,*, *>? = null,
+    previous: Pattern<T,*, out ST>? = null,
 ): Pattern<T, ST, DT>(source, destinationLabel, previous) {
 
 

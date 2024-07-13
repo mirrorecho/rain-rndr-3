@@ -74,21 +74,21 @@ open class Query(
         }
     }
 
-    open inner class CachedTarget<T: Node>(
-        val label: NodeLabel<T>? = null
-    ) {
-        open fun getSequence(): Sequence<T> = invoke(label!!)
-
-        private val cachingNodes: Caching<Sequence<T>> = Caching(::getSequence)
-
-        val nodes: Sequence<T> by cachingNodes
-
-        val first: T? get() = nodes.firstOrNull()
-
-        fun reset() {
-            cachingNodes.reset()
-        }
-    }
+//    open inner class CachedTarget<T: Node>(
+//        val label: NodeLabel<T>? = null
+//    ) {
+//        open fun getSequence(): Sequence<T> = invoke(label!!)
+//
+//        private val cachingNodes: Caching<Sequence<T>> = Caching(::getSequence)
+//
+//        val nodes: Sequence<T> by cachingNodes
+//
+//        val first: T? get() = nodes.firstOrNull()
+//
+//        fun reset() {
+//            cachingNodes.reset()
+//        }
+//    }
 
 
     // TODO: is this even used? (and does the override work out correctly?)
