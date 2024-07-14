@@ -2,6 +2,9 @@ package rain.language
 
 import org.openrndr.Program
 import rain.graph.interfacing.*
+import rain.patterns.Field
+import rain.patterns.Pattern
+import rain.patterns.nodes.Machine
 import rain.utils.autoKey
 import rain.utils.lazyish
 
@@ -22,6 +25,10 @@ abstract class Node protected constructor(
     open fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
 
     open fun render(program: Program) { println("render not implemented for $this") }
+
+    fun <T:Any, ST:Node>fieldValue(field: Field<T, Node>): Pattern<Node, Node, Node>.CachedTarget.FieldValue<T> =
+        field.cachedFieldValue(this, Node)
+
 
     fun save() = context.graph.save(this)
 

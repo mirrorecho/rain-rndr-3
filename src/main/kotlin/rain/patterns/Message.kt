@@ -24,15 +24,22 @@ class DefinedRelationship<ST:Node, DT:Node>(
 
 // TODO: constructors allowing either a name, or a relationshipLabel, or both
 //  ... allow some options (i.e. no relationship, optional relationship if property doesn't exist locally, etc.)
-class Field<T:Any>(
+class Field<T:Any, out PT:Node>(
+    val sourceLabel: NodeLabel<PT>,
     val relationshipLabel: RelationshipLabel? = null,
     name: String,
 ) {
 
-    fun <PT:Node, ST:PT, DT:PT>cachedFieldValue(
-        source:ST,
-        destinationLabel: NodeLabel<DT>
-    ): Pattern<PT, ST, DT>.CachedTarget.FieldValue<T> {
+    fun
+//            <
+//            PT:Node,
+//            ST:PT,
+//            DT:PT
+//            >
+            cachedFieldValue(
+        source:PT,
+        destinationLabel: NodeLabel<PT>
+    ): Pattern<PT, PT, PT>.CachedTarget.FieldValue<T> {
         val pattern = RelatesPattern(source, destinationLabel, relationshipLabel = relationshipLabel)
         val ct = pattern.cachedTarget
 
@@ -59,10 +66,7 @@ abstract class Machine2(key:String):Machine(key) {
 //        return RelatesPattern(this, label, relationshipLabel = relationshipLabel).cachedTarget
 //    }
 //
-    fun <T:Any>field(field:Field<T>): Pattern<Machine, Machine, Machine>.CachedTarget.FieldValue<T> {
-        val cn = field.cachedFieldValue(this, Machine)
-        return cn
-    }
+
 
 }
 
@@ -100,7 +104,7 @@ open class Circle2 protected constructor(
     ) = Message(Circle2, properties)
 
         //        val radius = DefinedRelationship(Circle2, RADIUS, Value)
-        val radius = Field<Double>(RADIUS, "radius")
+
     }
 
     fun render() {

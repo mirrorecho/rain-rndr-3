@@ -7,11 +7,11 @@ import rain.utils.autoKey
 import kotlin.reflect.KProperty
 
 // patterns are abstractions of queries
-abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the generic ty[es are worth it, otherwise KISS!
+abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generic ty[es are worth it, otherwise KISS!
 
-    // TODO: consider making this a var to allow for patterns in the abstract
+    // TODO (DONE): consider making this a var to allow for patterns in the abstract
     // TODO: also, is source worthwhile here, or just override query's directly, OR, just make this a arg, not a var
-    val source: ST,
+    var source: ST?,
     val destinationLabel: NodeLabel<DT>,
     val previous: Pattern<T, *, out ST>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
@@ -38,7 +38,7 @@ abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the ge
         throw NotImplementedError("<T: Node>invoke not implemented for patterns")
     }
 
-    override var queryFrom: Query? = source.queryMe
+    override var queryFrom: Query? = source?.queryMe
 
     override operator fun invoke(): Sequence<DT> = graphableNodes.map { destinationLabel.from(it) }
 
@@ -82,7 +82,9 @@ abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the ge
 
     val cachedTarget get() = CachedTarget()
 
+    // below is is similar to TypedCached, but assumes there's just 1 result
     // TODO: is the below note correct? Or or holdover from sandbox?
+    // TODO: move this to query?
     // NOTE: doesn't actually cache, just mimics the sequence
     inner class CachedTarget: TypedCached<DT>() {
 
@@ -105,6 +107,7 @@ abstract class Pattern<T:Node, out ST:T, DT:T>( // TODO: consider whether the ge
                 cachedNode = destinationLabel.create(key).also { extend(it) }
             }
         }
+
 
         inner class FieldValue<T:Any>(
             val name:String,

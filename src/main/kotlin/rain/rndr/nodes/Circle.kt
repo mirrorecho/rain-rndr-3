@@ -8,8 +8,11 @@ import rain.patterns.nodes.Machine
 import org.openrndr.Program
 import org.openrndr.color.ColorRGBa
 import rain.language.CachedTarget
+import rain.language.Node
 import rain.language.NodeLabel
 import rain.language.manageWith
+import rain.patterns.Circle2
+import rain.patterns.Field
 import rain.patterns.Pattern
 import rain.patterns.nodes.Event
 
@@ -19,10 +22,10 @@ open class Circle(
     ): Machine(key) {
     companion object : NodeLabel<Circle>(Circle::class, Machine, { k -> Circle(k) }) {
 
+        val radius = Field<Double, Machine>(Circle, RADIUS, "radius")
 
 
-
-        val radius = CachedTarget(Event.create(), RADIUS, Value)
+//        val radius = CachedTarget(Event.create(), RADIUS, Value)
 
         override val receives: ReceivingManager get() = ReceivingManager()
 
@@ -52,13 +55,24 @@ open class Circle(
 
     }
     override val label: NodeLabel<out Circle> = Circle
+    fun typedThis():Circle { return this }
 
     val m = Companion.Manager()
 
     // TODO: cleaner (DRY) way to connect these target properties, with receiving manager, with triggering
 
-    var radius2 = cachedTarget(RADIUS, Value)
-    var radius = cachedTarget(RADIUS, Value)
+    fun <T:Any>fieldValue(block:()->Pattern<Node, Node, Node>.CachedTarget.FieldValue<T>) {
+
+    }
+
+    val radius by fieldValue { Circle.radius(this) }
+
+//    val radius by Circle.radius.cachedFieldValue(
+//        typedThis(), Machine
+//    )
+
+//    var radius2 = cachedTarget(RADIUS, Value)
+//    var radius = cachedTarget(RADIUS, Value)
 
     var strokeWeight = cachedTarget(STROKE_WEIGHT, Value)
     var strokeColor = cachedTarget(STROKE_COLOR, Color)
