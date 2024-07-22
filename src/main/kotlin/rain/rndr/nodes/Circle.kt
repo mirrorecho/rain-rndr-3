@@ -10,7 +10,6 @@ import org.openrndr.color.ColorRGBa
 import rain.language.Node
 import rain.language.NodeLabel
 import rain.language.manageWith
-import rain.patterns.Circle2
 import rain.patterns.Field
 import rain.patterns.Message
 import rain.patterns.Pattern
@@ -21,6 +20,8 @@ import kotlin.reflect.KProperty0
 open class CircleLabel(): MachineLabel() {
     override val labelName:String = "Circle"
     override val factory: (String) -> Circle  = { k -> Circle(k) }
+
+    // TODO: don't specify Machine twice
     val radius = Field<Double, Machine>("radius", RADIUS, Machine)
 }
 
@@ -29,7 +30,6 @@ open class Circle(
 ): Machine(key) {
     companion object : CircleLabel() {
 
-        // TODO: don't specify Machine twice
 
 
         // TODO: is this even needed?
@@ -39,21 +39,6 @@ open class Circle(
     override val label = Circle
 
     override val message = Message(Circle)
-
-//    val radius = fieldValue(Circle.radius)
-//    val x = fieldValue(Circle.x)
-//    val y = fieldValue(Circle.y)
-
-//    val fields = listOf(this.radius)
-
-
-
-//    val radius by radiusFieldValue
-
-    fun yo() {
-
-        val x2 = message[x]
-    }
 
 //    val fieldValues:List<KProperty0<CachedTarget<out Node>>> = listOf()
 

@@ -59,7 +59,8 @@ class NodeField<T:Node>(
 
 
 
-class Message<RT:Node, RL:NodeLabel<RT>>(
+class Message<SL:NodeLabel<*>, RL:NodeLabel<*>>(
+    val senderLabel:SL,
     val receiverLabel:RL,
     var properties: MutableMap<String, Any?> = mutableMapOf()
 ) {
@@ -112,7 +113,7 @@ fun yo() {
     Event.sends(Circle) {
         it[radius] = 1.0
         it[dur] = 1.0
-
+        it.stream()
 
     }
 

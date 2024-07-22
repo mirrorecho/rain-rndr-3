@@ -13,7 +13,10 @@ import kotlin.reflect.KClass
 open class MachineLabel(): NodeLabel<Machine>() {
     override val labelName:String = "Machine"
     override val factory: (String) -> Machine  = { k -> Machine(k) }
+
     val dur = Field<Double, Machine>("dur", null, Machine)
+    // TODO: replace with gate enum?
+    val gate = Field<Boolean, Machine>("gate", null, Machine)
 }
 
 
@@ -21,19 +24,10 @@ open class Machine(
     key:String = rain.utils.autoKey(),
 ): Node(key) {
     companion object : MachineLabel()
-
-    override val label: NodeLabel<out Machine> = Machine
-
-    open class ReceivingManager : Event.EventManager()
-//    open val receivingManager by lazy { ReceivingManager() }
-
-    override fun gate(onOff: Boolean) {
-        isRunning = onOff;
-    }
+    override val label: MachineLabel = Machine
 
     // TODO: is this even used?
     protected var isRunning = false
-
 
     // TODO: assume this won't be used... but review, then delete
 //    override fun bump(vararg fromPatterns: Pattern) {
@@ -44,12 +38,14 @@ open class Machine(
 //        }
 //    }
 
-    // TODO: maybe this should ACTUALLY trigger the underlying value machine?
-    // TODO: move back to a base class for all RndrMachines?????
-    fun triggerValue(cTarget: CachedTarget<Value>, value:Double?) {
-        cTarget.target?.apply { value?.let { this.value = it }   }
-    }
+    // TODO: triggerValue still used with new messaging scheme?
+    // ... TODO?: maybe this should ACTUALLY trigger the underlying value machine?
+    // ... TODO?: move back to a base class for all RndrMachines?????
+//    fun triggerValue(cTarget: CachedTarget<Value>, value:Double?) {
+//        cTarget.target?.apply { value?.let { this.value = it }   }
+//    }
 
+    // TODO: replace with bump?
     open fun trigger(properties: MutableMap<String, Any?>) {
         // TODO: implement?
         println("TRIGGERING $key: $properties - WARNING: no machine trigger defined")
@@ -58,19 +54,16 @@ open class Machine(
 
 }
 
+open class PrinterLabel(): MachineLabel() {
+    override val labelName:String = "Printer"
+    override val factory: (String) -> Machine  =  {k -> Printer(k) }
+}
+
 open class Printer(
     key:String = rain.utils.autoKey(),
 ): Machine(key) {
-    companion object : NodeLabel<Printer>(Printer::class, Machine, { k -> Printer(k) }){
-        override val receives: ReceivingManager get() = ReceivingManager()
-    }
-    override val label: NodeLabel<out Printer> = Printer
-
-    open class ReceivingManager : Machine.ReceivingManager() {
-        var message: String by properties.apply { putIfAbsent("message", "No Message Defined") }
-    }
-
-//    override val receivingManager by lazy { ReceivingManager() }
+    companion object : PrinterLabel()
+    override val label: PrinterLabel = Printer
 
     override fun trigger(properties: MutableMap<String, Any?>) {
         receives.apply {

@@ -26,19 +26,19 @@ abstract class NodeLabel<T: Node>(
 
     operator fun get(vararg keys:String) = Query(selectKeys=keys)
 
-    // TODO: used?
-    open val receives: Manager get() = Manager()
+    // TODO: review, then delete
+//    open val receives: Manager get() = Manager()
 
     val registry: MutableMap<String, T> = mutableMapOf()
 
     override fun toString() = labelName
 
-    fun <R:Node, RL:NodeLabel<R>>sends(
+    fun <RL:NodeLabel<*>>sends(
         receives:RL,
         key:String = autoKey(),
-        block:RL.(message: Message<R, RL>)->Unit
+        block:RL.(message: Message<NodeLabel<T>, RL>)->Unit
     ): T {
-        val message = Message<R, RL>(receives)
+        val message = Message<NodeLabel<T>, RL>(this, receives)
         block.invoke(receives, message)
         return this.create(key, message.properties)
     }
