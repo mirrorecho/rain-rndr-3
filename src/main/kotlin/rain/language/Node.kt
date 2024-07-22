@@ -3,8 +3,10 @@ package rain.language
 import org.openrndr.Program
 import rain.graph.interfacing.*
 import rain.patterns.Field
+import rain.patterns.Message
 import rain.patterns.Pattern
 import rain.patterns.nodes.Machine
+import rain.rndr.nodes.Circle
 import rain.utils.autoKey
 import rain.utils.lazyish
 
@@ -25,9 +27,6 @@ abstract class Node protected constructor(
     open fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
 
     open fun render(program: Program) { println("render not implemented for $this") }
-
-    fun <T:Any, ST:Node>fieldValue(field: Field<T, Node>): Pattern<Node, Node, Node>.CachedTarget.FieldValue<T> =
-        field.cachedFieldValue(this, Node)
 
 
     fun save() = context.graph.save(this)
@@ -56,6 +55,10 @@ abstract class Node protected constructor(
 
     fun getRelationships(relationshipLabel:RelationshipLabel, directionIsRight:Boolean=true) =
         getGraphableRelationships(relationshipLabel.labelName, directionIsRight).map { relationshipLabel.from(it) }
+
+    fun <T:Any, NT:Node>fieldValue(field: Field<T,NT>): Pattern<NT>.CachedTarget.FieldValue<T> {
+        return field.cachedFieldValue()
+    }
 
     // TODO: consider re-implementing
     // TODO maybe if so: consider moving this to the manager class?
@@ -94,6 +97,16 @@ abstract class Node protected constructor(
 
     // TODO: maybe implement this...?
 //    fun invoke()
+
+    abstract val message: Message<out Node, out NodeLabel<out Node>>
+
+    open fun wireUp() {
+        message.properties = this.properties
+    }
+
+    init {
+        this.wireUp()
+    }
 
 }
 

@@ -1,20 +1,21 @@
 package rain.language
 
 import rain.graph.interfacing.*
+import rain.patterns.Field
+import rain.patterns.Message
+import rain.patterns.nodes.Event
 import rain.utils.autoKey
 import kotlin.reflect.KClass
 
 
 
 abstract class NodeLabel<T: Node>(
-    myClass: KClass<T>,
     parentLabel: NodeLabel<*>? = null,
-    val factory: (String)->T,
     ): Queryable, Label<T>() {
 
-    private fun getName(cl:KClass<T>) = cl.simpleName ?: "Node"
+    abstract val factory: (String)->T
 
-    final override val labelName:String = getName(myClass)
+    private fun getName(cl:KClass<T>) = cl.simpleName ?: "Node"
 
     // TODO: needed?
 //    override val ancestorLabels: List<NodeLabel<*>> = parentLabel?.let { listOf(it) + it.ancestorLabels }.orEmpty()
@@ -25,11 +26,23 @@ abstract class NodeLabel<T: Node>(
 
     operator fun get(vararg keys:String) = Query(selectKeys=keys)
 
+    // TODO: used?
     open val receives: Manager get() = Manager()
 
     val registry: MutableMap<String, T> = mutableMapOf()
 
     override fun toString() = labelName
+
+    fun <R:Node, RL:NodeLabel<R>>sends(
+        receives:RL,
+        key:String = autoKey(),
+        block:RL.(message: Message<R, RL>)->Unit
+    ): T {
+        val message = Message<R, RL>(receives)
+        block.invoke(receives, message)
+        return this.create(key, message.properties)
+    }
+
 
     fun get(key: String): T =
         registry.getOrPut(key) {
@@ -97,6 +110,15 @@ abstract class NodeLabel<T: Node>(
         context.nodeLabels[labelName] = this
     }
 
+
+    // ============================================================
+
+    fun getFields(vararg  fields: Field<Any, Node>): Map<String, Field<Any, Node>> =
+        fields.associateBy { it.name }
+
+    open val fields: Map<String, Field<Any, Node>> = mapOf()
+
+    // ============================================================
 
     init {
         registerMe()

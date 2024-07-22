@@ -7,13 +7,13 @@ import rain.utils.autoKey
 import kotlin.reflect.KProperty
 
 // patterns are abstractions of queries
-abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generic ty[es are worth it, otherwise KISS!
+abstract class Pattern<NT:Node>(
 
     // TODO (DONE): consider making this a var to allow for patterns in the abstract
     // TODO: also, is source worthwhile here, or just override query's directly, OR, just make this a arg, not a var
-    var source: ST?,
-    val destinationLabel: NodeLabel<DT>,
-    val previous: Pattern<T, *, out ST>? = null,
+    var source: Node?,
+    val destinationLabel: NodeLabel<NT>,
+    val previous: Pattern<*>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
 ): Query( QueryMethod.GRAPHABLE) {
     // TODO: cascading properties
@@ -40,13 +40,13 @@ abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generi
 
     override var queryFrom: Query? = source?.queryMe
 
-    override operator fun invoke(): Sequence<DT> = graphableNodes.map { destinationLabel.from(it) }
+    override operator fun invoke(): Sequence<NT> = graphableNodes.map { destinationLabel.from(it) }
 
     // TODO: this works great... so make sure I understand EXACTLY what's going on
     //  ... ALSO, consider moving to Query to use on non-patterns?
-    open fun <DT2:T, P:Pattern<T, DT, DT2>>asPatterns(
-        destinationLabel: NodeLabel<DT2>,
-        factory:(source:DT, destinationLabel: NodeLabel<DT2>, previous:Pattern<T, ST,DT>)->P
+    open fun <NT2:Node, P:Pattern<NT2>>asPatterns(
+        destinationLabel: NodeLabel<NT2>,
+        factory:(source:NT, destinationLabel: NodeLabel<NT2>, previous:Pattern<NT>)->P
     ): Sequence<P> = this().map { factory.invoke(it, destinationLabel, this) }
 
     // ------------------------------------------------------------------
@@ -54,7 +54,7 @@ abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generi
     // TODO: Node Type OK here?
 //    val history: HistoryPattern<ST, PT, *> get() = HistoryPattern<ST, PT, Node>(source, )
 
-    val history: Sequence<Pattern<T, *, *>> = sequence {
+    val history: Sequence<Pattern<*>> = sequence {
         previous?.let { yield(it); yieldAll(it.history) }
     }
 
@@ -86,14 +86,14 @@ abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generi
     // TODO: is the below note correct? Or or holdover from sandbox?
     // TODO: move this to query?
     // NOTE: doesn't actually cache, just mimics the sequence
-    inner class CachedTarget: TypedCached<DT>() {
+    inner class CachedTarget: TypedCached<NT>() {
 
         private var cachedNode = this.first
 
         val sourcePattern get() = this@Pattern
         val sourceNode get() = sourcePattern.source
 
-        var target: DT?
+        var target: NT?
             get() = cachedNode
             set(node) {
                 cachedNode = node
@@ -115,12 +115,23 @@ abstract class Pattern<T:Node, ST:T, DT:T>( // TODO: consider whether the generi
             // TODO: implement defaults, caching
             //  TODO maybe: ANIMATION????
 
-            operator fun getValue(thisRef: Any?, property: KProperty<*>): T? =
-                this@CachedTarget.target?.properties?.get(name) as T?
+            var value: T? get() = this@CachedTarget.target?.properties?.get(name) as T?
+                set(value: T?) {
+                    this@CachedTarget.target!!.properties[name] = value
+                }
 
-            operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {
-                this@CachedTarget.target!!.properties[name] = value
+//            operator fun getValue(thisRef: Any?, property: KProperty<*>): T? =
+//                this@CachedTarget.target?.properties?.get(name) as T?
+//
+//            operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {
+//                this@CachedTarget.target!!.properties[name] = value
+//            }
+
+            fun wireup(source:Node) {
+                this@CachedTarget.sourcePattern.source = source
+                // TODO: more here ... (e.g. implement caching)
             }
+
         }
 
     }

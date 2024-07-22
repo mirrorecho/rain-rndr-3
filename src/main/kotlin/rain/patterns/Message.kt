@@ -9,25 +9,26 @@ import rain.utils.autoKey
 
 
 
-class DefinedRelationship<ST:Node, DT:Node>(
-    val sourceLabel:NodeLabel<ST>,
-    val relationshipLabel: RelationshipLabel,
-    val destinationLabel:NodeLabel<DT>,
-) {
-    fun relatedTarget(source:ST): Pattern<*, ST, DT>.CachedTarget =
-        RelatesPattern(source, destinationLabel, relationshipLabel = relationshipLabel).cachedTarget
-
-    fun relatedSource(destination:DT): Pattern<*, DT, ST>.CachedTarget =
-        RelatesPattern(destination, sourceLabel, relationshipLabel = relationshipLabel.left).cachedTarget
-
-}
+//class DefinedRelationship<ST:Node, DT:Node>(
+//    val sourceLabel:NodeLabel<ST>,
+//    val relationshipLabel: RelationshipLabel,
+//    val destinationLabel:NodeLabel<DT>,
+//) {
+//    fun relatedTarget(source:ST): Pattern<*, ST, DT>.CachedTarget =
+//        RelatesPattern(source, destinationLabel, relationshipLabel = relationshipLabel).cachedTarget
+//
+//    fun relatedSource(destination:DT): Pattern<*, DT, ST>.CachedTarget =
+//        RelatesPattern(destination, sourceLabel, relationshipLabel = relationshipLabel.left).cachedTarget
+//
+//}
 
 // TODO: constructors allowing either a name, or a relationshipLabel, or both
 //  ... allow some options (i.e. no relationship, optional relationship if property doesn't exist locally, etc.)
-class Field<T:Any, out PT:Node>(
-    val sourceLabel: NodeLabel<PT>,
+class Field<out T:Any, out NT:Node>(
+//    val sourceLabel: NodeLabel<PT>,
+    val name: String,
     val relationshipLabel: RelationshipLabel? = null,
-    name: String,
+    val destinationLabel: NodeLabel<out NT>,
 ) {
 
     fun
@@ -37,10 +38,9 @@ class Field<T:Any, out PT:Node>(
 //            DT:PT
 //            >
             cachedFieldValue(
-        source:PT,
-        destinationLabel: NodeLabel<PT>
-    ): Pattern<PT, PT, PT>.CachedTarget.FieldValue<T> {
-        val pattern = RelatesPattern(source, destinationLabel, relationshipLabel = relationshipLabel)
+//
+    ): Pattern<NT>.CachedTarget.FieldValue<T> {
+        val pattern = RelatesPattern(null, destinationLabel, relationshipLabel = relationshipLabel)
         val ct = pattern.cachedTarget
 
         // TODO: avoid querying here ... move to FieldValue
@@ -58,87 +58,80 @@ class NodeField<T:Node>(
 }
 
 
-abstract class Machine2(key:String):Machine(key) {
 
-    abstract fun bump(properties: MutableMap<String, Any?>)
-
-//    fun <DT:Machine>relatedTarget(label:NodeLabel<DT>, relationshipLabel: RelationshipLabel): Pattern<Machine, Machine, DT>.CachedTarget {
-//        return RelatesPattern(this, label, relationshipLabel = relationshipLabel).cachedTarget
-//    }
-//
-
-
-}
-
-class Message<RT:Node>(
-    val receiverLabel:NodeLabel<RT>,
-    val properties: MutableMap<String, Any?> = mutableMapOf()
+class Message<RT:Node, RL:NodeLabel<RT>>(
+    val receiverLabel:RL,
+    var properties: MutableMap<String, Any?> = mutableMapOf()
 ) {
 
-    var dur:Double by properties
+    // TODO: how is this populated?
+    val fieldNodes: MutableMap<String, Node> = mutableMapOf()
 
-    fun <ST:Node>sends(
-        senderLabel:NodeLabel<ST>,
-        block:Message<RT>.()->Unit,
-    ): ST {
-
-        return senderLabel.create("YO", this.properties)
-    }
-
-    // TODO: can this replace bump() on the machine node itself?
-    fun receives(block:Message<RT>.()->Unit) {
-
-    }
-}
-
-
-// machine subclasses determine fields, and any logic for bump() and render()
-// fields are defined by a type a relationship label
-open class Circle2 protected constructor(
-    key:String = autoKey(),
-): Machine2(key) {
-    companion object : NodeLabel<Circle2>(Circle2::class, Machine, { k -> Circle2(k) }) {
-
-    fun receives(
-        properties: MutableMap<String, Any?> = mutableMapOf()
-    ) = Message(Circle2, properties)
-
-        //        val radius = DefinedRelationship(Circle2, RADIUS, Value)
-
-    }
-
-    fun render() {
-
-    }
-
-    override val label: NodeLabel<Circle2> = Circle2
-
-//    val radius = RelatesPattern(this, Value, relationshipLabel = RADIUS).cachedTarget
-//    val radius = relatedTarget(Circle2.radius)
-//    val radius by Circle2.radius.relatedTarget(this).FieldValue<Double>("radius")
-    val radius by field(Circle2.radius)
-
-
-    override fun bump(properties: MutableMap<String, Any?>) {
-        val m = Circle2.receives(properties).apply {
-            receiverLabel.radius
-        }
-
-        val cm = CircleMessage<Event>(properties).receives {
-            println(dur / 2.0)
-
-            radius.apply {
-                val t = this.sourcePattern.source
-            }
-
+    operator fun <T:Any>get(field:Field<T, *>): T? {
+        (fieldNodes[field.name]?.properties ?: this.properties).let {
+            return it[field.name] as T?
         }
     }
+
+    operator fun <T:Any>set(field:Field<T, *>, value:T) {
+        (fieldNodes[field.name]?.properties ?: this.properties).let {
+            it[field.name] = value
+        }
+    }
+
+//    fun <T:Any>getValue(field:Field<T, *>): T? {
+//        (fieldNodes[field.name]?.properties ?: this.properties).let {
+//            return it[field.name] as T?
+//        }
+//    }
+
+
+    // TODO: used? (assume not)
+//    fun <ST:Node>sends(
+//        senderLabel:NodeLabel<ST>,
+//        block:Message<RT, RL>.()->Unit,
+//    ): ST {
+//
+//        return senderLabel.create("YO", this.properties)
+//    }
+//
+//    // TODO: can this replace bump() on the machine node itself?
+//    fun receives(block:Message<RT, RL>.()->Unit) {
+//
+//    }
 
 }
 
 
 
 fun yo() {
+
+
+
+
+    Event.sends(Circle) {
+        it[radius] = 1.0
+        it[dur] = 1.0
+
+
+    }
+
+
+    m.apply {
+        receiverLabel.apply {
+            set(radius, 1.0)
+        }
+        radius(this) = 1.0
+        this[Circle.radius] = 1.0
+        Circle.apply {
+            set(radius, 1.0)
+        }
+
+        set(Circle.radius, 1.0)
+        stream(Circle.radius, 1.0, 1.0, 1.0)
+    }
+
+
 
     // IMPORTANT: messages cascade IFF
     // replace below with something like Event.sends(CircleMessage)

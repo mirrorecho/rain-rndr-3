@@ -7,6 +7,7 @@ import rain.language.ManagerInterface
 import rain.language.NodeLabel
 import rain.patterns.*
 import rain.patterns.relationships.TRIGGERS
+import rain.rndr.nodes.Circle
 import rain.utils.autoKey
 import rain.utils.lazyish
 

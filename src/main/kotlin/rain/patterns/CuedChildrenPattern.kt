@@ -7,11 +7,11 @@ import rain.patterns.nodes.Cue
 import rain.patterns.relationships.*
 
 
-open class CuedChildrenPattern<T: Node, out ST:T, DT:T>(
-    source: ST,
-    destinationLabel: NodeLabel<DT>,
-    previous: Pattern<T,*, out ST>? = null,
-): Pattern<T, ST, DT>(source, destinationLabel, previous) {
+open class CuedChildrenPattern<NT: Node>(
+    source: Node,
+    destinationLabel: NodeLabel<NT>,
+    previous: Pattern<*>? = null,
+): Pattern<NT>(source, destinationLabel, previous) {
 
 
     private fun getChildCues(qCue: Query): Sequence<GraphableNode> = sequence {
