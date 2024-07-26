@@ -26,8 +26,8 @@ abstract class NodeLabel<T: Node>(
 
     operator fun get(vararg keys:String) = Query(selectKeys=keys)
 
-    // TODO: used?
-    open val receives: Manager get() = Manager()
+    // TODO: review, then delete
+//    open val receives: Manager get() = Manager()
 
     val registry: MutableMap<String, T> = mutableMapOf()
 

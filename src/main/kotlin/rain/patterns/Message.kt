@@ -60,7 +60,7 @@ class NodeField<T:Node>(
 
 
 
-class Message<RT:Node, RL:NodeLabel<RT>>(
+class Message<R:Node, RL:NodeLabel<R>>(
     val receiverLabel:RL,
     var properties: MutableMap<String, Any?> = mutableMapOf()
 ) {

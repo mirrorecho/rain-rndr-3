@@ -7,16 +7,17 @@ import rain.utils.*
 
 import org.openrndr.Program
 
-
 open class Circle protected constructor(
     key:String = autoKey(),
 ): Machine(key) {
+
     abstract class CircleLabel<T:Circle>(): MachineLabel<T>() {
         val radius = Field<Double, Machine>("radius", RADIUS, Machine)
         val position = Field<Position, Machine>("position", POSITION, Machine)
         val strokeColor = Field<Color, Machine>("strokeColor", STROKE_COLOR, Machine)
         val strokeWeight = Field<Double, Machine>("strokeWeight", STROKE_COLOR, Machine)
         val fillColor = Field<Color, Machine>("fillColor", FILL_COLOR, Machine)
+
     }
 
     companion object : CircleLabel<Circle>() {
@@ -26,6 +27,7 @@ open class Circle protected constructor(
 
     override val label = Circle
     override val message = Message(Circle) // TODO: consider whether we allow nulls for senderLabel,
+
 
     //    // TODO: implement if needed (or remove)
 //    override fun bump(properties: MutableMap<String, Any?>) {
