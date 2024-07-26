@@ -13,7 +13,7 @@ abstract class NodeLabel<T: Node>(
     parentLabel: NodeLabel<*>? = null,
     ): Queryable, Label<T>() {
 
-    abstract val factory: (String)->T
+    abstract val factory: (String)-> T
 
     private fun getName(cl:KClass<T>) = cl.simpleName ?: "Node"
 
@@ -36,11 +36,14 @@ abstract class NodeLabel<T: Node>(
     fun <R:Node, RL:NodeLabel<R>>sends(
         receives:RL,
         key:String = autoKey(),
-        block:RL.(message: Message<R, RL>)->Unit
+        preCreate:RL.(Message<R, RL>)->Unit,
+        postCreate:RL.(T)->Unit,
     ): T {
-        val message = Message<R, RL>(receives)
-        block.invoke(receives, message)
-        return this.create(key, message.properties)
+        val message = Message(receives)
+        preCreate.invoke(receives, message)
+        return this.create(key, message.properties).apply {
+            postCreate.invoke(receives, this)
+        }
     }
 
 
@@ -57,7 +60,6 @@ abstract class NodeLabel<T: Node>(
                 updatePropertiesFrom(gNode)
             }
         }
-
 
     fun merge(
         key: String = autoKey(),
@@ -78,33 +80,44 @@ abstract class NodeLabel<T: Node>(
             registry[key] = this
         }
 
-    // TODO.. implement similar for merge above
-    fun <MT : ManagerInterface> create(
+    // TODO: this won't work... mimic global merge below
+    fun create(
         key: String = autoKey(),
-        manager: MT,
-        block: (MT.() -> Unit)? = null,
-    ): T =
-        factory(key).apply {
-            block?.invoke(manager)
-            this.updatePropertiesFrom(manager.properties)
-            this.manageWith(manager) {}
-            context.graph.create(this)
-            manager.postCreate()
-            registry[key] = this
-        }
+        messageBlock: NodeLabel<T>.(Message<T, NodeLabel<T>>)->Unit,
+    ): T {
+        val message = Message(this)
+        messageBlock.invoke(this, message)
+        return this.create(key, message.properties)
+    }
 
-    fun <MT : ManagerInterface> sends(
-        key: String,
-        receivingManager: MT,
-        block: (MT.() -> Unit)? = null,
-    ): T =
-        create<MT>(key, receivingManager, block)
+    //TODO: review, then delete
+//    fun <MT : ManagerInterface> create(
+//        key: String = autoKey(),
+//        manager: MT,
+//        block: (MT.() -> Unit)? = null,
+//    ): T =
+//        factory(key).apply {
+//            block?.invoke(manager)
+//            this.updatePropertiesFrom(manager.properties)
+//            this.manageWith(manager) {}
+//            context.graph.create(this)
+//            manager.postCreate()
+//            registry[key] = this
+//        }
 
-    fun <MT : ManagerInterface> sends(
-        receivingManager: MT,
-        block: (MT.() -> Unit)? = null,
-    ): T =
-        sends(autoKey(), receivingManager, block)
+    //TODO: review, then delete
+//    fun <MT : ManagerInterface> sends(
+//        key: String,
+//        receivingManager: MT,
+//        block: (MT.() -> Unit)? = null,
+//    ): T =
+//        create<MT>(key, receivingManager, block)
+//
+//    fun <MT : ManagerInterface> sends(
+//        receivingManager: MT,
+//        block: (MT.() -> Unit)? = null,
+//    ): T =
+//        sends(autoKey(), receivingManager, block)
 
     private fun registerMe() {
         context.nodeLabels[labelName] = this
@@ -124,4 +137,48 @@ abstract class NodeLabel<T: Node>(
         registerMe()
     }
 
+}
+
+// TODO: move all these to some context?
+
+// TODO: naming OK (same as name within NodeLabel)?
+fun <R:Node, RL:NodeLabel<R>>merge(
+    recieverLabel:RL,
+    key: String = autoKey(),
+    messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
+): R {
+    val message = Message(recieverLabel)
+//    messageBlock.invoke(recieverLabel, message)
+    return recieverLabel.merge(key, message.properties)
+}
+
+fun <FT:Any, FN:Node, R:Node, RL:NodeLabel<R>>relateField(
+    fromNode:FN,
+    field:Field<FT, FN>,
+    relatedLabel: RL,
+    fieldName:String,
+    key: String = autoKey(),
+    messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
+    postCreate:RL.(R)->Unit,
+) {
+    // TODO: complete this...
+    val relatedNode = merge(relatedLabel, key, messageBlock)
+    // TODO: add fieldName to the relationship
+    fromNode.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
+}
+
+
+
+fun <N:Node, FT:Any, R:Node, RL:NodeLabel<R>>N.relateField(
+    field:Field<FT, N>,
+    relatedLabel: RL,
+    fieldName:String,
+    key: String = autoKey(),
+    messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
+    postCreate:RL.(R)->Unit,
+) {
+    // TODO: complete this...
+    val relatedNode = merge(relatedLabel, key, messageBlock)
+    // TODO: add fieldName to the relationship
+    this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
 }

@@ -4,14 +4,14 @@ package rain.sandbox.solve
 import rain.language.CachedTarget
 import rain.language.manageWith
 import rain._bak.patterns.DimensionLabel
+import rain.language.relateField
 import rain.patterns.nodes.Gate
 import rain.patterns.nodes.event
 import rain.patterns.nodes.*
 import rain.rndr.nodes.Circle
 import rain.rndr.nodes.Value
+import rain.rndr.nodes.ValueAnimate
 import rain.rndr.relationships.RADIUS
-
-
 
 
 
@@ -20,11 +20,104 @@ fun solve1() {
 //    // TODO: remove "sends" method
 //
 
-    val crm = Circle.ReceivingManager2()
 
-    val e1 = event() {
+    par(
+        Event.sends(Circle, "E1", {msg ->
+            msg[gate] = Gate.ON_OFF
+            msg["yomama"] = "sofat"
+        }) {event ->
+            // TODO: consider moving bumps to NodeLabel... to make more consistent and flexible
+            event.bumps(this, "C1", { c1Init ->
+                c1Init[strokeWeight] = 2.0
+            }) { circle ->
+                // merges to create/get ValueAnimate with key "R1"
+                // TODO: is specifying the property name "value" necessary here?
+                // TODO: naming?
 
-    }
+                circle.relateField(radius, ValueAnimate, "value", "R1") {
+                    event.propagate(Event, value, 90.0, 20.0, 200.0)
+                    event.propagate(Event, easing, 1.0, 20.0, 200.0)
+                }
+
+            }
+
+            // set properties on sender even if not explicitly defined by a field (use string indices)
+            // TODO: determine... would these be sent to the receiver or not?
+
+
+            it.withSender { event ->
+                it.createBump(event, "C1" ) { circle ->
+
+                }
+            }
+
+            // merges to create/get Circle with key "C1"
+            // and adds BUMPS relationship from this event to that Circle
+            it.bumps("C1") // TODO: naming?
+
+
+
+            // adds dur property fields to child nodes,
+            // creating notes as necessary of type specified (Event)
+            // TODO: see about omitting Event unless a specific subclass of Event needed
+            // TODO: see about slicker/compound stream method that can accommodate multiple fields
+            it.stream(Event, dur, 1.0, 3.0, 0.5)
+
+            it.stream()[]
+
+
+
+            // compare with streams for value and easing above... the idea is the same here
+            it.stream(Event, radius.related<ValueAnimate>().initValue, 1.0, 20.0)
+
+            // TODO: is this workable? how to simplify?
+            it.stream(Event, position.related<Position>().x, 0.0, 0.5, 0.0)
+            it.stream(Event, position.related<Position>().y, 0.0, 0.5, 0.0)
+
+        },
+        Event.sends(Circle) {
+            it.bumps()
+
+            // relates to existing R1 ... note that
+            it.relate(radius, "R1")
+
+            it.stream(Event, dur, 0.5, 4.0)
+
+            it.stream(Event, position.related<Position>().x, 1.0, 0.5)
+            it.stream(Event, position.related<Position>().y, 1.0, 0.5)
+        }
+    )
+
+
+
+        m.apply {
+            receiverLabel.apply {
+                set(radius, 1.0)
+            }
+            radius(this) = 1.0
+            this[Circle.radius] = 1.0
+            Circle.apply {
+                set(radius, 1.0)
+            }
+
+            set(Circle.radius, 1.0)
+            stream(Circle.radius, 1.0, 1.0, 1.0)
+        }
+
+
+
+        // IMPORTANT: messages cascade IFF
+        // replace below with something like Event.sends(CircleMessage)
+        CircleMessage<Event>().sends(Event) {
+            connectMachine() // connects to newly created or existing machine
+            gate = "ON_OFF"
+            receiver.radius.container() { // IMPORTANT: container creates an event that doesn't bump... only has child events
+                dur.stream(1.0, 1.0, 2.0)
+                value.stream(90.0, 200.0, 20.0)
+                stream { yo="mama0" } { } { yo="mama1" }
+            }
+        }
+
 
     val e = event("E1", Circle.receives) {
         addTrigger("C1")

@@ -9,22 +9,31 @@ import rain.rndr.nodes.Value
 import rain.rndr.relationships.Y
 import kotlin.reflect.KClass
 
-// TODO: fix simplify based on new code structure with separate class def
-open class MachineLabel(): NodeLabel<Machine>() {
-    override val labelName:String = "Machine"
-    override val factory: (String) -> Machine  = { k -> Machine(k) }
-    val dur = Field<Double, Machine>("dur", null, Machine)
-}
 
 
-open class Machine(
+open class Machine protected constructor(
     key:String = rain.utils.autoKey(),
 ): Node(key) {
-    companion object : MachineLabel()
+    // TODO: fix simplify based on new code structure with separate class def
+    abstract class MachineLabel<T:Machine>(): NodeLabel<T>() {
+
+        val dur = Field<Double, Machine>("dur", null, Machine)
+        val gate = Field<Gate, Machine>("gate", null, Machine)
+
+        // TODO/NOTE: simultaneous is really a property of the sending Event itself,
+        //  to be interpreted by EventPlayer... keeping it here for now,
+        //  but may make more sense to make EventPlayer a node (rename to score?), and move this there
+        val simultaneous = Field<Double, Machine>("dur", null, Machine)
+    }
+
+    companion object : MachineLabel<Machine>() {
+        override val labelName:String = "Machine"
+        override val factory: (String) -> Machine  = { k -> Machine(k) }
+    }
 
     override val label: NodeLabel<out Machine> = Machine
 
-    open class ReceivingManager : Event.EventManager()
+//    open class ReceivingManager : Event.EventManager()
 //    open val receivingManager by lazy { ReceivingManager() }
 
     override fun gate(onOff: Boolean) {

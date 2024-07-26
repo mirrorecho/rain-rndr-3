@@ -1,5 +1,6 @@
 package rain.patterns.nodes
 
+
 import rain._bak.patterns.DimensionLabel
 import rain.language.*
 import rain.language.Node
@@ -10,7 +11,6 @@ import rain.patterns.relationships.TRIGGERS
 import rain.rndr.nodes.Circle
 import rain.utils.autoKey
 import rain.utils.lazyish
-
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
     ON(true, null),
     OFF(null, false),
@@ -18,44 +18,84 @@ enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
     NONE(null, null),
 }
 
-// TODO: make this an interface!
+// TODO: make this an interface?
 open class Event protected constructor(
     key:String = autoKey(),
 ): Node(key) {
-    companion object : NodeLabel<Event>(Event::class, null, { k -> Event(k) })
-    override val label: NodeLabel<out Event> = Event
 
-    // TODO: figure out a more elegant way to use by properties with defaults (esp. null values)
-    open class EventManager : Manager() {
-        // TODO: is machine label even needed anymore?
-        open var machineLabel: NodeLabel<out Machine>? by nullable("machineLabel")
-        var machinePath: Array<RelationshipLabel>? by nullable("machinePath")
-        var dur: Double? by nullable("dur")
-        var gate: Gate by defaultable("gate", Gate.NONE)
-        var simultaneous: Boolean by defaultable("simultaneous", false)
-
-        fun addTrigger(key: String= autoKey(),  autoTarget: Boolean=true): Machine? {
-            return machineLabel?.create(key)?.apply { if (autoTarget) autoTarget(); addTrigger(this); }
-        }
-
-        fun addTrigger(machine: Machine): Machine {
-            deferToPattern {
-                it[DimensionLabel.TRIGGERS].extend(machine)
-            }
-            return machine
-        }
-
-        fun play() = deferToPattern { println("Playing $it"); EventPlayer(it).play() }
+    open class EventLabel(): NodeLabel<Event>() {
+        override val labelName:String = "Event"
+        override val factory: (String) -> Event  = { k -> Event(k) }
 
     }
 
+    companion object : EventLabel()
+
+    override val label: NodeLabel<out Event> = Event
+
+    // TODO: is this by lazy effective enough for "caching"?
+    val childrenPattern by lazy { CuedChildrenPattern(this, Event) }
+
     // TODO: implement caching
-    val children get() = CuedChildrenPattern(this, Event).children
+    val children get() = childrenPattern.children
+
+    // TODO: overloads for using existing object, only saving/merging if needed, various args, etc.
+    fun <R:Node, RL:NodeLabel<R>>bumps(
+        receiverLabel:RL,
+        key:String=autoKey(),
+        messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
+        receiverBlock: (R)->Unit
+    ) {
+        val receiver:R = merge(receiverLabel, key, messageBlock)
+        relate(TARGETS, receiver) // TODO: replace with BUMPS
+        receiverBlock.invoke(receiver)
+    }
+
+    // TODO: review and remove
+//    open class EventManager : Manager() {
+//        // TODO: is machine label even needed anymore?
+//        open var machineLabel: NodeLabel<out Machine>? by nullable("machineLabel")
+//        var machinePath: Array<RelationshipLabel>? by nullable("machinePath")
+//        var dur: Double? by nullable("dur")
+//        var gate: Gate by defaultable("gate", Gate.NONE)
+//        var simultaneous: Boolean by defaultable("simultaneous", false)
+//
+//        fun addTrigger(key: String = autoKey(), autoTarget: Boolean = true): Machine? {
+//            return machineLabel?.create(key)?.apply { if (autoTarget) autoTarget(); addTrigger(this); }
+//        }
+//
+//        fun addTrigger(machine: Machine): Machine {
+//            deferToPattern {
+//                it[DimensionLabel.TRIGGERS].extend(machine)
+//            }
+//            return machine
+//        }
+//
+//        fun play() = deferToPattern { println("Playing $it"); EventPlayer(it).play() }
+//
+//    }
+
+//    override var manager: ManagerInterface by lazyish { EventManager() }
+
+}
+
+fun par(key:String = autoKey(), properties:Map<String, Any?>?=null, vararg children:Event):Event =
+    Event.create(
+        key,
+        mapOf<String, Any?>("simultaneous" to true)  + properties.orEmpty()
+    ).apply {
+        childrenPattern.extend(*children)
+    }
+
+fun par(properties:Map<String, Any?>?=null, vararg children:Event):Event =
+    par(autoKey(), properties, *children)
+
+fun par(vararg children:Event):Event =
+    par(autoKey(), null, *children)
 
 
-    override var manager: ManagerInterface by lazyish { EventManager() }
 
-    // TODO: bring back the below?
+// TODO: bring back the below?
 //    val triggers = cachedTarget(TRIGGERS, machine!!)
 //
 //    fun makeTrigger(machine: Machine?=null, makeAutoTargets:Boolean=true): Event {
@@ -110,45 +150,44 @@ open class Event protected constructor(
 //        return this
 //    }
 
-}
+//}
 
 // SHORTCUT HELPERS:
 
-// TODO: remove the intermediary "sends" implementation
-fun <MT : ManagerInterface> event(
-    key:String,
-    receiver:MT,
-    label: NodeLabel<out Event> = Event,
-    block: (MT.() -> Unit)? = null,
-) = label.sends(key, receiver, block)
-
-
-fun <MT : ManagerInterface> event(
-    receiver:MT,
-    label: NodeLabel<out Event> = Event,
-    block: (MT.() -> Unit)? = null,
-) = event(autoKey(), receiver, label, block)
-
-
-fun event(
-    key:String = autoKey(),
-    label: NodeLabel<out Event> = Event,
-    block: (Machine.ReceivingManager.() -> Unit)? = null,
-) = event(key, Machine.receives, Event, block)
-
-fun event(
-    label: NodeLabel<out Event> = Event,
-    block: (Machine.ReceivingManager.() -> Unit)? = null,
-) = event(autoKey(), Machine.receives, Event, block)
-
-// just for testing purposes
-class SubEvent(
-    key:String = autoKey(),
-): Event(key) {
-    companion object : NodeLabel<SubEvent>(SubEvent::class, Event, { k -> SubEvent(k) })
-    override val label: NodeLabel<out SubEvent> = SubEvent
-
-}
+//fun <MT : ManagerInterface> event(
+//    key:String,
+//    receiver:MT,
+//    label: NodeLabel<out Event> = Event,
+//    block: (MT.() -> Unit)? = null,
+//) = label.sends(key, receiver, block)
+//
+//
+//fun <MT : ManagerInterface> event(
+//    receiver:MT,
+//    label: NodeLabel<out Event> = Event,
+//    block: (MT.() -> Unit)? = null,
+//) = event(autoKey(), receiver, label, block)
+//
+//
+//fun event(
+//    key:String = autoKey(),
+//    label: NodeLabel<out Event> = Event,
+//    block: (Machine.ReceivingManager.() -> Unit)? = null,
+//) = event(key, Machine.receives, Event, block)
+//
+//fun event(
+//    label: NodeLabel<out Event> = Event,
+//    block: (Machine.ReceivingManager.() -> Unit)? = null,
+//) = event(autoKey(), Machine.receives, Event, block)
+//
+//// just for testing purposes
+//class SubEvent(
+//    key:String = autoKey(),
+//): Event(key) {
+//    companion object : NodeLabel<SubEvent>(SubEvent::class, Event, { k -> SubEvent(k) })
+//    override val label: NodeLabel<out SubEvent> = SubEvent
+//
+//}
 
 //fun yo() {
 //    Event.yoMama()
@@ -156,8 +195,7 @@ class SubEvent(
 
 // TODO: review and remove when appropriate
 
-//fun par(key:String = autoKey(), properties:Map<String, Any?>?=null, vararg children:Event):Event =
-//    Event.create(key, properties) {  }
+
 
 //// because it's used so often AND cascade doesn't make sense
 //val TreeLineage<Event>.simultaneous get() = tree.simultaneous

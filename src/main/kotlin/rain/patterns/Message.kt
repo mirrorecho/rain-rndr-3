@@ -49,6 +49,7 @@ class Field<out T:Any, out NT:Node>(
         val fieldValue = ct.FieldValue<T>(name)
         return fieldValue
     }
+
 }
 
 class NodeField<T:Node>(
@@ -64,7 +65,8 @@ class Message<RT:Node, RL:NodeLabel<RT>>(
     var properties: MutableMap<String, Any?> = mutableMapOf()
 ) {
 
-    // TODO: how is this populated?
+    // TODO!!!!!!!!!!
+    //  need to implement a wireup method to populate this
     val fieldNodes: MutableMap<String, Node> = mutableMapOf()
 
     operator fun <T:Any>get(field:Field<T, *>): T? {
@@ -78,6 +80,22 @@ class Message<RT:Node, RL:NodeLabel<RT>>(
             it[field.name] = value
         }
     }
+
+//    private var senderBlock: ((ST)->Unit)? = null
+//
+//    // TODO: naming?
+//    fun withSender(block: (ST)->Unit) {
+//        senderBlock = block
+//    }
+//
+//    // TODO: naming?
+//    fun forSender(sender:ST) {
+//        senderBlock?.invoke(sender)
+//    }
+//
+//    fun bumps(key:String = autoKey()) {
+//
+//    }
 
 //    fun <T:Any>getValue(field:Field<T, *>): T? {
 //        (fieldNodes[field.name]?.properties ?: this.properties).let {
@@ -104,48 +122,6 @@ class Message<RT:Node, RL:NodeLabel<RT>>(
 
 
 
-fun yo() {
-
-
-
-
-    Event.sends(Circle) {
-        it[radius] = 1.0
-        it[dur] = 1.0
-
-
-    }
-
-
-    m.apply {
-        receiverLabel.apply {
-            set(radius, 1.0)
-        }
-        radius(this) = 1.0
-        this[Circle.radius] = 1.0
-        Circle.apply {
-            set(radius, 1.0)
-        }
-
-        set(Circle.radius, 1.0)
-        stream(Circle.radius, 1.0, 1.0, 1.0)
-    }
-
-
-
-    // IMPORTANT: messages cascade IFF
-    // replace below with something like Event.sends(CircleMessage)
-    CircleMessage<Event>().sends(Event) {
-        connectMachine() // connects to newly created or existing machine
-        gate = "ON_OFF"
-        receiver.radius.container() { // IMPORTANT: container creates an event that doesn't bump... only has child events
-            dur.stream(1.0, 1.0, 2.0)
-            value.stream(90.0, 200.0, 20.0)
-            stream { yo="mama0" } { } { yo="mama1" }
-        }
-    }
-
-}
 
 
 

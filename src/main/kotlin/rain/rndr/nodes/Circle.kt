@@ -1,67 +1,36 @@
 package rain.rndr.nodes
 
+import rain.patterns.*
+import rain.patterns.nodes.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
-import rain.patterns.nodes.Machine
-
 import org.openrndr.Program
-import org.openrndr.color.ColorRGBa
-import rain.language.Node
-import rain.language.NodeLabel
-import rain.language.manageWith
-import rain.patterns.Circle2
-import rain.patterns.Field
-import rain.patterns.Message
-import rain.patterns.Pattern
-import rain.patterns.nodes.Event
-import rain.patterns.nodes.MachineLabel
-import kotlin.reflect.KProperty0
 
-open class CircleLabel(): MachineLabel() {
-    override val labelName:String = "Circle"
-    override val factory: (String) -> Circle  = { k -> Circle(k) }
-    val radius = Field<Double, Machine>("radius", RADIUS, Machine)
-}
 
-open class Circle(
+open class Circle protected constructor(
     key:String = autoKey(),
 ): Machine(key) {
-    companion object : CircleLabel() {
-
-        // TODO: don't specify Machine twice
-
-
-        // TODO: is this even needed?
-        override val fields = getFields(radius, x, y)
-
+    abstract class CircleLabel<T:Circle>(): MachineLabel<T>() {
+        val radius = Field<Double, Machine>("radius", RADIUS, Machine)
+        val position = Field<Position, Machine>("position", POSITION, Machine)
+        val strokeColor = Field<Color, Machine>("strokeColor", STROKE_COLOR, Machine)
+        val strokeWeight = Field<Double, Machine>("strokeWeight", STROKE_COLOR, Machine)
+        val fillColor = Field<Color, Machine>("fillColor", FILL_COLOR, Machine)
     }
+
+    companion object : CircleLabel<Circle>() {
+        override val labelName:String = "Circle"
+        override val factory: (String) -> Circle  = { k -> Circle(k) }
+    }
+
     override val label = Circle
-
-    override val message = Message(Circle)
-
-//    val radius = fieldValue(Circle.radius)
-//    val x = fieldValue(Circle.x)
-//    val y = fieldValue(Circle.y)
-
-//    val fields = listOf(this.radius)
-
-
-
-//    val radius by radiusFieldValue
-
-    fun yo() {
-
-        val x2 = message[x]
-    }
-
-//    val fieldValues:List<KProperty0<CachedTarget<out Node>>> = listOf()
-
+    override val message = Message(Circle) // TODO: consider whether we allow nulls for senderLabel,
 
     //    // TODO: implement if needed (or remove)
-    override fun trigger(properties: MutableMap<String, Any?>) {
-
-    }
+//    override fun bump(properties: MutableMap<String, Any?>) {
+//
+//    }
 
     override fun render(program: Program) {
 //        println("circle with x position " + position.x.value.toString())
@@ -69,13 +38,13 @@ open class Circle(
 
 //            println("rendering $this")
 //            drawer.fill = fillColor.target?.colorRGBa()
-            drawer.fill = ColorRGBa.CYAN
-            drawer.stroke = strokeColor.target?.colorRGBa()
-            strokeWeight.target?.let { drawer.strokeWeight = it.value }
+            drawer.fill = message[fillColor]?.colorRGBa()
+            drawer.stroke = message[strokeColor]?.colorRGBa()
+            drawer.strokeWeight = message[strokeWeight]!! // TODO: make strokeWeight "required" and/or with default
             drawer.circle(
-                position.target!!.vector(program), // NOTE: ERROR IF NO POSITION
+                position = message[position]!!.vector(program), // NOTE: ERROR IF NO POSITION
 //                radius.target?.value ?: 90.0,
-                message[radius]!!
+                message[radius]!! // TODO: make radius "required" and/or with default
             )
         }
     }
@@ -84,8 +53,6 @@ open class Circle(
 //    override fun wireUp() {
 //        super.wireUp()
 //    }
-
-
 
 }
 

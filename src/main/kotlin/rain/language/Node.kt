@@ -100,12 +100,9 @@ abstract class Node protected constructor(
 
     abstract val message: Message<out Node, out NodeLabel<out Node>>
 
+
     open fun wireUp() {
         message.properties = this.properties
-    }
-
-    init {
-        this.wireUp()
     }
 
 }
