@@ -2,11 +2,7 @@ package rain.language
 
 import org.openrndr.Program
 import rain.graph.interfacing.*
-import rain.patterns.Field
-import rain.patterns.Message
 import rain.patterns.Pattern
-import rain.patterns.nodes.Machine
-import rain.rndr.nodes.Circle
 import rain.utils.autoKey
 import rain.utils.lazyish
 
@@ -56,7 +52,7 @@ abstract class Node protected constructor(
     fun getRelationships(relationshipLabel:RelationshipLabel, directionIsRight:Boolean=true) =
         getGraphableRelationships(relationshipLabel.labelName, directionIsRight).map { relationshipLabel.from(it) }
 
-    fun <T:Any, NT:Node>fieldValue(field: Field<T,NT>): Pattern<NT>.CachedTarget.FieldValue<T> {
+    fun <T:Any, NT:Node>fieldValue(field: Field<T, NT>): Pattern<NT>.CachedTarget.FieldValue<T> {
         return field.cachedFieldValue()
     }
 

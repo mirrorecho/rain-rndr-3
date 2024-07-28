@@ -9,6 +9,7 @@ import rain.patterns.nodes.Gate
 import rain.patterns.nodes.event
 import rain.patterns.nodes.*
 import rain.rndr.nodes.Circle
+import rain.rndr.nodes.Position
 import rain.rndr.nodes.Value
 import rain.rndr.nodes.ValueAnimate
 import rain.rndr.relationships.RADIUS
@@ -26,6 +27,10 @@ fun solve1() {
             msg[gate] = Gate.ON_OFF
             msg["yomama"] = "sofat"
         }) {event ->
+
+            // merges to create/get Circle with key "C1"
+            // and adds BUMPS relationship from this event to that Circle
+            // TODO: naming?
             // TODO: consider moving bumps to NodeLabel... to make more consistent and flexible
             event.bumps(this, "C1", { c1Init ->
                 c1Init[strokeWeight] = 2.0
@@ -34,27 +39,19 @@ fun solve1() {
                 // TODO: is specifying the property name "value" necessary here?
                 // TODO: naming?
 
-                circle.relateField(radius, ValueAnimate, "value", "R1") {
+                circle.relateField(position, Position, "position", "R1") {
+
+                    event.propagate { p ->
+                        p(easing, 1.0, 20.0, 200.0)
+                        p(value, 90.0, 20.0, 200.0)
+                    }
+
+
                     event.propagate(Event, value, 90.0, 20.0, 200.0)
                     event.propagate(Event, easing, 1.0, 20.0, 200.0)
                 }
 
             }
-
-            // set properties on sender even if not explicitly defined by a field (use string indices)
-            // TODO: determine... would these be sent to the receiver or not?
-
-
-            it.withSender { event ->
-                it.createBump(event, "C1" ) { circle ->
-
-                }
-            }
-
-            // merges to create/get Circle with key "C1"
-            // and adds BUMPS relationship from this event to that Circle
-            it.bumps("C1") // TODO: naming?
-
 
 
             // adds dur property fields to child nodes,

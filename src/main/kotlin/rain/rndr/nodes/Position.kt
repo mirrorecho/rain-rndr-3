@@ -5,32 +5,35 @@ import rain.utils.*
 
 import org.openrndr.Program
 import org.openrndr.math.Vector2
-import rain.language.NodeLabel
+import rain.language.Field
+import rain.language.Message
 import rain.patterns.nodes.Machine
 
 
-open class Position(
+open class Position protected constructor(
     key:String = autoKey(),
 ): Machine(key) {
-    companion object : NodeLabel<Position>(Position::class, Machine, { k -> Position(k) }){
-        override val receives: ReceivingManager get() = ReceivingManager()
+
+    abstract class PositionLabel<T:Position>: MachineLabel<T>() {
+        val x = Field("x", X, 0.5)
+        val y = Field("y", Y, 0.5)
+
+        override val fields = super.fields + getFields(x, y)
     }
-    override val label: NodeLabel<out Position> = Position
 
-    val x = cachedTarget(X, Value)
-    val y = cachedTarget(Y, Value)
-
-    override val targetProperties = listOf(::x, ::y)
-
-    class ReceivingManager : Machine.ReceivingManager() {
-        // TODO: use new delegates
-        var x: Double? by properties
-        var y: Double? by properties
+    companion object : PositionLabel<Position>() {
+        override val labelName:String = "Position"
+        override fun factory(key:String) = Position(key)
     }
+
+    override val label = Position
+    override val message = Message(Position)
+
 
     fun vector(program: Program): Vector2 = Vector2(
-        (x.target?.value ?: 0.5) * program.width,
-        (y.target?.value ?: 0.5)  * program.height,
+
+        message[x]!! * program.width,
+        message[y]!! * program.height,
     )
 }
 

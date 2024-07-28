@@ -3,12 +3,7 @@ package rain.patterns.nodes
 import rain.language.*
 import rain.language.Node
 import rain.language.NodeLabel
-import rain.patterns.Field
-import rain.patterns.Pattern
-import rain.rndr.nodes.Value
-import rain.rndr.relationships.Y
-import kotlin.reflect.KClass
-
+import rain.language.Field
 
 
 open class Machine protected constructor(
@@ -17,24 +12,25 @@ open class Machine protected constructor(
     // TODO: fix simplify based on new code structure with separate class def
     abstract class MachineLabel<T:Machine>(): NodeLabel<T>() {
 
-        val dur = Field<Double, Machine>("dur", null, Machine)
-        val gate = Field<Gate, Machine>("gate", null, Machine)
+        val dur = field("dur", 0.0)
+        val gate = field("gate", Gate.NONE)
 
         // TODO/NOTE: simultaneous is really a property of the sending Event itself,
         //  to be interpreted by EventPlayer... keeping it here for now,
         //  but may make more sense to make EventPlayer a node (rename to score?), and move this there
-        val simultaneous = Field<Double, Machine>("dur", null, Machine)
+        val simultaneous = field("simultaneous", false)
+
+        override val fields = super.fields + getFields(dur, gate, simultaneous)
+
     }
 
     companion object : MachineLabel<Machine>() {
         override val labelName:String = "Machine"
-        override val factory: (String) -> Machine  = { k -> Machine(k) }
+        override fun factory(key:String) = Machine(key)
     }
 
     override val label: NodeLabel<out Machine> = Machine
 
-//    open class ReceivingManager : Event.EventManager()
-//    open val receivingManager by lazy { ReceivingManager() }
 
     override fun gate(onOff: Boolean) {
         isRunning = onOff;

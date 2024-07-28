@@ -1,11 +1,10 @@
 package rain.language
 
 import rain.graph.interfacing.*
-import rain.patterns.Field
-import rain.patterns.Message
-import rain.patterns.nodes.Event
 import rain.utils.autoKey
 import kotlin.reflect.KClass
+
+
 
 
 
@@ -13,7 +12,7 @@ abstract class NodeLabel<T: Node>(
     parentLabel: NodeLabel<*>? = null,
     ): Queryable, Label<T>() {
 
-    abstract val factory: (String)-> T
+    abstract fun factory(key:String): T
 
     private fun getName(cl:KClass<T>) = cl.simpleName ?: "Node"
 
@@ -80,16 +79,6 @@ abstract class NodeLabel<T: Node>(
             registry[key] = this
         }
 
-    // TODO: this won't work... mimic global merge below
-    fun create(
-        key: String = autoKey(),
-        messageBlock: NodeLabel<T>.(Message<T, NodeLabel<T>>)->Unit,
-    ): T {
-        val message = Message(this)
-        messageBlock.invoke(this, message)
-        return this.create(key, message.properties)
-    }
-
     //TODO: review, then delete
 //    fun <MT : ManagerInterface> create(
 //        key: String = autoKey(),
@@ -126,10 +115,10 @@ abstract class NodeLabel<T: Node>(
 
     // ============================================================
 
-    fun getFields(vararg  fields: Field<Any, Node>): Map<String, Field<Any, Node>> =
+    fun getFields(vararg  fields: Field<*>): Map<String, Field<*>> =
         fields.associateBy { it.name }
 
-    open val fields: Map<String, Field<Any, Node>> = mapOf()
+    open val fields: Map<String, Field<*>> = mapOf()
 
     // ============================================================
 
@@ -142,35 +131,37 @@ abstract class NodeLabel<T: Node>(
 // TODO: move all these to some context?
 
 // TODO: naming OK (same as name within NodeLabel)?
-fun <R:Node, RL:NodeLabel<R>>merge(
-    recieverLabel:RL,
+fun <R:Node, RL:NodeLabel<R>>RL.merge(
     key: String = autoKey(),
     messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
 ): R {
-    val message = Message(recieverLabel)
-//    messageBlock.invoke(recieverLabel, message)
-    return recieverLabel.merge(key, message.properties)
+    messageBlock?.let { mb ->
+        return this.merge(
+            key,
+            Message(this).also { msg-> mb.invoke(this, msg) }.properties
+        )
+    }
+    return this.merge(key)
 }
 
-fun <FT:Any, FN:Node, R:Node, RL:NodeLabel<R>>relateField(
-    fromNode:FN,
-    field:Field<FT, FN>,
-    relatedLabel: RL,
-    fieldName:String,
+fun <R:Node, RL:NodeLabel<R>>RL.create(
     key: String = autoKey(),
     messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
-    postCreate:RL.(R)->Unit,
-) {
-    // TODO: complete this...
-    val relatedNode = merge(relatedLabel, key, messageBlock)
-    // TODO: add fieldName to the relationship
-    fromNode.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
+): R {
+    messageBlock?.let { mb ->
+        return this.create(
+            key,
+            Message(this).also { msg-> mb.invoke(this, msg) }.properties
+        )
+    }
+    return this.create(key)
 }
 
+//fun field<T:Any>
 
 
 fun <N:Node, FT:Any, R:Node, RL:NodeLabel<R>>N.relateField(
-    field:Field<FT, N>,
+    field: Field<FT>,
     relatedLabel: RL,
     fieldName:String,
     key: String = autoKey(),
@@ -178,7 +169,7 @@ fun <N:Node, FT:Any, R:Node, RL:NodeLabel<R>>N.relateField(
     postCreate:RL.(R)->Unit,
 ) {
     // TODO: complete this...
-    val relatedNode = merge(relatedLabel, key, messageBlock)
+    val relatedNode = relatedLabel.merge(key, messageBlock)
     // TODO: add fieldName to the relationship
     this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
 }

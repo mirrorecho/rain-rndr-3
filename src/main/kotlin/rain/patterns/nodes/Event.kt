@@ -1,16 +1,12 @@
 package rain.patterns.nodes
 
 
-import rain._bak.patterns.DimensionLabel
 import rain.language.*
 import rain.language.Node
-import rain.language.ManagerInterface
 import rain.language.NodeLabel
 import rain.patterns.*
-import rain.patterns.relationships.TRIGGERS
-import rain.rndr.nodes.Circle
 import rain.utils.autoKey
-import rain.utils.lazyish
+
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
     ON(true, null),
     OFF(null, false),
@@ -25,7 +21,7 @@ open class Event protected constructor(
 
     open class EventLabel(): NodeLabel<Event>() {
         override val labelName:String = "Event"
-        override val factory: (String) -> Event  = { k -> Event(k) }
+        override fun factory(key:String) = Event(key)
 
     }
 
@@ -39,6 +35,7 @@ open class Event protected constructor(
     // TODO: implement caching
     val children get() = childrenPattern.children
 
+    // TODO maybe: make a universal method for any node/label
     // TODO: overloads for using existing object, only saving/merging if needed, various args, etc.
     fun <R:Node, RL:NodeLabel<R>>bumps(
         receiverLabel:RL,
@@ -46,7 +43,7 @@ open class Event protected constructor(
         messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
         receiverBlock: (R)->Unit
     ) {
-        val receiver:R = merge(receiverLabel, key, messageBlock)
+        val receiver = receiverLabel.merge(key, messageBlock)
         relate(TARGETS, receiver) // TODO: replace with BUMPS
         receiverBlock.invoke(receiver)
     }

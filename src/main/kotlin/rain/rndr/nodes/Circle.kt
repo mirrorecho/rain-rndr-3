@@ -1,5 +1,6 @@
 package rain.rndr.nodes
 
+import rain.language.*
 import rain.patterns.*
 import rain.patterns.nodes.*
 import rain.rndr.relationships.*
@@ -7,22 +8,28 @@ import rain.utils.*
 
 import org.openrndr.Program
 
+import rain.language.Message
+
 open class Circle protected constructor(
     key:String = autoKey(),
 ): Machine(key) {
 
     abstract class CircleLabel<T:Circle>(): MachineLabel<T>() {
-        val radius = Field<Double, Machine>("radius", RADIUS, Machine)
-        val position = Field<Position, Machine>("position", POSITION, Machine)
-        val strokeColor = Field<Color, Machine>("strokeColor", STROKE_COLOR, Machine)
-        val strokeWeight = Field<Double, Machine>("strokeWeight", STROKE_COLOR, Machine)
-        val fillColor = Field<Color, Machine>("fillColor", FILL_COLOR, Machine)
+
+        val radius = field("radius", 90.0, RADIUS)
+        val position = field("position", POSITION, Position)
+        val strokeColor = field("strokeColor", STROKE_COLOR, Color)
+        val strokeWeight = field("strokeWeight", 0.8, STROKE_COLOR)
+        val fillColor = field("fillColor", FILL_COLOR, Color)
+
+        // TODO: used?
+        override val fields = super.fields + getFields(radius, position, strokeColor, strokeWeight, fillColor)
 
     }
 
     companion object : CircleLabel<Circle>() {
         override val labelName:String = "Circle"
-        override val factory: (String) -> Circle  = { k -> Circle(k) }
+        override fun factory(key:String) = Circle(key)
     }
 
     override val label = Circle
