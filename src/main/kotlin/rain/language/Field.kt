@@ -7,6 +7,7 @@ package rain.language
  interface Field<T:Any?> {
      val name: String
      val relationshipLabel: RelationshipLabel?
+     val default: T? get() = null
 
      // TODO: used?
      val isLocalOnly: Boolean get() = (relationshipLabel == null)
@@ -14,6 +15,11 @@ package rain.language
      operator fun get(node:Node):T?
 
      operator fun set(node:Node, value:T)
+
+     fun updateMessageFrom(msgFrom: Message<*, *>, msgTo: Message<*, *>) {
+         msgFrom[this]?.let { msgTo[this] = it }
+     }
+
  }
 
 open class ValueField<T:Any?>(
@@ -49,7 +55,7 @@ open class ValueField<T:Any?>(
 
 class DefaultingValueField<T:Any>(
     name: String,
-    val default: T,
+    override val default: T,
     relationshipLabel: RelationshipLabel? = null,
     defaultToSelf:Boolean = true,
 ): ValueField<T>(name, relationshipLabel, defaultToSelf)  {
@@ -78,7 +84,7 @@ open class NodeField<T:Node>(
 
 class DefaultingNodeField<T:Node>(
     name: String,
-    val default: T,
+    override val default: T,
     relationshipLabel: RelationshipLabel,
     targetLabel:NodeLabel<T>,
 ): NodeField<T>(name, relationshipLabel, targetLabel) {

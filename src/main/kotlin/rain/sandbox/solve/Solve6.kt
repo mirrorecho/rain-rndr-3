@@ -5,6 +5,7 @@ import rain.language.CachedTarget
 import rain.language.manageWith
 import rain._bak.patterns.DimensionLabel
 import rain.language.relateField
+import rain.language.relateNodeField
 import rain.patterns.nodes.Gate
 import rain.patterns.nodes.event
 import rain.patterns.nodes.*
@@ -39,13 +40,23 @@ fun solve1() {
                 // TODO: is specifying the property name "value" necessary here?
                 // TODO: naming?
 
-                circle.relateField(position, Position, "position", "R1") {
+
+
+                circle.relateNodeField( ) { position ->
+
+                    event.childrenPattern.extend(
+                        // TODO make preCreate optional
+                        Event.sends(Position, "E2",{}) {event2 ->
+                            event2.bumps(this, "P1")
+                        }
+                    )
+
+                    Circle.strokeColor,
 
                     event.propagate { p ->
                         p(easing, 1.0, 20.0, 200.0)
                         p(value, 90.0, 20.0, 200.0)
                     }
-
 
                     event.propagate(Event, value, 90.0, 20.0, 200.0)
                     event.propagate(Event, easing, 1.0, 20.0, 200.0)

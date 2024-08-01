@@ -10,25 +10,29 @@ import rain.rndr.relationships.POSITION
 //  with a SenderMessage and ReceiverMessage
 //  (e.g. only the ReceiverMessage would support fieldNodes)
 
-interface Message<R:Node, RL:NodeLabel<R>> {
-    val receiverLabel:RL
+interface Message<L:NodeLabel<*>> {
+    val receiverLabel:L
 
-    operator fun <T:Any>get(field: Field<T>): T?
+    operator fun <T:Any?>get(field: Field<T>): T?
+
+    operator fun <T:Any?>set(field: Field<T>, value:T)
+
+    fun updateFrom(msg: Message<L>) {
+        receiverLabel.fields.forEach { f->
+            f.value.updateMessageFrom(msg, this)
+        }
+    }
 
 }
 
 
-class LocalMessage<R:Node, RL:NodeLabel<R>>(
+class LocalMessage<LL:NodeLabel<*>>(
     override val receiverLabel:RL,
     val properties: MutableMap<String, Any?> = mutableMapOf()
-): Message<R, RL>{
+): Message<L>{
 
 
-    operator fun <T:Any>get(field: Field<T>): T? =  {
-        (fieldNodes[field.name]?.properties ?: this.properties).let {
-            return it[field.name] as T? ?: field.default
-        }
-    }
+    operator fun <T:Any?>get(field: Field<T>): T = properties[field.name]
 
     operator fun <T:Any>set(field: Field<T>, value:T) {
         (fieldNodes[field.name]?.properties ?: this.properties).let {
@@ -48,6 +52,7 @@ class LocalMessage<R:Node, RL:NodeLabel<R>>(
 
 class ConnectedMessage<R:Node, RL:NodeLabel<R>>(
     override val receiverLabel:RL,
+    val node:R
 ): Message<R, RL>{
 
     // TODO!!!!!!!!!!
@@ -60,6 +65,7 @@ class ConnectedMessage<R:Node, RL:NodeLabel<R>>(
         }
     }
 
+
     val fieldNodes: MutableMap<String, Node> = mutableMapOf()
 
     operator fun <T:Any>get(field: Field<T>): T? {
@@ -68,11 +74,18 @@ class ConnectedMessage<R:Node, RL:NodeLabel<R>>(
         }
     }
 
-    operator fun <T:Any>set(field: Field<T>, value:T) {
-        (fieldNodes[field.name]?.properties ?: this.properties).let {
-            it[field.name] = value
+    operator fun <T:Any>set(vararg fields: Field<T>, value:T) {
+        val myReceiver: Node = node
+        fields.forEach {
+
         }
     }
+
+//    operator fun <T:Any>set(field: Field<T>, value:T) {
+//        (fieldNodes[field.name]?.properties ?: this.properties).let {
+//            it[field.name] = value
+//        }
+//    }
 
     // TODO maybe: check against fields for getting/setting by name?
     // (assume no, to be able to use very specific properties without creating fields all the time)

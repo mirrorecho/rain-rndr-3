@@ -163,10 +163,22 @@ fun <R:Node, RL:NodeLabel<R>>RL.create(
 fun <N:Node, FT:Any, R:Node, RL:NodeLabel<R>>N.relateField(
     field: Field<FT>,
     relatedLabel: RL,
-    fieldName:String,
     key: String = autoKey(),
     messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
     postCreate:RL.(R)->Unit,
+) {
+    // TODO: complete this...
+    val relatedNode = relatedLabel.merge(key, messageBlock)
+    // TODO: add fieldName to the relationship
+    this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
+}
+
+fun <N:Node, FT:Node, RL:NodeLabel<FT>>N.relateNodeField(
+    field: Field<FT>,
+    relatedLabel: RL,
+    key: String = autoKey(),
+    messageBlock: (RL.(Message<FT, RL>)->Unit)?=null,
+    postCreate:RL.(FT)->Unit,
 ) {
     // TODO: complete this...
     val relatedNode = relatedLabel.merge(key, messageBlock)

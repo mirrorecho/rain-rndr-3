@@ -10,6 +10,12 @@ import rain.rndr.relationships.ANIMATES
 import rain.utils.autoKey
 import kotlin.math.absoluteValue
 
+
+class PropertyType<T> where T : String, T: Int, T:Double {
+
+}
+
+
 open class ValueAnimate(
     key:String = autoKey(),
     ): ValueController(key) {
