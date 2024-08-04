@@ -1,20 +1,14 @@
 package rain.sandbox.solve
 
 
-import rain.language.CachedTarget
-import rain.language.manageWith
-import rain._bak.patterns.DimensionLabel
-import rain.language.relateField
-import rain.language.relateNodeField
-import rain.patterns.nodes.Gate
-import rain.patterns.nodes.event
+import rain.language.*
 import rain.patterns.nodes.*
 import rain.rndr.nodes.Circle
 import rain.rndr.nodes.Position
 import rain.rndr.nodes.Value
 import rain.rndr.nodes.ValueAnimate
 import rain.rndr.relationships.RADIUS
-
+import rain.utils.autoKey
 
 
 fun solve1() {
@@ -22,27 +16,66 @@ fun solve1() {
 //    // TODO: remove "sends" method
 //
 
+//    Event.sends(Circle, "E1", { msg ->
+//        msg[gate] = Gate.ON_OFF
+//
+//    }) { e1 ->
+//        receives(e1, "C1") { circle ->
+//            circle.relate(radius, "RADIUS_MASTER")
+//        }
+//
+//    }
+
+    Event.sends(Circle, "E1") { e1 ->
+        e1[gate] = Gate.ON_OFF
+        receives(e1, "C1") { circle ->
+            circle.relate(radius, "RADIUS_MASTER")
+        }
+    }
+
 
     par(
-        Event.sends(Circle, "E1", {msg ->
-            msg[gate] = Gate.ON_OFF
-            msg["yomama"] = "sofat"
-        }) {event ->
+        Event.sends(Circle, "E1", {initE1 ->
+            initE1[gate] = Gate.ON_OFF
+            initE1["yomama"] = "sofat"
+        }) {e1 ->
 
             // merges to create/get Circle with key "C1"
             // and adds BUMPS relationship from this event to that Circle
             // TODO: naming?
-            // TODO: consider moving bumps to NodeLabel... to make more consistent and flexible
-            event.bumps(this, "C1", { c1Init ->
-                c1Init[strokeWeight] = 2.0
+            receives(event, "C1", { msg ->
+                msg[strokeWeight] = 2.0
             }) { circle ->
-                // merges to create/get ValueAnimate with key "R1"
+                // relates circle radius to existing RADIUS_MASTER node
                 // TODO: is specifying the property name "value" necessary here?
-                // TODO: naming?
+
+                circle.relate(radius, "RADIUS_MASTER")
+
+                // merges to create/get ValueAnimate with key "R1"
+
+                position[circle]
+
+                event.nest(circle, position, Position, Event, "P1", "E1", {}, {})
+
+                event.childSends(Event, Position, "E1", {}) {
+                    receives(event, "P1", {msg[]})
+                }
+
+                // TODO: combine this logic all into 1 method
+                //  (i.e. creates a related machine node, and also an event
+                circle.relateMerge(radius, Position, "POSITION_1", {
+                }) { p->
+                    event.childrenPattern.extend(
+                        Event.sends(Position) {
+                            receives(it, p.key)
+                            // ...
+                        }
+                    )
+                }
 
 
 
-                circle.relateNodeField( ) { position ->
+                circle.fieldTo(radius,  ) { position ->
 
                     event.childrenPattern.extend(
                         // TODO make preCreate optional

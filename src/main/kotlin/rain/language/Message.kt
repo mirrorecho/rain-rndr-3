@@ -26,15 +26,15 @@ interface Message<L:NodeLabel<*>> {
 }
 
 
-class LocalMessage<LL:NodeLabel<*>>(
-    override val receiverLabel:RL,
+class SendingMessage<L:NodeLabel<*>>(
+    override val receiverLabel:L,
     val properties: MutableMap<String, Any?> = mutableMapOf()
 ): Message<L>{
 
 
-    operator fun <T:Any?>get(field: Field<T>): T = properties[field.name]
+    override operator fun <T:Any?>get(field: Field<T>): T? = properties[field.name]
 
-    operator fun <T:Any>set(field: Field<T>, value:T) {
+    override operator fun <T:Any?>set(field: Field<T>, value:T) {
         (fieldNodes[field.name]?.properties ?: this.properties).let {
             it[field.name] = value
         }
@@ -50,15 +50,15 @@ class LocalMessage<LL:NodeLabel<*>>(
 }
 
 
-class ConnectedMessage<R:Node, RL:NodeLabel<R>>(
-    override val receiverLabel:RL,
-    val node:R
-): Message<R, RL>{
+class ReceivingMessage<L:NodeLabel<*>>(
+    override val receiverLabel:L,
+    val node:Node
+): Message<L>{
 
     // TODO!!!!!!!!!!
     //  need to implement a wireup method to populate this
 
-    fun wireup(receiverNode:R) {
+    fun wireup(receiverNode:Node) {
         receiverNode.label.fields.forEach { f ->
             val relatedNode: Node? = receiverNode[f.value.relationshipLabel!!()].first
             fieldNodes[f.key] = relatedNode ?: receiverNode
@@ -68,13 +68,13 @@ class ConnectedMessage<R:Node, RL:NodeLabel<R>>(
 
     val fieldNodes: MutableMap<String, Node> = mutableMapOf()
 
-    operator fun <T:Any>get(field: Field<T>): T? {
+    override operator fun <T:Any?>get(field: Field<T>): T? {
         (fieldNodes[field.name]?.properties ?: this.properties).let {
             return it[field.name] as T? ?: field.default
         }
     }
 
-    operator fun <T:Any>set(vararg fields: Field<T>, value:T) {
+    override operator fun <T:Any?>set(field: Field<T>, value:T) {
         val myReceiver: Node = node
         fields.forEach {
 

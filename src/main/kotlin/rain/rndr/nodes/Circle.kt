@@ -18,9 +18,16 @@ open class Circle protected constructor(
 
         val radius = field("radius", 90.0, RADIUS)
         val position = field("position", POSITION, Position)
+        val x = field("x", 0.5, POSITION)
+        val y = field("y", 0.5, POSITION)
         val strokeColor = field("strokeColor", STROKE_COLOR, Color)
-        val strokeWeight = field("strokeWeight", 0.8, STROKE_COLOR)
+        val strokeWeight = field("strokeWeight", 0.8, STROKE_WEIGHT)
         val fillColor = field("fillColor", FILL_COLOR, Color)
+        val h = field("h", 90.0, FILL_COLOR)
+        val s = field("s", 0.9, FILL_COLOR)
+        val v = field("v", 0.9, FILL_COLOR)
+        val a = field("a", 0.8, FILL_COLOR)
+
 
         // TODO: used?
         override val fields = super.fields + getFields(radius, position, strokeColor, strokeWeight, fillColor)

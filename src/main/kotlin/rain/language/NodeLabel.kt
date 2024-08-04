@@ -32,18 +32,32 @@ abstract class NodeLabel<T: Node>(
 
     override fun toString() = labelName
 
-    fun <R:Node, RL:NodeLabel<R>>sends(
-        receives:RL,
+    // TODO : consider re-instituting this format to avoid double saves
+    //  (but for now, saving twice to KISS)
+//    fun <RL:NodeLabel<*>>sends(
+//        receiving:RL,
+//        key:String = autoKey(),
+//        preCreate:(RL.(Message<RL>)->Unit)?=null, // TODO: naming?
+//        postCreate:(RL.(T)->Unit)?=null,
+//    ): T {
+//        val message = LocalMessage(receiving)
+//        preCreate?.invoke(receiving, message)
+//        return this.create(key, message.properties).apply {
+//            postCreate?.invoke(receiving, this)
+//        }
+//    }
+
+    fun <RL:NodeLabel<*>>sends(
+        receiving:RL,
         key:String = autoKey(),
-        preCreate:RL.(Message<R, RL>)->Unit,
-        postCreate:RL.(T)->Unit,
-    ): T {
-        val message = Message(receives)
-        preCreate.invoke(receives, message)
-        return this.create(key, message.properties).apply {
-            postCreate.invoke(receives, this)
+        block:(RL.(T)->Unit)?=null,
+    ): T = create(key).apply {
+        block?.let {
+            it.invoke(receiving, this)
+            save()
         }
     }
+
 
 
     fun get(key: String): T =
@@ -133,12 +147,12 @@ abstract class NodeLabel<T: Node>(
 // TODO: naming OK (same as name within NodeLabel)?
 fun <R:Node, RL:NodeLabel<R>>RL.merge(
     key: String = autoKey(),
-    messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
+    messageBlock: (RL.(Message<RL>)->Unit)?=null,
 ): R {
     messageBlock?.let { mb ->
         return this.merge(
             key,
-            Message(this).also { msg-> mb.invoke(this, msg) }.properties
+            LocalMessage(this).also { msg-> mb.invoke(this, msg) }.properties
         )
     }
     return this.merge(key)
@@ -146,12 +160,12 @@ fun <R:Node, RL:NodeLabel<R>>RL.merge(
 
 fun <R:Node, RL:NodeLabel<R>>RL.create(
     key: String = autoKey(),
-    messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
+    messageBlock: (RL.(Message<RL>)->Unit)?=null,
 ): R {
     messageBlock?.let { mb ->
         return this.create(
             key,
-            Message(this).also { msg-> mb.invoke(this, msg) }.properties
+            LocalMessage(this).also { msg-> mb.invoke(this, msg) }.properties
         )
     }
     return this.create(key)
@@ -159,13 +173,26 @@ fun <R:Node, RL:NodeLabel<R>>RL.create(
 
 //fun field<T:Any>
 
+// TODO: naming?
+// TODO: overloads for using existing object, only saving/merging if needed, various args, etc.
+fun <R: Node, RL:NodeLabel<R>>RL.receives(
+    sender: Node,
+    key:String=autoKey(),
+    messageBlock: (RL.(Message<RL>)->Unit)?=null,
+    receiverBlock: ((R)->Unit)?=null
+) {
+    val receiver = this.merge(key, messageBlock)
+    sender.relate(TARGETS, receiver) // TODO: replace with BUMPS
+    receiverBlock?.invoke(receiver)
+}
 
-fun <N:Node, FT:Any, R:Node, RL:NodeLabel<R>>N.relateField(
-    field: Field<FT>,
+
+fun <N:Node, R:Node, RL:NodeLabel<R>>N.relateMerge(
+    field: Field<*>,
     relatedLabel: RL,
     key: String = autoKey(),
-    messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
-    postCreate:RL.(R)->Unit,
+    messageBlock: (RL.(Message<RL>)->Unit)?=null,
+    postCreate:(RL.(R)->Unit)? = null,
 ) {
     // TODO: complete this...
     val relatedNode = relatedLabel.merge(key, messageBlock)
@@ -173,12 +200,29 @@ fun <N:Node, FT:Any, R:Node, RL:NodeLabel<R>>N.relateField(
     this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
 }
 
-fun <N:Node, FT:Node, RL:NodeLabel<FT>>N.relateNodeField(
+fun <P:Node, C:Node, R:Node, RL:NodeLabel<R>>P.nest(
+
+)
+
+
+// TODO maybe: define this in Node base class instead of here?
+fun <N:Node>N.relate(field: Field<*>, targetKey: String) {
+    if (!label.fields.contains(field.name))
+        // prevents erroneous field-based relationships from being added
+        throw Exception("Field '${field.name}' not found on '$label' label.")
+    // TODO: guarantee that relationshipLabel not null
+    relate(field.relationshipLabel!!, targetKey)
+}
+
+fun <N:Node>N.relate(field: Field<*>, targetNode: Node) { relate(field, targetNode.key) }
+
+
+fun <N:Node, FT:Node, RL:NodeLabel<FT>>N.fieldTo(
     field: Field<FT>,
     relatedLabel: RL,
     key: String = autoKey(),
-    messageBlock: (RL.(Message<FT, RL>)->Unit)?=null,
-    postCreate:RL.(FT)->Unit,
+    messageBlock: (RL.(Message<RL>)->Unit)?=null,
+    postCreate:(RL.(FT)->Unit)?=null,
 ) {
     // TODO: complete this...
     val relatedNode = relatedLabel.merge(key, messageBlock)

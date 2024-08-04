@@ -14,9 +14,10 @@ package rain.language
 
      operator fun get(node:Node):T?
 
+     // TODO: is this used?
      operator fun set(node:Node, value:T)
 
-     fun updateMessageFrom(msgFrom: Message<*, *>, msgTo: Message<*, *>) {
+     fun updateMessageFrom(msgFrom: Message<*>, msgTo: Message<*>) {
          msgFrom[this]?.let { msgTo[this] = it }
      }
 
@@ -45,7 +46,9 @@ open class ValueField<T:Any?>(
 
     override operator fun get(node:Node):T? = node.properties[name] as T?
 
+    // TODO: is this used?
     override operator fun set(node:Node, value:T) {
+        // TODO: create relationship?
         // TODO maybe: could create dupe relationships if not careful... create a relateOnly to avoid?
         node.properties[name] = value
     }
@@ -73,7 +76,9 @@ open class NodeField<T:Node>(
 
     override operator fun get(node:Node):T? = node[relationshipLabel()].first(targetLabel)
 
+    // TODO: is this used?
     override operator fun set(node:Node, value:T) {
+        // TODO: create relationship?
         // TODO maybe: could create dupe relationships if not careful... create a relateOnly to avoid?
         node.relate(relationshipLabel, value)
     }

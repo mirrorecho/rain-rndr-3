@@ -35,18 +35,16 @@ open class Event protected constructor(
     // TODO: implement caching
     val children get() = childrenPattern.children
 
-    // TODO maybe: make a universal method for any node/label
-    // TODO: overloads for using existing object, only saving/merging if needed, various args, etc.
-    fun <R:Node, RL:NodeLabel<R>>bumps(
-        receiverLabel:RL,
-        key:String=autoKey(),
-        messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
-        receiverBlock: (R)->Unit
-    ) {
-        val receiver = receiverLabel.merge(key, messageBlock)
-        relate(TARGETS, receiver) // TODO: replace with BUMPS
-        receiverBlock.invoke(receiver)
-    }
+//    fun <R:Node, RL:NodeLabel<R>>bumps(
+//        receiverLabel:RL,
+//        key:String=autoKey(),
+//        messageBlock: (RL.(Message<R, RL>)->Unit)?=null,
+//        receiverBlock: (R)->Unit
+//    ) {
+//        val receiver = receiverLabel.merge(key, messageBlock)
+//        relate(TARGETS, receiver) // TODO: replace with BUMPS
+//        receiverBlock.invoke(receiver)
+//    }
 
     // TODO: review and remove
 //    open class EventManager : Manager() {
