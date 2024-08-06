@@ -6,7 +6,7 @@ import rain.language.NodeLabel
 
 // base dimension for simple relationship-based items
 open class RelatesPattern<NT:Node>(
-    source: Node?,
+    source: Node,
     destinationLabel: NodeLabel<NT>,
     previous: Pattern<*>? = null,
     val relationshipLabel: RelationshipLabel,

@@ -52,8 +52,20 @@ abstract class Node protected constructor(
     fun getRelationships(relationshipLabel:RelationshipLabel, directionIsRight:Boolean=true) =
         getGraphableRelationships(relationshipLabel.labelName, directionIsRight).map { relationshipLabel.from(it) }
 
-    fun <T:Any, NT:Node>fieldValue(field: Field<T, NT>): Pattern<NT>.CachedTarget.FieldValue<T> {
-        return field.cachedFieldValue()
+    // a cache of field keys to the related nodes for those fields
+    val connectedFields: MutableMap<String, Node> = mutableMapOf()
+
+    override operator fun <T:Any?>get(field: Field<T>): T? {
+        (fieldNodes[field.name]?.properties ?: this.properties).let {
+            return it[field.name] as T? ?: field.default
+        }
+    }
+
+    override operator fun <T:Any?>set(field: Field<T>, value:T) {
+        val myReceiver: Node = node
+        fields.forEach {
+
+        }
     }
 
     // TODO: consider re-implementing

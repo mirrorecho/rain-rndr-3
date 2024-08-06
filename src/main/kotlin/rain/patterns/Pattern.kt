@@ -11,7 +11,7 @@ abstract class Pattern<NT:Node>(
 
     // TODO (DONE): consider making this a var to allow for patterns in the abstract
     // TODO: also, is source worthwhile here, or just override query's directly, OR, just make this a arg, not a var
-    var source: Node?,
+    var source: Node,
     val destinationLabel: NodeLabel<NT>,
     val previous: Pattern<*>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
@@ -109,30 +109,29 @@ abstract class Pattern<NT:Node>(
         }
 
 
-        inner class FieldValue<T:Any>(
-            val name:String,
-        ) {
-            // TODO: implement defaults, caching
-            //  TODO maybe: ANIMATION????
-
-            var value: T? get() = this@CachedTarget.target?.properties?.get(name) as T?
-                set(value: T?) {
-                    this@CachedTarget.target!!.properties[name] = value
-                }
-
-//            operator fun getValue(thisRef: Any?, property: KProperty<*>): T? =
-//                this@CachedTarget.target?.properties?.get(name) as T?
+        // replaced with ConnectedField class defined alongside Field...
+        // TODO eventually: review and remove
+//        inner class FieldValue<T:Any>(
+//            val name:String,
+//        ) {
 //
-//            operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {
-//                this@CachedTarget.target!!.properties[name] = value
+//            var value: T? get() = this@CachedTarget.target?.properties?.get(name) as T?
+//                set(value: T?) {
+//                    this@CachedTarget.target!!.properties[name] = value
+//                }
+//
+////            operator fun getValue(thisRef: Any?, property: KProperty<*>): T? =
+////                this@CachedTarget.target?.properties?.get(name) as T?
+////
+////            operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {
+////                this@CachedTarget.target!!.properties[name] = value
+////            }
+//
+//            fun wireup(source:Node) {
+//                this@CachedTarget.sourcePattern.source = source
 //            }
-
-            fun wireup(source:Node) {
-                this@CachedTarget.sourcePattern.source = source
-                // TODO: more here ... (e.g. implement caching)
-            }
-
-        }
+//
+//        }
 
     }
 

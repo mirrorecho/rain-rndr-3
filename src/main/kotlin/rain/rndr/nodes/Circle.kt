@@ -16,17 +16,20 @@ open class Circle protected constructor(
 
     abstract class CircleLabel<T:Circle>(): MachineLabel<T>() {
 
+//        val radius = field("radius", 90.0, {n-> RelatesPattern(n, Machine, this, RADIUS)})
         val radius = field("radius", 90.0, RADIUS)
         val position = field("position", POSITION, Position)
-        val x = field("x", 0.5, POSITION)
-        val y = field("y", 0.5, POSITION)
+
+        // TODO MAYBE: implement these xy, and hsva sub-fields
+//        val x = field("x", 0.5, X)
+//        val y = field("y", 0.5, Y)
         val strokeColor = field("strokeColor", STROKE_COLOR, Color)
         val strokeWeight = field("strokeWeight", 0.8, STROKE_WEIGHT)
         val fillColor = field("fillColor", FILL_COLOR, Color)
-        val h = field("h", 90.0, FILL_COLOR)
-        val s = field("s", 0.9, FILL_COLOR)
-        val v = field("v", 0.9, FILL_COLOR)
-        val a = field("a", 0.8, FILL_COLOR)
+//        val h = field("h", 90.0, H)
+//        val s = field("s", 0.9, S)
+//        val v = field("v", 0.9, V)
+//        val a = field("a", 0.8, A)
 
 
         // TODO: used?
@@ -40,7 +43,12 @@ open class Circle protected constructor(
     }
 
     override val label = Circle
-    override val message = Message(Circle) // TODO: consider whether we allow nulls for senderLabel,
+
+    val radius2 = connectField(Circle.radius)
+
+    fun <T:Any?>connectField(field:Field<T>) {
+        ::radius.name
+    }
 
 
     //    // TODO: implement if needed (or remove)
@@ -54,13 +62,13 @@ open class Circle protected constructor(
 
 //            println("rendering $this")
 //            drawer.fill = fillColor.target?.colorRGBa()
-            drawer.fill = message[fillColor]?.colorRGBa()
-            drawer.stroke = message[strokeColor]?.colorRGBa()
-            drawer.strokeWeight = message[strokeWeight]!! // TODO: make strokeWeight "required" and/or with default
+            drawer.fill = this@Circle[fillColor]?.colorRGBa()
+            drawer.stroke = this@Circle[strokeColor]?.colorRGBa()
+            drawer.strokeWeight = this@Circle[strokeWeight]!! // TODO: make strokeWeight "required" and/or with default
             drawer.circle(
-                position = message[position]!!.vector(program), // NOTE: ERROR IF NO POSITION
+                position = this@Circle[position]!!.vector(program), // NOTE: ERROR IF NO POSITION
 //                radius.target?.value ?: 90.0,
-                message[radius]!! // TODO: make radius "required" and/or with default
+                this@Circle[radius]!! // TODO: make radius "required" and/or with default
             )
         }
     }

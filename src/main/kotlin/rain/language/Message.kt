@@ -10,20 +10,20 @@ import rain.rndr.relationships.POSITION
 //  with a SenderMessage and ReceiverMessage
 //  (e.g. only the ReceiverMessage would support fieldNodes)
 
-interface Message<L:NodeLabel<*>> {
-    val receiverLabel:L
-
-    operator fun <T:Any?>get(field: Field<T>): T?
-
-    operator fun <T:Any?>set(field: Field<T>, value:T)
-
-    fun updateFrom(msg: Message<L>) {
-        receiverLabel.fields.forEach { f->
-            f.value.updateMessageFrom(msg, this)
-        }
-    }
-
-}
+//interface Message<L:NodeLabel<*>> {
+//    val receiverLabel:L
+//
+//    operator fun <T:Any?>get(field: Field<T>): T?
+//
+//    operator fun <T:Any?>set(field: Field<T>, value:T)
+//
+//    fun updateFrom(msg: Message<L>) {
+//        receiverLabel.fields.forEach { f->
+//            f.value.updateMessageFrom(msg, this)
+//        }
+//    }
+//
+//}
 
 
 class SendingMessage<L:NodeLabel<*>>(

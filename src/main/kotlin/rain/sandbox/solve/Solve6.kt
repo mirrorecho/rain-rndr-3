@@ -11,6 +11,8 @@ import rain.rndr.relationships.RADIUS
 import rain.utils.autoKey
 
 
+fun yo()
+
 fun solve1() {
 //
 //    // TODO: remove "sends" method
@@ -27,7 +29,9 @@ fun solve1() {
 //    }
 
     Event.sends(Circle, "E1") { e1 ->
-        e1[gate] = Gate.ON_OFF
+        e1::children
+
+        e1[Circle::radius2]
         receives(e1, "C1") { circle ->
             circle.relate(radius, "RADIUS_MASTER")
         }
