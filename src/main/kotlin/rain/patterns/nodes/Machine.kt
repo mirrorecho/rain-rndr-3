@@ -20,8 +20,6 @@ open class Machine protected constructor(
         //  but may make more sense to make EventPlayer a node (rename to score?), and move this there
         val simultaneous = field("simultaneous", false)
 
-        override val fields = super.fields + getFields(dur, gate, simultaneous)
-
     }
 
     companion object : MachineLabel<Machine>() {

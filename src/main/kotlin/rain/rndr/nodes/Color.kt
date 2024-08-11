@@ -1,41 +1,39 @@
 package rain.rndr.nodes
 
-import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
-import rain.language.NodeLabel
+import rain.language.*
 import rain.patterns.nodes.Machine
+import rain.rndr.relationships.*
 
 open class Color(
     key:String = autoKey(),
 ): Machine(key) {
-    companion object : NodeLabel<Color>(Color::class, Machine, { k -> Color(k) }){
-        override val receives: ReceivingManager get() = ReceivingManager()
+
+    abstract class ColorLabel<T:Color>: MachineLabel<T>() {
+        val h = field("h", Machine, H, 0.0)
+        val s = field("s", Machine, S, 0.9)
+        val v = field("v", Machine, V, 0.9)
+        val a = field("a", Machine, A, 0.9)
     }
+
+    companion object : ColorLabel<Color>() {
+        override val labelName:String = "Color"
+        override fun factory(key:String) = Color(key)
+
+        val WHITE = Color.create("COLOR_WHITE")
+    }
+
     override val label: NodeLabel<out Color> = Color
 
-    val h = cachedTarget(H, Value)
-    val s = cachedTarget(S, Value)
-    val v = cachedTarget(V, Value)
-    val a = cachedTarget(A, Value)
+    val h = attachField(Color.h)
+    val s = attachField(Color.s)
+    val v = attachField(Color.v)
+    val a = attachField(Color.a)
 
-    override val targetProperties = listOf(::h, ::s, ::v, ::a)
-
-    class ReceivingManager : Machine.ReceivingManager() {
-        var h: Double by defaultable("h", 90.0)
-        var s: Double by defaultable("s", 0.8)
-        var v: Double by defaultable("v", 0.8)
-        var a: Double by defaultable("a", 0.8)
-    }
-
-    fun colorHSVa() = ColorHSVa(
-        h.target?.value ?: 90.0,
-        s.target?.value ?: 0.8,
-        v.target?.value ?: 0.8,
-        a.target?.value ?: 0.6,
-    )
+    fun colorHSVa() = ColorHSVa(h(), s(), v(), a())
 
     fun colorRGBa(): ColorRGBa = colorHSVa().toRGBa()
 

@@ -11,18 +11,18 @@ open class RelatesPattern<NT:Node>(
     previous: Pattern<*>? = null,
     val relationshipLabel: RelationshipLabel,
     // an optional extended list of relationships, beyond the primary relationship, for querying (but not extending):
-    vararg val extendedRelationships: RelationshipLabel
+    vararg val extendedRelationships: RelationshipLabel // TODO: is this used????
 ): Pattern<NT>(source, destinationLabel, previous) {
 
-    private val relatesQuery = this.source?.get(
+    private val relatesQuery = this.source.get(
         relationshipLabel(),
         *(extendedRelationships.map { it() }.toTypedArray())
     )
 
-    override val graphableNodes get() = relatesQuery?.graphableNodes.orEmpty()
+    override val graphableNodes get() = relatesQuery.graphableNodes.orEmpty()
 
     override fun extend(vararg nodes: Node) {
-        nodes.forEach { n -> source?.relate(relationshipLabel, n) }
+        nodes.forEach { n -> source.relate(relationshipLabel, n) }
     }
 
     // TODO: implement...

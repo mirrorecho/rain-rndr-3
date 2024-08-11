@@ -8,32 +8,25 @@ import rain.utils.*
 
 import org.openrndr.Program
 
-import rain.language.Message
-
 open class Circle protected constructor(
     key:String = autoKey(),
 ): Machine(key) {
 
     abstract class CircleLabel<T:Circle>(): MachineLabel<T>() {
 
-//        val radius = field("radius", 90.0, {n-> RelatesPattern(n, Machine, this, RADIUS)})
-        val radius = field("radius", 90.0, RADIUS)
-        val position = field("position", POSITION, Position)
+        val radius = field("radius", Machine, RADIUS, 90.0)
+        val position = nodeField("position", Position, POSITION, Position.CENTER)
 
         // TODO MAYBE: implement these xy, and hsva sub-fields
 //        val x = field("x", 0.5, X)
 //        val y = field("y", 0.5, Y)
-        val strokeColor = field("strokeColor", STROKE_COLOR, Color)
-        val strokeWeight = field("strokeWeight", 0.8, STROKE_WEIGHT)
-        val fillColor = field("fillColor", FILL_COLOR, Color)
+        val strokeColor = nodeField("strokeColor", Color, STROKE_COLOR)
+        val strokeWeight = field("strokeWeight", Machine, STROKE_WEIGHT, 0.9)
+        val fillColor = nodeField("fillColor", Color, FILL_COLOR)
 //        val h = field("h", 90.0, H)
 //        val s = field("s", 0.9, S)
 //        val v = field("v", 0.9, V)
 //        val a = field("a", 0.8, A)
-
-
-        // TODO: used?
-        override val fields = super.fields + getFields(radius, position, strokeColor, strokeWeight, fillColor)
 
     }
 
@@ -44,11 +37,11 @@ open class Circle protected constructor(
 
     override val label = Circle
 
-    val radius2 = connectField(Circle.radius)
-
-    fun <T:Any?>connectField(field:Field<T>) {
-        ::radius.name
-    }
+    val radius = attachField(Circle.radius)
+    val position = attachField(Circle.position)
+    val strokeColor = attachField(Circle.strokeColor)
+    val strokeWeight = attachField(Circle.strokeWeight)
+    val fillColor = attachField(Circle.fillColor)
 
 
     //    // TODO: implement if needed (or remove)
@@ -57,26 +50,19 @@ open class Circle protected constructor(
 //    }
 
     override fun render(program: Program) {
-//        println("circle with x position " + position.x.value.toString())
+//        println("circle with x position " + position.x().toString())
         program.apply {
 
 //            println("rendering $this")
-//            drawer.fill = fillColor.target?.colorRGBa()
-            drawer.fill = this@Circle[fillColor]?.colorRGBa()
-            drawer.stroke = this@Circle[strokeColor]?.colorRGBa()
-            drawer.strokeWeight = this@Circle[strokeWeight]!! // TODO: make strokeWeight "required" and/or with default
+            drawer.fill = fillColor()?.colorRGBa()
+            drawer.stroke = strokeColor()?.colorRGBa()
+            drawer.strokeWeight = strokeWeight()
             drawer.circle(
-                position = this@Circle[position]!!.vector(program), // NOTE: ERROR IF NO POSITION
-//                radius.target?.value ?: 90.0,
-                this@Circle[radius]!! // TODO: make radius "required" and/or with default
+                position = position().vector(program),
+                radius()
             )
         }
     }
-
-    // any wireUp override must call super
-//    override fun wireUp() {
-//        super.wireUp()
-//    }
 
 }
 

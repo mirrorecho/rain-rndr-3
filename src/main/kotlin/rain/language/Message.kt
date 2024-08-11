@@ -25,77 +25,77 @@ import rain.rndr.relationships.POSITION
 //
 //}
 
-
-class SendingMessage<L:NodeLabel<*>>(
-    override val receiverLabel:L,
-    val properties: MutableMap<String, Any?> = mutableMapOf()
-): Message<L>{
-
-
-    override operator fun <T:Any?>get(field: Field<T>): T? = properties[field.name]
-
-    override operator fun <T:Any?>set(field: Field<T>, value:T) {
-        (fieldNodes[field.name]?.properties ?: this.properties).let {
-            it[field.name] = value
-        }
-    }
-
-    // TODO maybe: check against fields for getting/setting by name?
-    // (assume no, to be able to use very specific properties without creating fields all the time)
-    operator fun get(propertyName:String) = this.properties[propertyName]
-
-    operator fun set(propertyName:String, value:Any?) {
-        this.properties[propertyName] = value
-    }
-}
-
-
-class ReceivingMessage<L:NodeLabel<*>>(
-    override val receiverLabel:L,
-    val node:Node
-): Message<L>{
-
-    // TODO!!!!!!!!!!
-    //  need to implement a wireup method to populate this
-
-    fun wireup(receiverNode:Node) {
-        receiverNode.label.fields.forEach { f ->
-            val relatedNode: Node? = receiverNode[f.value.relationshipLabel!!()].first
-            fieldNodes[f.key] = relatedNode ?: receiverNode
-        }
-    }
-
-
-    val fieldNodes: MutableMap<String, Node> = mutableMapOf()
-
-    override operator fun <T:Any?>get(field: Field<T>): T? {
-        (fieldNodes[field.name]?.properties ?: this.properties).let {
-            return it[field.name] as T? ?: field.default
-        }
-    }
-
-    override operator fun <T:Any?>set(field: Field<T>, value:T) {
-        val myReceiver: Node = node
-        fields.forEach {
-
-        }
-    }
-
-//    operator fun <T:Any>set(field: Field<T>, value:T) {
+//
+//class SendingMessage<L:NodeLabel<*>>(
+//    override val receiverLabel:L,
+//    val properties: MutableMap<String, Any?> = mutableMapOf()
+//): Message<L>{
+//
+//
+//    override operator fun <T:Any?>get(field: Field<T>): T? = properties[field.name]
+//
+//    override operator fun <T:Any?>set(field: Field<T>, value:T) {
 //        (fieldNodes[field.name]?.properties ?: this.properties).let {
 //            it[field.name] = value
 //        }
 //    }
-
-    // TODO maybe: check against fields for getting/setting by name?
-    // (assume no, to be able to use very specific properties without creating fields all the time)
-    operator fun get(propertyName:String) = this.properties[propertyName]
-
-    operator fun set(propertyName:String, value:Any?) {
-        this.properties[propertyName] = value
-    }
-}
-
+//
+//    // TODO maybe: check against fields for getting/setting by name?
+//    // (assume no, to be able to use very specific properties without creating fields all the time)
+//    operator fun get(propertyName:String) = this.properties[propertyName]
+//
+//    operator fun set(propertyName:String, value:Any?) {
+//        this.properties[propertyName] = value
+//    }
+//}
+//
+//
+//class ReceivingMessage<L:NodeLabel<*>>(
+//    override val receiverLabel:L,
+//    val node:Node
+//): Message<L>{
+//
+//    // TODO!!!!!!!!!!
+//    //  need to implement a wireup method to populate this
+//
+//    fun wireup(receiverNode:Node) {
+//        receiverNode.label.fields.forEach { f ->
+//            val relatedNode: Node? = receiverNode[f.value.relationshipLabel!!()].first
+//            fieldNodes[f.key] = relatedNode ?: receiverNode
+//        }
+//    }
+//
+//
+//    val fieldNodes: MutableMap<String, Node> = mutableMapOf()
+//
+//    override operator fun <T:Any?>get(field: Field<T>): T? {
+//        (fieldNodes[field.name]?.properties ?: this.properties).let {
+//            return it[field.name] as T? ?: field.default
+//        }
+//    }
+//
+//    override operator fun <T:Any?>set(field: Field<T>, value:T) {
+//        val myReceiver: Node = node
+//        fields.forEach {
+//
+//        }
+//    }
+//
+////    operator fun <T:Any>set(field: Field<T>, value:T) {
+////        (fieldNodes[field.name]?.properties ?: this.properties).let {
+////            it[field.name] = value
+////        }
+////    }
+//
+//    // TODO maybe: check against fields for getting/setting by name?
+//    // (assume no, to be able to use very specific properties without creating fields all the time)
+//    operator fun get(propertyName:String) = this.properties[propertyName]
+//
+//    operator fun set(propertyName:String, value:Any?) {
+//        this.properties[propertyName] = value
+//    }
+//}
+//
 
 
 

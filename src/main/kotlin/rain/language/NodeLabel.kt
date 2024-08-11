@@ -50,15 +50,15 @@ abstract class NodeLabel<T: Node>(
     fun <RL:NodeLabel<*>>sends(
         receiving:RL,
         key:String = autoKey(),
+        properties: Map<String, Any?>? = null, // TODO: keep this? (assume yes)
         block:(RL.(T)->Unit)?=null,
-    ): T = create(key).apply {
+    ): T = create(key, properties).apply {
         block?.let {
             it.invoke(receiving, this)
             save()
+            connectAllFields()
         }
     }
-
-
 
     fun get(key: String): T =
         registry.getOrPut(key) {
@@ -126,13 +126,13 @@ abstract class NodeLabel<T: Node>(
         context.nodeLabels[labelName] = this
     }
 
-
-    // ============================================================
-
-    fun getFields(vararg  fields: Field<*>): Map<String, Field<*>> =
-        fields.associateBy { it.name }
-
-    open val fields: Map<String, Field<*>> = mapOf()
+//    // ============================================================
+// TODO: review and remove
+//
+//    fun getFields(vararg  fields: Field<*>): Map<String, Field<*>> =
+//        fields.associateBy { it.name }
+//
+//    open val fields: Map<String, Field<*>> = mapOf()
 
     // ============================================================
 

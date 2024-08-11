@@ -5,6 +5,7 @@ import rain.language.*
 import rain.language.Node
 import rain.language.NodeLabel
 import rain.patterns.*
+import rain.rndr.nodes.Circle
 import rain.utils.autoKey
 
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
@@ -19,13 +20,19 @@ open class Event protected constructor(
     key:String = autoKey(),
 ): Node(key) {
 
+    abstract class EventLabel<T:Machine>(): NodeLabel<T>() {
+
+    }
+
     open class EventLabel(): NodeLabel<Event>() {
         override val labelName:String = "Event"
         override fun factory(key:String) = Event(key)
 
     }
 
-    companion object : EventLabel()
+    companion object : EventLabel() {
+        abstract class MachineLabel<T:Machine>(): NodeLabel<T>() {
+    }
 
     override val label: NodeLabel<out Event> = Event
 

@@ -52,21 +52,27 @@ abstract class Node protected constructor(
     fun getRelationships(relationshipLabel:RelationshipLabel, directionIsRight:Boolean=true) =
         getGraphableRelationships(relationshipLabel.labelName, directionIsRight).map { relationshipLabel.from(it) }
 
-    // a cache of field keys to the related nodes for those fields
-    val connectedFields: MutableMap<String, Node> = mutableMapOf()
+    // a managed map of attached ContectedField objects, for mass connecting them
+    // TODO maybe: should this just be a list? do we ever need to look up by field name?
+    val attachedFields: MutableMap<String, AttachedField<out Any, out Node, out Node>> = mutableMapOf()
 
-    override operator fun <T:Any?>get(field: Field<T>): T? {
-        (fieldNodes[field.name]?.properties ?: this.properties).let {
-            return it[field.name] as T? ?: field.default
-        }
+    fun connectAllFields() {
+        attachedFields.forEach { (_, v) -> v.connect() }
     }
 
-    override operator fun <T:Any?>set(field: Field<T>, value:T) {
-        val myReceiver: Node = node
-        fields.forEach {
 
-        }
-    }
+//    override operator fun <T:Any?>get(field: Field<T>): T? {
+//        (fieldNodes[field.name]?.properties ?: this.properties).let {
+//            return it[field.name] as T? ?: field.default
+//        }
+//    }
+//
+//    override operator fun <T:Any?>set(field: Field<T>, value:T) {
+//        val myReceiver: Node = node
+//        fields.forEach {
+//
+//        }
+//    }
 
     // TODO: consider re-implementing
     // TODO maybe if so: consider moving this to the manager class?
@@ -105,13 +111,6 @@ abstract class Node protected constructor(
 
     // TODO: maybe implement this...?
 //    fun invoke()
-
-    abstract val message: Message<out Node, out NodeLabel<out Node>>
-
-
-    open fun wireUp() {
-        message.properties = this.properties
-    }
 
 }
 

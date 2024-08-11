@@ -29,12 +29,12 @@ fun solve1() {
 //    }
 
     Event.sends(Circle, "E1") { e1 ->
-        e1::children
-
-        e1[Circle::radius2]
         receives(e1, "C1") { circle ->
             circle.relate(radius, "RADIUS_MASTER")
         }
+        e1.dur()
+        e1[radius.name] = 20.0
+        e1[radius] = 20.0
     }
 
 

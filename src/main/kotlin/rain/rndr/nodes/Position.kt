@@ -14,25 +14,26 @@ open class Position protected constructor(
 ): Machine(key) {
 
     abstract class PositionLabel<T:Position>: MachineLabel<T>() {
-        val x = field("x", 0.5, X)
-        val y = field("y", 0.5, Y)
-
-        override val fields = super.fields + getFields(x, y)
+        val x = field("x", Machine, X, 0.5)
+        val y = field("y", Machine, Y, 0.5)
     }
 
     companion object : PositionLabel<Position>() {
         override val labelName:String = "Position"
         override fun factory(key:String) = Position(key)
+
+        val CENTER: Position = Position.create("POSITION_CENTER")
     }
 
     override val label = Position
-    override val message = Message(Position)
 
+    val x = attachField(Position.x)
+    val y = attachField(Position.y)
 
     fun vector(program: Program): Vector2 = Vector2(
-
-        message[x]!! * program.width,
-        message[y]!! * program.height,
+        x() * program.width,
+        y() * program.height,
     )
 }
+
 
