@@ -54,7 +54,7 @@ abstract class Node protected constructor(
 
     // a managed map of attached ContectedField objects, for mass connecting them
     // TODO maybe: should this just be a list? do we ever need to look up by field name?
-    val attachedFields: MutableMap<String, AttachedField<out Any, out Node, out Node>> = mutableMapOf()
+    val attachedFields: MutableMap<String, AttachedField<out Any, out Node>> = mutableMapOf()
 
     fun connectAllFields() {
         attachedFields.forEach { (_, v) -> v.connect() }
