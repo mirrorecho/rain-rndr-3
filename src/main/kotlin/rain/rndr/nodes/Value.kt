@@ -1,12 +1,7 @@
 package rain.rndr.nodes
 
-import org.openrndr.Program
-import rain.language.NodeLabel
 import rain.language.field
 import rain.patterns.nodes.Machine
-import rain.patterns.relationships.TRIGGERS
-import rain.rndr.relationships.X
-import rain.rndr.relationships.Y
 import rain.utils.*
 
 

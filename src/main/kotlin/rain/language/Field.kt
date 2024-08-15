@@ -1,21 +1,9 @@
 package rain.language
 
 import rain.patterns.*
-import rain.patterns.nodes.Machine
-import rain.rndr.relationships.RADIUS
-
-//interface StaticField<T:Any> {
-//    val name: String
-//
-//    fun attach(node:Node, previous:Pattern<*>?=null): ConnectedField<T, CN>
-//
-//}
 
 interface Field<T:Any?> {
     val name: String
-//    val sourceLabel:NodeLabel<SN>
-    val connectedLabel:NodeLabel<*>
-    val patternFactory: ((source:Node, previous:Pattern<*>?)->Pattern<*>)? // TODO: maybe could be Pattern<SN>?
     val defaultToSelf:Boolean
     val default: T
 
@@ -25,101 +13,87 @@ interface Field<T:Any?> {
      ): AttachedField<T>
  }
 
+// =================================
 
-fun yo2() {
-    val n: Machine = Machine.create()
-    val dl: NodeLabel<*> = Machine
-    val rl = RADIUS
-    val r = RelatesPattern(n, dl, relationshipLabel = rl)
+open class LocalValueField<T:Any?>(
+    override val name: String,
+    override val default: T
+): Field<T> {
+
+    override val defaultToSelf:Boolean = true
+
+    override fun attach(node:Node, previous:Pattern<*>?): AttachedLocalValue<T> =
+        AttachedLocalValue(this, node)
 }
 
-//
-//// =================================
-//
-//open class LocalValueField<T:Any, N:Node>(
-//    override val name: String,
-//    label:NodeLabel<N>
-//): Field<T, N, N> {
-//
-//    override val sourceLabel:NodeLabel<N> = label
-//    override val connectedLabel:NodeLabel<N> = label
-//    override val patternFactory = null
-//    override val defaultToSelf:Boolean = true
-//
-//    override fun attach(node:N, previous:Pattern<*>?): AttachedLocalValueField<T, N> =
-//        AttachedLocalValueField(this, node)
-//}
-//
-//open class DefaultingLocalValueField<T:Any, N:Node>(
-//    name: String,
-//    label:NodeLabel<N>,
-//    val default: T,
-//): LocalValueField<T, N>(name, label) {
-//
-//    override fun attach(node:N, previous:Pattern<*>?): AttachedDefaultingLocalValueField<T, N> =
-//        AttachedDefaultingLocalValueField(this, node)
-//}
-//
-//// =================================
-//
-//open class ValueField<T:Any, SN:Node, CN:Node>(
-//    override val name: String,
-//    override val sourceLabel:NodeLabel<SN>,
-//    override val connectedLabel:NodeLabel<CN>,
-//    override val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<CN>,
-//    var defaultConnectFieldName: String? = null,
-//    override val defaultToSelf:Boolean = true,
-//): Field<T, SN, CN> {
-//    override fun attach(node:SN, previous:Pattern<*>?): AttachedValueField<T, SN, CN> =
-//        AttachedValueField(this, patternFactory(node, previous))
-//}
-//
-//class DefaultingValueField<T:Any, SN:Node, CN:Node>(
-//    name: String,
-//    sourceLabel:NodeLabel<SN>,
-//    connectedLabel:NodeLabel<CN>,
-//    patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<CN>,
-//    val default: T,
-//    defaultConnectFieldName: String? = null,
-//    defaultToSelf:Boolean = true,
-//): ValueField<T, SN, CN>(name, sourceLabel, connectedLabel, patternFactory, defaultConnectFieldName, defaultToSelf) {
-//    override fun attach(node:SN, previous:Pattern<*>?): AttachedDefaultingValueField<T, SN, CN> =
-//        AttachedDefaultingValueField(this, patternFactory(node, previous))
-//}
-//
-//// =================================
-//
-//open class NodeField<T:Node, SN:Node>(
-//    override val name: String,
-//    override val sourceLabel:NodeLabel<SN>,
-//    override val connectedLabel:NodeLabel<T>,
-//    override val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<T>,
-//    override val defaultToSelf:Boolean = true,
-//): Field<T, SN, T>{
-//    override fun attach(node:SN, previous:Pattern<*>?): AttachedNodeField<T, SN> =
-//        AttachedNodeField(this, patternFactory(node, previous))
-//}
-//
-//class DefaultingNodeField<T:Node, SN:Node>(
-//    name: String,
-//    sourceLabel:NodeLabel<SN>,
-//    connectedLabel:NodeLabel<T>,
-//    patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<T>,
-//    val default: T,
-//    defaultToSelf:Boolean = true,
-//): NodeField<T, SN>(name, sourceLabel, connectedLabel, patternFactory, defaultToSelf) {
-//    override fun attach(node:SN, previous:Pattern<*>?): AttachedDefaultingNodeField<T, SN> =
-//        AttachedDefaultingNodeField(this, patternFactory(node, previous))
-//}
-//
+
+// ===========================================================================
+
+abstract class ConnectingField<T:Any?>: Field<T>  {
+    abstract val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>
+
+    abstract override fun attach(
+        node:Node,
+        previous:Pattern<*>?
+    ): AttachedConnecting<T>
+}
+
+// =================================
+
+open class ConnectingNodeField<T:Node?>(
+    override val name: String,
+    override val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>,
+    override val default: T
+): ConnectingField<T>() {
+
+    override val defaultToSelf:Boolean = false
+
+    override fun attach(node:Node, previous:Pattern<*>?): AttachedConnectingNode<T> =
+        AttachedConnectingNode(this, patternFactory(node, previous))
+}
+
+// =================================
+
+open class ConnectingValueField<T:Any?>(
+    override val name: String,
+    override val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>,
+    override val default: T,
+    override val defaultToSelf:Boolean = true
+): ConnectingField<T>() {
+
+    override fun attach(node:Node, previous:Pattern<*>?): AttachedConnectingValue<T> =
+        AttachedConnectingValue(this, patternFactory(node, previous))
+
+}
+
+
 //// ======================================================================
 //
-//// factory for LocalValueField
-//fun <T:Any, N:Node>NodeLabel<N>.field(
-//    name:String,
-//) = LocalValueField<T, N>(
-//    name,
-//    this
+fun <T:Any?> field(name: String, default: T? = null) =
+    LocalValueField(name, default)
+
+fun <T:Any> field(name: String, default: T) =
+    LocalValueField(name, default)
+
+fun <T:Node?> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T? = null) =
+    ConnectingNodeField(name, patternFactory, default)
+
+fun <T:Node> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T) =
+    ConnectingNodeField(name, patternFactory, default)
+
+// BOOOO! this doesn't work :-(
+
+fun <T:Node?, NL:NodeLabel<*>> NL.field(name: String, relationshipLabel: RelationshipLabel, default: T? = null) =
+    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, this, p, relationshipLabel)}, default)
+
+fun <T:Node> field(name: String, relationshipLabel: RelationshipLabel, default: T) =
+    ConnectingNodeField(name, patternFactory, default)
+
+fun yo() {
+
+    val f1 = field("f1", 9.0)
+}
+
 //)
 //
 //// factory for DefaultingLocalValueField

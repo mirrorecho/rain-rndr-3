@@ -3,7 +3,6 @@ package rain.patterns.nodes
 import rain.language.*
 import rain.language.Node
 import rain.language.NodeLabel
-import rain.language.Field
 
 
 open class Machine protected constructor(
