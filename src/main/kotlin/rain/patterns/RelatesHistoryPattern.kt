@@ -6,14 +6,13 @@ import rain.language.NodeLabel
 import rain.language.RelationshipLabel
 
 
-open class RelatesHistoryPattern<T: Node, ST:T, DT:T>(
-    source: ST,
-    destinationLabel: NodeLabel<DT>,
-    previous: Pattern<T, *, *>? = null,
+open class RelatesHistoryPattern<T: Node>(
+    source: T,
+    previous: Pattern<*>? = null,
     relationshipLabel: RelationshipLabel,
     // an optional extended list of relationships, beyond the primary relationship, for querying (but not extending):
     vararg extendedRelationships: RelationshipLabel):
-    RelatesPattern<T, ST, DT>(source, destinationLabel, previous, relationshipLabel, *extendedRelationships) {
+    RelatesPattern<T>(source, previous, relationshipLabel, *extendedRelationships) {
 
 //    override fun copy(anotherPattern: Pattern): Dimension = RelatesHistoryDimension(anotherPattern, relationshipLabel, *extendedRelationships)
 

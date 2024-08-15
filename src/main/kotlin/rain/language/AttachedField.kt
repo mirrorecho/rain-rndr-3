@@ -14,6 +14,11 @@ interface  AttachedField<T:Any?> {
 
     var value: T
 
+    fun connect(reset:Boolean=false) {
+        // implemented here as an empty fun in order to be able to iterate over all
+        // fields and call this (even if it does nothing)
+    }
+
     fun resetValue()
 
     fun resetDefault() { default = field.default }
@@ -50,7 +55,7 @@ abstract class AttachedConnecting<T:Any?>: AttachedField<T> {
     //    val connectField: Field<T, CN, *>? // no need for this since we have to type cast anyway
     override val isLocal: Boolean get() = (connectedNode == null)
 
-    fun connect(reset:Boolean=false) {
+    override fun connect(reset:Boolean) {
         pattern.let {
             if (reset || connectedNode == null) connectedNode = it().firstOrNull()
         }
@@ -58,15 +63,13 @@ abstract class AttachedConnecting<T:Any?>: AttachedField<T> {
 
     // TODO: why is this (CN?)? Change to (CN)?
     fun connect(node:Node?) {
-        pattern.let {
-            it.clear()
-            node?.let { n-> it.extend(n) }
-            connectedNode = node
-        }
+        pattern.clear()
+        node?.let { n-> pattern.extend(n) }
+        connectedNode = node
     }
 
     fun connect(key:String) {
-        connect(field.connectedLabel.get(key))
+        connect(attachedNode.context.nodeFrom(key))
     }
 
 }
@@ -97,13 +100,13 @@ class AttachedConnectingValue<T:Any?>(
 
     val connectFieldName: String? get() = attachedNode.properties[this.field.name + ":connect"] as String?
 
-    val connectedField: AttachedField<T?>? get() = connectFieldName?.let { connectedNode?.attachedFields?.get(it)  }
+    val connectedField: AttachedField<Any?>? get() = connectFieldName?.let { connectedNode?.attachedFields?.get(it)  }
 
     override fun resetValue() { connectedField?.resetValue() }
 
     override var value: T
         get() =
-            connectedField?.value ?: (if (this.field.defaultToSelf) attachedNode.properties[this.field.name] as T? else null) ?: default
+            (connectedField?.value ?: if (this.field.defaultToSelf) attachedNode.properties[this.field.name] else null ) as T? ?: default
         set(value) {
             connectedField?.let {
                 it.value = value

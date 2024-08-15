@@ -75,24 +75,36 @@ fun <T:Any?> field(name: String, default: T? = null) =
 fun <T:Any> field(name: String, default: T) =
     LocalValueField(name, default)
 
-fun <T:Node?> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T? = null) =
+fun <T:Any?> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T? = null, defaultToSelf: Boolean=true) =
+    ConnectingValueField(name, patternFactory, default, defaultToSelf)
+
+fun <T:Any> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T, defaultToSelf: Boolean=true) =
+    ConnectingValueField(name, patternFactory, default, defaultToSelf)
+
+fun <T:Any?> field(name: String, relationshipLabel: RelationshipLabel, default: T? = null, defaultToSelf: Boolean=true) =
+    ConnectingValueField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default, defaultToSelf)
+
+fun <T:Any> field(name: String, relationshipLabel: RelationshipLabel, default: T, defaultToSelf: Boolean=true) =
+    ConnectingValueField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default, defaultToSelf)
+
+fun <T:Node?> nodeField(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T? = null) =
     ConnectingNodeField(name, patternFactory, default)
 
-fun <T:Node> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T) =
+fun <T:Node> nodeField(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T) =
     ConnectingNodeField(name, patternFactory, default)
 
-// BOOOO! this doesn't work :-(
+fun <T:Node?> nodeField(name: String, relationshipLabel: RelationshipLabel, default: T? = null) =
+    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default)
 
-fun <T:Node?, NL:NodeLabel<*>> NL.field(name: String, relationshipLabel: RelationshipLabel, default: T? = null) =
-    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, this, p, relationshipLabel)}, default)
+fun <T:Node> nodeField(name: String, relationshipLabel: RelationshipLabel, default: T) =
+    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default)
 
-fun <T:Node> field(name: String, relationshipLabel: RelationshipLabel, default: T) =
-    ConnectingNodeField(name, patternFactory, default)
+// ======================================================================
 
-fun yo() {
-
-    val f1 = field("f1", 9.0)
-}
+fun <T:Any?, F:Field<T>, N:Node>N.attachField(field: F, previous:Pattern<*>?=null): AttachedField<T> =
+    field.attach(this, previous).also {
+        attachedFields[field.name] = it
+    }
 
 //)
 //

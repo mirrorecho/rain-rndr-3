@@ -5,14 +5,13 @@ import rain.language.Node
 import rain.language.NodeLabel
 
 // base dimension for simple relationship-based items
-open class RelatesPattern<NT:Node>(
-    source: Node,
-    destinationLabel: NodeLabel<NT>,
+open class RelatesPattern<T:Node>(
+    source: T,
     previous: Pattern<*>? = null,
     val relationshipLabel: RelationshipLabel,
     // an optional extended list of relationships, beyond the primary relationship, for querying (but not extending):
     vararg val extendedRelationships: RelationshipLabel // TODO: is this used????
-): Pattern<NT>(source, destinationLabel, previous) {
+): Pattern<T>(source, previous) {
 
     private val relatesQuery = this.source.get(
         relationshipLabel(),

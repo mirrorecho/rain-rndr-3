@@ -3,6 +3,7 @@ package rain.language
 import org.openrndr.Program
 import rain.graph.interfacing.*
 import rain.patterns.Pattern
+import rain.patterns.nodes.Machine
 import rain.utils.autoKey
 import rain.utils.lazyish
 
@@ -18,12 +19,10 @@ abstract class Node protected constructor(
 
     override val queryMe get() = Query(selectKeys = arrayOf(this.key))
 
-    open var manager: ManagerInterface by lazyish { Manager() } // TODO: needed?
-
-    open fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
-
-    open fun render(program: Program) { println("render not implemented for $this") }
-
+    // TODO: are these needed at the node level? or only the machine level?
+//    open fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
+//
+//    open fun render(program: Program) { println("render not implemented for $this") }
 
     fun save() = context.graph.save(this)
 
@@ -54,46 +53,16 @@ abstract class Node protected constructor(
 
     // a managed map of attached ContectedField objects, for mass connecting them
     // TODO maybe: should this just be a list? do we ever need to look up by field name?
-    val attachedFields: MutableMap<String, AttachedField<out Any, out Node>> = mutableMapOf()
+    val attachedFields: MutableMap<String, AttachedField<Any?>> = mutableMapOf()
 
     fun connectAllFields() {
         attachedFields.forEach { (_, v) -> v.connect() }
     }
 
 
-//    override operator fun <T:Any?>get(field: Field<T>): T? {
-//        (fieldNodes[field.name]?.properties ?: this.properties).let {
-//            return it[field.name] as T? ?: field.default
-//        }
-//    }
-//
-//    override operator fun <T:Any?>set(field: Field<T>, value:T) {
-//        val myReceiver: Node = node
-//        fields.forEach {
-//
-//        }
-//    }
-
-    // TODO: consider re-implementing
-    // TODO maybe if so: consider moving this to the manager class?
-//    protected open val targetProperties:List<KProperty0<CachedTarget<out Node>>> = listOf()
-
-    // TODO: consider re-implementing (does this even make sense?)
-//    open fun makePattern(historyDimension: Dimension?=null): Pattern =
-//        Pattern(this, historyDimension)
-
     // TODO: consider implementing
 //    open fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
 
-    // TODO: consider re-implementing
-//    fun autoTarget() {
-//        targetProperties.forEach {
-//            it.get().apply {
-//                createIfMissing()
-//                target?.autoTarget() // cascade down...
-//            }
-//        }
-//    }
 
     // TODO: consider re-implementing
 //    fun <T: Node>cachedTarget(rLabel: RelationshipLabel, nLabel: NodeLabel<T>): Pattern.CachedTarget =
@@ -114,25 +83,25 @@ abstract class Node protected constructor(
 
 }
 
-// TODO maybe: re-implement?
-//inline fun <T: ManagerInterface> Node.manageWith(manager:T, block: T.()->Unit): T {
-//    manager.manage(this)
-//    block(manager)
-//    return manager
-//}
-//
-//inline fun Node.manage(block: (ManagerInterface.()->Unit)) = manageWith(manager, block)
+// ================================================================
 
 // just for fiddling around purposes...
 open class Thingy protected constructor(
     key:String = autoKey(),
 ): Node(key) {
-    companion object : NodeLabel<Thingy>(Thingy::class, null, { k -> Thingy(k) })
-    override val label: NodeLabel<Thingy> = Thingy
-
-    class ThingyManager : Manager() {
-        var thingName: String? by properties
+    abstract class ThingyLabel<T: Thingy>: NodeLabel<T>() {
+        // add fields here:
+        val thing = field("thing", "One and Two")
     }
-//    override val manager by lazy { ThingyManager().apply { manage(this@Thingy) } }
+
+    companion object : ThingyLabel<Thingy>() {
+        override val labelName:String = "Thingy"
+        override fun factory(key:String) = Thingy(key)
+    }
+
+    override val label: NodeLabel<out Thingy> = Thingy
+
+    // attach fields here:
+    val thing = attachField(Thingy.thing)
 
 }

@@ -20,24 +20,21 @@ open class Event protected constructor(
     key:String = autoKey(),
 ): Node(key) {
 
-    abstract class EventLabel<T:Machine>(): NodeLabel<T>() {
-
+    abstract class EventLabel<T:Event>: NodeLabel<T>() {
+        val dur = field("dur", 0.0)
+        val simultaneous = field("simultaneous", false)
+        val gate = field("gate", Gate.NONE)
     }
 
-    open class EventLabel(): NodeLabel<Event>() {
+    companion object : EventLabel<Event>() {
         override val labelName:String = "Event"
         override fun factory(key:String) = Event(key)
-
-    }
-
-    companion object : EventLabel() {
-        abstract class MachineLabel<T:Machine>(): NodeLabel<T>() {
     }
 
     override val label: NodeLabel<out Event> = Event
 
     // TODO: is this by lazy effective enough for "caching"?
-    val childrenPattern by lazy { CuedChildrenPattern(this, Event) }
+    val childrenPattern by lazy { CuedChildrenPattern(this) }
 
     // TODO: implement caching
     val children get() = childrenPattern.children

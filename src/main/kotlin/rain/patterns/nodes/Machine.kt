@@ -8,17 +8,7 @@ import rain.language.NodeLabel
 open class Machine protected constructor(
     key:String = rain.utils.autoKey(),
 ): Node(key) {
-    // TODO: fix simplify based on new code structure with separate class def
-    abstract class MachineLabel<T:Machine>(): NodeLabel<T>() {
-
-        val dur = field("dur", 0.0)
-        val gate = field("gate", Gate.NONE)
-
-        // TODO/NOTE: simultaneous is really a property of the sending Event itself,
-        //  to be interpreted by EventPlayer... keeping it here for now,
-        //  but may make more sense to make EventPlayer a node (rename to score?), and move this there
-        val simultaneous = field("simultaneous", false)
-
+    abstract class MachineLabel<T:Machine>: NodeLabel<T>() {
     }
 
     companion object : MachineLabel<Machine>() {

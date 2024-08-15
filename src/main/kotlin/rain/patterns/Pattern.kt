@@ -7,12 +7,11 @@ import rain.utils.autoKey
 import kotlin.reflect.KProperty
 
 // patterns are abstractions of queries
-abstract class Pattern<NT:Node>(
+abstract class Pattern<T:Node>(
 
     // TODO (DONE): consider making this a var to allow for patterns in the abstract
     // TODO: also, is source worthwhile here, or just override query's directly, OR, just make this a arg, not a var
-    var source: Node,
-    val destinationLabel: NodeLabel<NT>,
+    var source: T,
     val previous: Pattern<*>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
 ): Query( QueryMethod.GRAPHABLE) {
@@ -20,7 +19,7 @@ abstract class Pattern<NT:Node>(
     // TODO: cascading target/context node(s) ... i.e. for Machine target in an Event tree
     // TODO: timecodes (or other additive values)
 
-    fun warningNotImplemented(attributeName:String) =
+    fun warningNotImplemented(attributeName: String) =
         println("WARNING: '$attributeName' not implemented for {$this}")
 
     // ------------------------------------------------------------------
@@ -32,22 +31,21 @@ abstract class Pattern<NT:Node>(
     open fun extend(vararg nodes: Node) = warningNotImplemented("extend")
 
     // deletes relationships and potentially intermediary nodes (and destination nodes if deleteNodes=true)
-    open fun clear(deleteNodes:Boolean=false) = warningNotImplemented("clear")
+    open fun clear(deleteNodes: Boolean = false) = warningNotImplemented("clear")
 
-    override operator fun <T: Node>invoke(label: NodeLabel<out T>): Sequence<T> {
-        throw NotImplementedError("<T: Node>invoke not implemented for patterns")
-    }
 
     override var queryFrom: Query? = source?.queryMe
 
-    override operator fun invoke(): Sequence<NT> = graphableNodes.map { destinationLabel.from(it) }
-
     // TODO: this works great... so make sure I understand EXACTLY what's going on
     //  ... ALSO, consider moving to Query to use on non-patterns?
-    open fun <NT2:Node, P:Pattern<NT2>>asPatterns(
-        destinationLabel: NodeLabel<NT2>,
-        factory:(source:NT, destinationLabel: NodeLabel<NT2>, previous:Pattern<NT>)->P
-    ): Sequence<P> = this().map { factory.invoke(it, destinationLabel, this) }
+    open fun <P : Pattern<*>> asPatterns(
+        factory: (source: Node, previous: Pattern<*>) -> P
+    ): Sequence<P> = this().map { factory.invoke(it, this) }
+
+    open fun <CT : Node, P : Pattern<CT>> asPatterns(
+        label: NodeLabel<out CT>,
+        factory: (source: CT, previous: Pattern<*>) -> P,
+    ): Sequence<P> = this(label).map { factory.invoke(it, this) }
 
     // ------------------------------------------------------------------
 
@@ -58,7 +56,7 @@ abstract class Pattern<NT:Node>(
         previous?.let { yield(it); yieldAll(it.history) }
     }
 
-    open fun stream(name:String, nodesLabel: NodeLabel<*>, vararg values: Any?) {
+    open fun stream(name: String, nodesLabel: NodeLabel<*>, vararg values: Any?) {
         val dimensionIterator = this().iterator()
         val valuesIterator = values.iterator()
         while (valuesIterator.hasNext()) {
@@ -69,48 +67,46 @@ abstract class Pattern<NT:Node>(
                 }
             } else {
                 extend(
-                    nodesLabel.create(properties = mapOf(name to valuesIterator.next()) )
+                    nodesLabel.create(properties = mapOf(name to valuesIterator.next()))
                 )
             }
         }
     }
 
     // TODO: does this work??? Is it used? Naming?
-    open fun setStream(name: String, vararg values:Any) {
+    open fun setStream(name: String, vararg values: Any) {
         this().zip(values.asSequence()).forEach { it.first.properties[name] = it.second }
     }
 
-    val cachedTarget get() = CachedTarget()
 
-    // below is is similar to TypedCached, but assumes there's just 1 result
-    // TODO: is the below note correct? Or or holdover from sandbox?
-    // TODO: move this to query?
-    // NOTE: doesn't actually cache, just mimics the sequence
-    inner class CachedTarget: TypedCached<NT>() {
+    // TODO: review and remove (assume no longer worth it, now with field implementation)
 
-        private var cachedNode = this.first
-
-        val sourcePattern get() = this@Pattern
-        val sourceNode get() = sourcePattern.source
-
-        var target: NT?
-            get() = cachedNode
-            set(node) {
-                cachedNode = node
-                clear()
-                node?.let { extend(it) }
-            }
-
-        // TODO: is this used?
-        fun createIfMissing(key:String = autoKey()) {
-            if (cachedNode==null) {
-                cachedNode = destinationLabel.create(key).also { extend(it) }
-            }
-        }
+//    val cachedTarget get() = CachedTarget()
+//    inner class CachedTarget: TypedCached<NT>() {
+//
+//        private var cachedNode = this.first
+//
+//        val sourcePattern get() = this@Pattern
+//        val sourceNode get() = sourcePattern.source
+//
+//        var target: NT?
+//            get() = cachedNode
+//            set(node) {
+//                cachedNode = node
+//                clear()
+//                node?.let { extend(it) }
+//            }
+//
+//        // TODO: is this used?
+//        fun createIfMissing(key:String = autoKey()) {
+//            if (cachedNode==null) {
+//                cachedNode = destinationLabel.create(key).also { extend(it) }
+//            }
+//        }
 
 
-        // replaced with ConnectedField class defined alongside Field...
-        // TODO eventually: review and remove
+    // replaced with ConnectedField class defined alongside Field...
+    // TODO eventually: review and remove
 //        inner class FieldValue<T:Any>(
 //            val name:String,
 //        ) {
@@ -132,9 +128,10 @@ abstract class Pattern<NT:Node>(
 //            }
 //
 //        }
-
-    }
-
+//    }
 
 }
+
+
+
 

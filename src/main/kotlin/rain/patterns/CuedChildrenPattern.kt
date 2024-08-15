@@ -7,11 +7,10 @@ import rain.patterns.nodes.Cue
 import rain.patterns.relationships.*
 
 
-open class CuedChildrenPattern<NT: Node>(
-    source: Node,
-    destinationLabel: NodeLabel<NT>,
+open class CuedChildrenPattern<T: Node>(
+    source: T,
     previous: Pattern<*>? = null,
-): Pattern<NT>(source, destinationLabel, previous) {
+): Pattern<T>(source,  previous) {
 
 
     private fun getChildCues(qCue: Query): Sequence<GraphableNode> = sequence {
@@ -57,7 +56,7 @@ open class CuedChildrenPattern<NT: Node>(
     }
 
     // this is cool... HAH!
-    val children get() = this.asPatterns(destinationLabel) { s, dl, p -> CuedChildrenPattern(s, dl, p) }
+    val children get() = this.asPatterns(source.label) { s,p -> CuedChildrenPattern(s, p) }
 
 
     // TODO: implement...

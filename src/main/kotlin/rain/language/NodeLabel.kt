@@ -19,6 +19,9 @@ abstract class NodeLabel<T: Node>(
     // TODO: needed?
 //    override val ancestorLabels: List<NodeLabel<*>> = parentLabel?.let { listOf(it) + it.ancestorLabels }.orEmpty()
 
+    private fun getAllNames(): List<String> =
+        listOf(labelName) + super.l
+
     final override val allNames: List<String> = listOf(getName(myClass)) + parentLabel?.allNames.orEmpty()
 
     final override val queryMe: Query = Query(selectLabelName=labelName)
