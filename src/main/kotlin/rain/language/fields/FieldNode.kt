@@ -1,6 +1,5 @@
 package rain.language.fields
 
-import org.jetbrains.annotations.Nullable
 import rain.language.Node
 import rain.language.NodeLabel
 import rain.language.RelationshipLabel
@@ -8,7 +7,7 @@ import rain.patterns.Pattern
 import rain.patterns.RelatesPattern
 
 
-open class FieldConnectingNode<T:Node?>(
+open class FieldNode<T:Node?>(
     name: String,
     val patternFactory: (source: Node)-> Pattern<*>,
     val label: NodeLabel<T & Any>,
@@ -25,14 +24,13 @@ open class FieldConnectingNode<T:Node?>(
 
         override val isLocal: Boolean = false
 
-
         override fun store() {
             pattern.clear()
             value?.let { pattern.extend(it) }
         }
 
         override fun retrieve() {
-            value = pattern(this@FieldConnectingNode.label).firstOrNull()
+            value = pattern(this@FieldNode.label).firstOrNull()
         }
 
     }
@@ -49,7 +47,7 @@ fun <T: Node?> field(
     default: T? = null,
     cascade: Boolean = true,
 ) =
-    FieldConnectingNode(
+    FieldNode(
         name,
         {s -> RelatesPattern(s, null, relationshipLabel) },
         label,

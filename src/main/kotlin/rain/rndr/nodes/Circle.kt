@@ -21,10 +21,12 @@ open class Circle protected constructor(
         val strokeWeight = field("strokeWeight", STROKE_WEIGHT, 0.9)
         val fillColor = field("fillColor", FILL_COLOR, Color)
 //        TODO: maybe: implement these
-//        val h = field<Double?>("h", FILL_COLOR) // hue would be proxy for whether entire color is null or not
+        val h = field<Double?>("h", FILL_COLOR) // hue would be proxy for whether entire color is null or not
 //        val s = field("s", 0.9, FILL_COLOR)
 //        val v = field("v", 0.9, FILL_COLOR)
 //        val a = field("a", 0.8, FILL_COLOR)
+
+        val t = listOf("s", fillColor, Color.s, S, 0.9)
 
     }
 

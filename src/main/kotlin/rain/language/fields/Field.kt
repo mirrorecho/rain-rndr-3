@@ -24,9 +24,9 @@ open class Field<T:Any?>(
 
         open var value: T? = null // note that this duplicates/caches the value in the properties
 
-        operator fun getValue(thisRef: Any?, property: KProperty<*>): T = this.value ?: default
+        open operator fun getValue(thisRef: Any?, property: KProperty<*>): T = this.value ?: default
 
-        operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {this.value = value}
+        open operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {this.value = value}
 
         // TODO: combine with retrieveFromNode?
         fun connect(reset:Boolean=false) {

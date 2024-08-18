@@ -56,16 +56,21 @@ abstract class Node protected constructor(
 
     // a managed map of attached ContectedField objects, for mass connecting them
     // TODO maybe: should this just be a list? do we ever need to look up by field name?
-    val attachedFields: MutableMap<String, Field<Any?>.Attached> = mutableMapOf()
+    private val attachedFields: MutableMap<String, Field<Any?>.Attached> = mutableMapOf()
 
     fun connectAllFields() {
         attachedFields.forEach { (_, v) -> v.connect() }
     }
 
-    fun <T:Any?, F: Field<T>>attachField(field: F): Field<T>.Attached =
+    fun <T:Any?>attachField(field: Field<T>): Field<T>.Attached =
         field.attach(this).also { af ->
             attachedFields[field.name] = af as Field<Any?>.Attached // TODO: why is this cast necessary????
         }
+
+    fun <T:Any?>attachedField(name:String): Field<T?>.Attached? =
+        attachedFields[name] as Field<T?>.Attached?
+
+    fun <T:Any?>attachedField(field: Field<T>) = attachedField<T>(field.name)
 
     // returns value associated with a field name... note that the field does
     // not have to be a field associated with this type (label) of node
@@ -73,10 +78,10 @@ abstract class Node protected constructor(
     // ... note it's always nullable since even if the field is required on another node type
     // ... it can't be guaranteed to exist on this node type or in its properties
     operator fun <T:Any?>get(field: Field<T>):T? =
-        (attachedFields[field.name]?.value ?: properties[field.name]) as T?
+        (attachedField(field)?.value ?: properties[field.name]) as T?
 
     operator fun <T:Any?>set(field: Field<T>, value:T?) {
-        attachedFields[field.name]?.let { it.value = value; return }
+        attachedField(field)?.let { it.value = value; return }
         properties[field.name] = value
     }
 
