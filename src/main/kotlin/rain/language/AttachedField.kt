@@ -1,49 +1,16 @@
 package rain.language
 
 import rain.language.fields.ConnectingDefaultingNodeField
-import rain.language.fields.ConnectingNodeField
-import rain.language.fields.ConnectingValueField
-import rain.language.fields.Field
+import rain.language.fields.FieldConnectingNode
+import rain.language.fields.FieldConnectingValue
 import rain.patterns.Pattern
 
 // TODO maybe: an interface for DefaultingField to help organize everything
 
-interface  AttachedField<T:Any?> {
-
-    val field: Field<T>
-    val attachedNode: Node
-    var default: T
-    val isLocal: Boolean
-
-    var value: T
-
-    fun connect(reset:Boolean=false) {
-        // implemented here as an empty fun in order to be able to iterate over all
-        // fields and call this (even if it does nothing)
-    }
-
-    fun resetValue()
-
-    fun resetDefault() { default = field.default }
-
-}
 
 
-class AttachedLocalValue<T:Any?>(
-    override val field: Field<T>,
-    override val attachedNode: Node,
-    override var default: T = field.default
-): AttachedField<T> {
 
-    override val isLocal = true
 
-    override fun resetValue() { attachedNode.properties[this.field.name] = null }
-
-    override var value: T
-        get() = attachedNode.properties.getOrDefault(this.field.name, default) as T
-        set(value) {attachedNode.properties[this.field.name] = value}
-
-}
 
 
 
@@ -71,7 +38,7 @@ interface AttachedConnecting<NT:Node?, T:Any?>: AttachedField<T> {
 
 
 open class AttachedConnectingNode<T: Node>(
-    override val field: ConnectingNodeField<T>,
+    override val field: FieldConnectingNode<T>,
     override val pattern: Pattern<*>,
     override var default: T? = field.default
 ): AttachedConnecting<T, T?> {
@@ -125,7 +92,7 @@ class AttachedConnectingDefaultingNode<T: Node>(
 
 // NOTE that values of nodes are not supported
 class AttachedConnectingValue<T:Any?>(
-    override val field: ConnectingValueField<T>,
+    override val field: FieldConnectingValue<T>,
     override val pattern: Pattern<*>,
     override var default: T = field.default
 ): AttachedConnecting<Node, T> {

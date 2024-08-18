@@ -36,7 +36,7 @@ open class Circle protected constructor(
 
     override val label = Circle
 
-    val radius = attachField(Circle.radius)
+    val radius by attachField(Circle.radius)
     val position = attachField(Circle.position)
     val strokeColor = attachField(Circle.strokeColor)
     val strokeWeight = attachField(Circle.strokeWeight)
