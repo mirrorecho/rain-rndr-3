@@ -2,17 +2,19 @@ package rain.patterns.nodes
 
 
 import rain.language.*
-import rain.language.Node
-import rain.language.NodeLabel
+import rain.language.fields.field
 import rain.patterns.*
-import rain.rndr.nodes.Circle
-import rain.utils.autoKey
+import rain.patterns.relationships.*
+import rain.utils.*
 
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
     ON(true, null),
     OFF(null, false),
     ON_OFF(true, false),
-    NONE(null, null),
+    NONE(null, null);
+
+    val hasGate = startGate!= null || endGate != null
+
 }
 
 // TODO: make this an interface?
@@ -21,9 +23,11 @@ open class Event protected constructor(
 ): Node(key) {
 
     abstract class EventLabel<T:Event>: NodeLabel<T>() {
-        val dur = field("dur", 0.0)
-        val simultaneous = field("simultaneous", false)
-        val gate = field("gate", Gate.NONE)
+        val dur = field("dur", 0.0, false)
+        val simultaneous = field("simultaneous", false, false)
+        val gate = field("gate", Gate.NONE, false)
+        val bumps = field("bumps", BUMPS, Machine)
+        val bumping = field("bumping", true)
     }
 
     companion object : EventLabel<Event>() {
@@ -32,6 +36,12 @@ open class Event protected constructor(
     }
 
     override val label: NodeLabel<out Event> = Event
+
+    val dur = attachField(Event.dur)
+    val simultaneous = attachField(Event.simultaneous)
+    val gate = attachField(Event.gate)
+    val bumps = attachField(Event.bumps)
+    val bumping = attachField(Event.bumping)
 
     // TODO: is this by lazy effective enough for "caching"?
     val childrenPattern by lazy { CuedChildrenPattern(this) }
@@ -50,31 +60,7 @@ open class Event protected constructor(
 //        receiverBlock.invoke(receiver)
 //    }
 
-    // TODO: review and remove
-//    open class EventManager : Manager() {
-//        // TODO: is machine label even needed anymore?
-//        open var machineLabel: NodeLabel<out Machine>? by nullable("machineLabel")
-//        var machinePath: Array<RelationshipLabel>? by nullable("machinePath")
-//        var dur: Double? by nullable("dur")
-//        var gate: Gate by defaultable("gate", Gate.NONE)
-//        var simultaneous: Boolean by defaultable("simultaneous", false)
-//
-//        fun addTrigger(key: String = autoKey(), autoTarget: Boolean = true): Machine? {
-//            return machineLabel?.create(key)?.apply { if (autoTarget) autoTarget(); addTrigger(this); }
-//        }
-//
-//        fun addTrigger(machine: Machine): Machine {
-//            deferToPattern {
-//                it[DimensionLabel.TRIGGERS].extend(machine)
-//            }
-//            return machine
-//        }
-//
-//        fun play() = deferToPattern { println("Playing $it"); EventPlayer(it).play() }
-//
-//    }
 
-//    override var manager: ManagerInterface by lazyish { EventManager() }
 
 }
 

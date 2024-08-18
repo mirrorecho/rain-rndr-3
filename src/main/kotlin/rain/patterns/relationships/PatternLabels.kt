@@ -8,4 +8,4 @@ val CUES_NEXT = RelationshipLabel("CUES_NEXT")
 val CONTAINS = RelationshipLabel("CONTAINS")
 val CUES = RelationshipLabel("CUES")
 
-val TRIGGERS = RelationshipLabel("TRIGGERS")
+val BUMPS = RelationshipLabel("BUMPS")

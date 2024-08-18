@@ -56,8 +56,8 @@ open class CuedChildrenPattern<T: Node>(
     }
 
     // this is cool... HAH!
-    val children get() = this.asPatterns(source.label) { s,p -> CuedChildrenPattern(s, p) }
-
+    // TODO: type cast is not cool here... able to remove it???
+    val children: Sequence<CuedChildrenPattern<T>> get() = this.asPatterns(source.label as NodeLabel<T>) { s,p -> CuedChildrenPattern(s, p) }
 
     // TODO: implement...
     override fun clear(deleteNodes:Boolean) = warningNotImplemented("clear")

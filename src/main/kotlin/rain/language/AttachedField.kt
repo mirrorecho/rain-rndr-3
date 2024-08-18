@@ -1,7 +1,10 @@
 package rain.language
 
+import rain.language.fields.ConnectingDefaultingNodeField
+import rain.language.fields.ConnectingNodeField
+import rain.language.fields.ConnectingValueField
+import rain.language.fields.Field
 import rain.patterns.Pattern
-import rain.patterns.nodes.Machine
 
 // TODO maybe: an interface for DefaultingField to help organize everything
 
@@ -44,65 +47,118 @@ class AttachedLocalValue<T:Any?>(
 
 
 
-abstract class AttachedConnecting<T:Any?>: AttachedField<T> {
+interface AttachedConnecting<NT:Node?, T:Any?>: AttachedField<T> {
 
-    abstract val pattern: Pattern<*>
+    val pattern: Pattern<*>
 
     override val attachedNode get() = pattern.source
 
-    var connectedNode: Node? = null
+    var connectedNode: NT?
 
     //    val connectField: Field<T, CN, *>? // no need for this since we have to type cast anyway
     override val isLocal: Boolean get() = (connectedNode == null)
 
-    override fun connect(reset:Boolean) {
-        pattern.let {
-            if (reset || connectedNode == null) connectedNode = it().firstOrNull()
-        }
-    }
-
     // TODO: why is this (CN?)? Change to (CN)?
-    fun connect(node:Node?) {
+    fun connect(node:NT?) {
         pattern.clear()
         node?.let { n-> pattern.extend(n) }
         connectedNode = node
     }
 
-    fun connect(key:String) {
-        connect(attachedNode.context.nodeFrom(key))
-    }
+    fun connect(key:String)
 
 }
 
 
-class AttachedConnectingNode<T:Node?>(
-    override val field: Field<T>,
+open class AttachedConnectingNode<T: Node>(
+    override val field: ConnectingNodeField<T>,
     override val pattern: Pattern<*>,
-    override var default: T = field.default
-): AttachedConnecting<T>() {
+    override var default: T? = field.default
+): AttachedConnecting<T, T?> {
+
+    override var connectedNode: T? = null
 
     override fun resetValue() { connectedNode = null }
 
-    override var value: T
-        get() = connectedNode as T? ?: default
+    override fun connect(reset:Boolean) {
+        if (reset || connectedNode == null) connectedNode = pattern(field.label).firstOrNull()
+    }
+
+    override fun connect(key:String) {
+        connect(field.label.get(key))
+    }
+
+    override var value: T?
+        get() = connectedNode ?: this.default
         set(value) {
             connect(value)
         }
 
 }
 
-// NOTE that the value could still be a node as long as field.defaultToSelf is false
-class AttachedConnectingValue<T:Any?>(
-    override val field: Field<T>,
+class AttachedConnectingDefaultingNode<T: Node>(
+    override val field: ConnectingDefaultingNodeField<T>,
     override val pattern: Pattern<*>,
     override var default: T = field.default
-): AttachedConnecting<T>() {
+): AttachedConnecting<T, T> {
 
-    val connectFieldName: String? get() = attachedNode.properties[this.field.name + ":connect"] as String?
+    override var connectedNode: T? = null
 
-    val connectedField: AttachedField<Any?>? get() = connectFieldName?.let { connectedNode?.attachedFields?.get(it)  }
+    override fun resetValue() { connectedNode = null }
+
+    override fun connect(reset:Boolean) {
+        if (reset || connectedNode == null) connectedNode = pattern(field.label).firstOrNull()
+    }
+
+    override fun connect(key:String) {
+        connect(field.label.get(key))
+    }
+
+    override var value: T
+        get() = connectedNode ?: this.default
+        set(value) {
+            connect(value)
+        }
+
+}
+
+
+// NOTE that values of nodes are not supported
+class AttachedConnectingValue<T:Any?>(
+    override val field: ConnectingValueField<T>,
+    override val pattern: Pattern<*>,
+    override var default: T = field.default
+): AttachedConnecting<Node, T> {
+
+    override var connectedNode: Node? = null
+
+    var connectFieldName: String? get() = attachedNode.properties[this.field.name + ":connectField"] as String?
+        set(value) {
+            attachedNode.properties[this.field.name + ":connectField"] = value
+        }
+
+    val connectedField: AttachedField<Any?>? get() = connectFieldName?.let { fn-> connectedNode?.attachedFields?.get(fn)  }
 
     override fun resetValue() { connectedField?.resetValue() }
+
+    override fun connect(reset:Boolean) {
+        if (reset || connectedNode == null) connectedNode = pattern().firstOrNull()
+    }
+
+    override fun connect(key:String) {
+        connect(attachedNode.context.nodeFrom(key))
+    }
+
+    fun connect(node:Node?, connectFieldName:String?) {
+        super.connect(node)
+        this.connectFieldName = connectFieldName
+    }
+
+    // if making a point of connecting... assume that we want a connection and default
+    // connectFieldName to the name of the field
+    override fun connect(node:Node?) {
+        connect(node, this.field.name)
+    }
 
     override var value: T
         get() =

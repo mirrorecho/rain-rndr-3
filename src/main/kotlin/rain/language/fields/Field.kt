@@ -1,14 +1,17 @@
-package rain.language
+package rain.language.fields
 
+import rain.language.*
 import rain.patterns.*
 
 interface Field<T:Any?> {
     val name: String
+    val isNode: Boolean
     val defaultToSelf:Boolean
     val default: T
+    val cascade: Boolean // TODO: reconsider cascade defaults (after playing with this with solves)
 
      fun attach(
-         node:Node,
+         node: Node,
          previous:Pattern<*>?=null
      ): AttachedField<T>
  }
@@ -17,51 +20,72 @@ interface Field<T:Any?> {
 
 open class LocalValueField<T:Any?>(
     override val name: String,
-    override val default: T
+    override val default: T,
+    override val cascade: Boolean = true
 ): Field<T> {
 
+    override val isNode: Boolean = false
     override val defaultToSelf:Boolean = true
 
-    override fun attach(node:Node, previous:Pattern<*>?): AttachedLocalValue<T> =
+    override fun attach(node: Node, previous:Pattern<*>?): AttachedLocalValue<T> =
         AttachedLocalValue(this, node)
 }
 
 
 // ===========================================================================
 
-abstract class ConnectingField<T:Any?>: Field<T>  {
-    abstract val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>
-
-    abstract override fun attach(
-        node:Node,
-        previous:Pattern<*>?
-    ): AttachedConnecting<T>
+interface ConnectingField<T:Any?>: Field<T> {
+    abstract val patternFactory: (source: Node, previous:Pattern<*>?)->Pattern<*>
 }
 
 // =================================
 
-open class ConnectingNodeField<T:Node?>(
-    override val name: String,
-    override val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>,
-    override val default: T
-): ConnectingField<T>() {
+// TODO: below causes all kinds of generics problems. WHY?
+//  Instead needing to create ConnectingNodeField and ConnectingNodeDefaultingField
+// open class ConnectingNodeField<NT:Node, T:NT?>(
 
+open class ConnectingNodeField<T: Node>(
+    override val name: String,
+    override val patternFactory: (source: Node, previous:Pattern<*>?)->Pattern<*>,
+    val label: NodeLabel<T>,
+    override val default: T?,
+    override val cascade: Boolean = true
+): ConnectingField<T?>, Field<T?> {
+
+    override val isNode: Boolean = true
     override val defaultToSelf:Boolean = false
 
-    override fun attach(node:Node, previous:Pattern<*>?): AttachedConnectingNode<T> =
+    override fun attach(node: Node, previous:Pattern<*>?): AttachedConnectingNode<T> =
         AttachedConnectingNode(this, patternFactory(node, previous))
+}
+
+open class ConnectingDefaultingNodeField<T: Node>(
+    override val name: String,
+    override val patternFactory: (source: Node, previous:Pattern<*>?)->Pattern<*>,
+    val label: NodeLabel<T>,
+    override val default: T,
+    override val cascade: Boolean = true
+): ConnectingField<T>, Field<T> {
+
+    override val isNode: Boolean = true
+    override val defaultToSelf:Boolean = false
+
+    override fun attach(node: Node, previous:Pattern<*>?): AttachedConnectingDefaultingNode<T> =
+        AttachedConnectingDefaultingNode(this, patternFactory(node, previous))
 }
 
 // =================================
 
 open class ConnectingValueField<T:Any?>(
     override val name: String,
-    override val patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>,
+    override val patternFactory: (source: Node, previous:Pattern<*>?)->Pattern<*>,
     override val default: T,
+    override val cascade: Boolean = true,
     override val defaultToSelf:Boolean = true
-): ConnectingField<T>() {
+): ConnectingField<T>, Field<T> {
 
-    override fun attach(node:Node, previous:Pattern<*>?): AttachedConnectingValue<T> =
+    override val isNode: Boolean = true
+    override fun attach(node: Node, previous:Pattern<*>?): AttachedConnectingValue<T> =
         AttachedConnectingValue(this, patternFactory(node, previous))
 
 }
@@ -69,42 +93,86 @@ open class ConnectingValueField<T:Any?>(
 
 //// ======================================================================
 //
-fun <T:Any?> field(name: String, default: T? = null) =
-    LocalValueField(name, default)
+fun <T:Any?> field(name: String, default: T? = null, cascade: Boolean = true) =
+    LocalValueField(name, default, cascade)
 
-fun <T:Any> field(name: String, default: T) =
-    LocalValueField(name, default)
+fun <T:Any> field(name: String, default: T, cascade: Boolean = true) =
+    LocalValueField(name, default, cascade)
 
-fun <T:Any?> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T? = null, defaultToSelf: Boolean=true) =
-    ConnectingValueField(name, patternFactory, default, defaultToSelf)
+fun <T:Any?> field(
+    name: String,
+    relationshipLabel: RelationshipLabel,
+    default: T? = null,
+    cascade: Boolean = true,
+    defaultToSelf: Boolean=true
+) =
+    ConnectingValueField(
+        name,
+        {s, p-> RelatesPattern(s, p, relationshipLabel)},
+        default,
+        cascade,
+        defaultToSelf
+    )
 
-fun <T:Any> field(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T, defaultToSelf: Boolean=true) =
-    ConnectingValueField(name, patternFactory, default, defaultToSelf)
+fun <T:Any> field(
+    name: String,
+    relationshipLabel: RelationshipLabel,
+    default: T,
+    cascade: Boolean = true,
+    defaultToSelf: Boolean=true
+) =
+    ConnectingValueField(
+        name,
+        {s, p-> RelatesPattern(s, p, relationshipLabel)},
+        default,
+        cascade,
+        defaultToSelf
+    )
 
-fun <T:Any?> field(name: String, relationshipLabel: RelationshipLabel, default: T? = null, defaultToSelf: Boolean=true) =
-    ConnectingValueField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default, defaultToSelf)
 
-fun <T:Any> field(name: String, relationshipLabel: RelationshipLabel, default: T, defaultToSelf: Boolean=true) =
-    ConnectingValueField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default, defaultToSelf)
+fun <T: Node> field(
+    name: String,
+    relationshipLabel: RelationshipLabel,
+    label: NodeLabel<T>,
+    default: T? = null,
+    cascade: Boolean = true,
+) =
+    ConnectingNodeField(
+        name,
+        {s, p-> RelatesPattern(s, p, relationshipLabel)},
+        label,
+        default,
+        cascade,
+    )
 
-fun <T:Node?> nodeField(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T? = null) =
-    ConnectingNodeField(name, patternFactory, default)
+fun <T: Node> field(
+    name: String,
+    relationshipLabel: RelationshipLabel,
+    label: NodeLabel<T>,
+    default: T,
+    cascade: Boolean = true
+) =
+    ConnectingDefaultingNodeField(
+        name,
+        {s, p-> RelatesPattern(s, p, relationshipLabel)},
+        label,
+        default,
+        cascade
+    )
 
-fun <T:Node> nodeField(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T) =
-    ConnectingNodeField(name, patternFactory, default)
-
-fun <T:Node?> nodeField(name: String, relationshipLabel: RelationshipLabel, default: T? = null) =
-    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default)
-
-fun <T:Node> nodeField(name: String, relationshipLabel: RelationshipLabel, default: T) =
-    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default)
+//
+//fun <T:Node> nodeField(name: String, patternFactory: (source:Node, previous:Pattern<*>?)->Pattern<*>, default: T) =
+//    ConnectingNodeField(name, patternFactory, default)
+//
+//fun <T:Node?> nodeField(name: String, relationshipLabel: RelationshipLabel, default: T? = null) =
+//    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default)
+//
+//fun <T:Node> nodeField(name: String, relationshipLabel: RelationshipLabel, default: T) =
+//    ConnectingNodeField(name,  {s, p-> RelatesPattern(s, p, relationshipLabel)}, default)
 
 // ======================================================================
 
-fun <T:Any?, F:Field<T>, N:Node>N.attachField(field: F, previous:Pattern<*>?=null): AttachedField<T> =
-    field.attach(this, previous).also {
-        attachedFields[field.name] = it
-    }
+
 
 //)
 //

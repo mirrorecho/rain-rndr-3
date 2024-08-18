@@ -3,8 +3,7 @@ package rain.patterns
 import rain.graph.interfacing.GraphableNode
 import rain.graph.interfacing.QueryMethod
 import rain.language.*
-import rain.utils.autoKey
-import kotlin.reflect.KProperty
+import rain.language.fields.Field
 
 // patterns are abstractions of queries
 abstract class Pattern<T:Node>(
@@ -14,10 +13,9 @@ abstract class Pattern<T:Node>(
     var source: T,
     val previous: Pattern<*>? = null,
 //    val dimension: String? = null // TODO: consider whether to use these abstract dimensions (could be an enum)
+    // val cascades: Bool = true // TODO: consider whether to implement to turn off cascading on a pattern by pattern basis
 ): Query( QueryMethod.GRAPHABLE) {
-    // TODO: cascading properties
-    // TODO: cascading target/context node(s) ... i.e. for Machine target in an Event tree
-    // TODO: timecodes (or other additive values)
+    // TODO: maybe timecodes (or other additive values)
 
     fun warningNotImplemented(attributeName: String) =
         println("WARNING: '$attributeName' not implemented for {$this}")
@@ -33,6 +31,10 @@ abstract class Pattern<T:Node>(
     // deletes relationships and potentially intermediary nodes (and destination nodes if deleteNodes=true)
     open fun clear(deleteNodes: Boolean = false) = warningNotImplemented("clear")
 
+    // see Node.get(field:Field<T>) for more details
+    // ... same as that, but with cascading values from previous
+    operator fun <T:Any?>get(field: Field<T>):T? =
+        source[field] ?: previous?.source?.get(field)
 
     override var queryFrom: Query? = source?.queryMe
 

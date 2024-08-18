@@ -5,6 +5,7 @@ import rain.utils.*
 import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import rain.language.*
+import rain.language.fields.field
 import rain.patterns.nodes.Machine
 import rain.rndr.relationships.*
 
@@ -13,10 +14,10 @@ open class Color(
 ): Machine(key) {
 
     abstract class ColorLabel<T:Color>: MachineLabel<T>() {
-        val h = field("h", Machine, H, 0.0)
-        val s = field("s", Machine, S, 0.9)
-        val v = field("v", Machine, V, 0.9)
-        val a = field("a", Machine, A, 0.9)
+        val h = field("h", H, 0.0)
+        val s = field("s", S, 0.9)
+        val v = field("v", V, 0.9)
+        val a = field("a", A, 0.9)
     }
 
     companion object : ColorLabel<Color>() {
@@ -33,7 +34,7 @@ open class Color(
     val v = attachField(Color.v)
     val a = attachField(Color.a)
 
-    fun colorHSVa() = ColorHSVa(h(), s(), v(), a())
+    fun colorHSVa() = ColorHSVa(h.value, s.value, v.value, a.value)
 
     fun colorRGBa(): ColorRGBa = colorHSVa().toRGBa()
 

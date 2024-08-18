@@ -1,11 +1,10 @@
 package rain.language
 
-import org.openrndr.Program
 import rain.graph.interfacing.*
+import rain.language.fields.Field
+import rain.language.fields.field
 import rain.patterns.Pattern
-import rain.patterns.nodes.Machine
 import rain.utils.autoKey
-import rain.utils.lazyish
 
 // ===========================================================================================================
 
@@ -20,9 +19,13 @@ abstract class Node protected constructor(
     override val queryMe get() = Query(selectKeys = arrayOf(this.key))
 
     // TODO: are these needed at the node level? or only the machine level?
+    // (bump esp. might be useful globally)
+//    open fun bump(node: Node) { println("render not implemented for $this") }
+
 //    open fun gate(onOff:Boolean=true)  { println("gate not implemented for $this") }
 //
 //    open fun render(program: Program) { println("render not implemented for $this") }
+
 
     fun save() = context.graph.save(this)
 
@@ -59,6 +62,30 @@ abstract class Node protected constructor(
         attachedFields.forEach { (_, v) -> v.connect() }
     }
 
+    fun <T:Any?, F: Field<T>>attachField(field: F, previous:Pattern<*>?=null): AttachedField<T> =
+        field.attach(this, previous).also { af ->
+            attachedFields[field.name] = af as AttachedField<Any?> // TODO: why is this cast necessary????
+        }
+
+    // returns value associated with a field name... note that the field does
+    // not have to be a field associated with this type (label) of node
+    // (facilitates things like getting values from Events for the fields they update)
+    // ... note it's always nullable since even if the field is required on another node type
+    // ... it can't be guaranteed to exist on this node type or in its properties
+    operator fun <T:Any?>get(field: Field<T>):T? =
+        attachedFields.getOrDefault(field.name, properties[field.name]) as T?
+
+    fun updateAllFieldsFrom(node:Node) {
+        attachedFields.forEach { n, af ->
+            af.value = node[af.field]
+        }
+    }
+
+    fun updateAllFieldsFrom(pattern:Pattern<*>) {
+        attachedFields.forEach { n, af ->
+            af.value = pattern[af.field]
+        }
+    }
 
     // TODO: consider implementing
 //    open fun bump(vararg fromPatterns: Pattern) { println("invoke not implemented for $this") }
@@ -95,13 +122,40 @@ open class Thingy protected constructor(
     }
 
     companion object : ThingyLabel<Thingy>() {
+        // override val parent = ThingyParent // only use if parent label exists
         override val labelName:String = "Thingy"
         override fun factory(key:String) = Thingy(key)
     }
 
+    // note that the NodeLabel<out T> type declaration here is needed so that inheritance works OK
     override val label: NodeLabel<out Thingy> = Thingy
 
     // attach fields here:
-    val thing = attachField(Thingy.thing)
+    val thing = attachField(Thingy.thing)     // TODO: maybe... eventually use delegation here
+
+}
+
+// ================================================================
+
+// just for fiddling around purposes...
+open class SpecialThingy protected constructor(
+    key:String = autoKey(),
+): Thingy(key) {
+    abstract class SpecialThingyLabel<T: SpecialThingy>: ThingyLabel<T>() {
+        // add fields here:
+        val specialThing = field("specialThing", "Three")
+    }
+
+    companion object : SpecialThingyLabel<SpecialThingy>() {
+        // override val parent = ThingyParent // only use if parent label exists
+        override val labelName:String = "SpecialThingy"
+        override fun factory(key:String) = SpecialThingy(key)
+    }
+
+    // note that the NodeLabel<out T> type declaration here is needed so that inheritance works OK
+    override val label: NodeLabel<out SpecialThingy> = SpecialThingy
+
+    // attach fields here:
+    val specialThing = attachField(SpecialThingy.specialThing)
 
 }

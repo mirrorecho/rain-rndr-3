@@ -12,7 +12,7 @@ abstract class Item(
 
     abstract val label: Label<out Item>
 
-    final override val labels: List<String> get() = label.allNames
+    final override val labels: Array<String> get() = label.allNames
 
     final override val labelName: String get() = label.labelName
 

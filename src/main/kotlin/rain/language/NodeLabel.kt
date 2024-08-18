@@ -6,31 +6,22 @@ import kotlin.reflect.KClass
 
 
 
-
-
 abstract class NodeLabel<T: Node>(
     parentLabel: NodeLabel<*>? = null,
     ): Queryable, Label<T>() {
 
+    open val parent: NodeLabel<*>? = null
     abstract fun factory(key:String): T
 
-    private fun getName(cl:KClass<T>) = cl.simpleName ?: "Node"
+    private fun getAllNames(): Array<String> = arrayOf(labelName, *parent?.allNames.orEmpty())
+    final override val allNames = getAllNames()
 
-    // TODO: needed?
-//    override val ancestorLabels: List<NodeLabel<*>> = parentLabel?.let { listOf(it) + it.ancestorLabels }.orEmpty()
-
-    private fun getAllNames(): List<String> =
-        listOf(labelName) + super.l
-
-    final override val allNames: List<String> = listOf(getName(myClass)) + parentLabel?.allNames.orEmpty()
-
-    final override val queryMe: Query = Query(selectLabelName=labelName)
+    private fun getQueryMe():Query = Query(selectLabelName=labelName)
+    final override val queryMe = getQueryMe()
 
     operator fun get(vararg keys:String) = Query(selectKeys=keys)
 
-    // TODO: review, then delete
-//    open val receives: Manager get() = Manager()
-
+    // a cache of all nodes for this label
     val registry: MutableMap<String, T> = mutableMapOf()
 
     override fun toString() = labelName
@@ -63,6 +54,8 @@ abstract class NodeLabel<T: Node>(
         }
     }
 
+    // TODO: is this OK? (factory returns instance of T, not the specific sub-type of
+    //  T as would be applicable for the given T)
     fun get(key: String): T =
         registry.getOrPut(key) {
             factory(key).apply {
@@ -96,48 +89,9 @@ abstract class NodeLabel<T: Node>(
             registry[key] = this
         }
 
-    //TODO: review, then delete
-//    fun <MT : ManagerInterface> create(
-//        key: String = autoKey(),
-//        manager: MT,
-//        block: (MT.() -> Unit)? = null,
-//    ): T =
-//        factory(key).apply {
-//            block?.invoke(manager)
-//            this.updatePropertiesFrom(manager.properties)
-//            this.manageWith(manager) {}
-//            context.graph.create(this)
-//            manager.postCreate()
-//            registry[key] = this
-//        }
-
-    //TODO: review, then delete
-//    fun <MT : ManagerInterface> sends(
-//        key: String,
-//        receivingManager: MT,
-//        block: (MT.() -> Unit)? = null,
-//    ): T =
-//        create<MT>(key, receivingManager, block)
-//
-//    fun <MT : ManagerInterface> sends(
-//        receivingManager: MT,
-//        block: (MT.() -> Unit)? = null,
-//    ): T =
-//        sends(autoKey(), receivingManager, block)
-
     private fun registerMe() {
         context.nodeLabels[labelName] = this
     }
-
-//    // ============================================================
-// TODO: review and remove
-//
-//    fun getFields(vararg  fields: Field<*>): Map<String, Field<*>> =
-//        fields.associateBy { it.name }
-//
-//    open val fields: Map<String, Field<*>> = mapOf()
-
-    // ============================================================
 
     init {
         registerMe()
@@ -145,90 +99,58 @@ abstract class NodeLabel<T: Node>(
 
 }
 
-// TODO: move all these to some context?
+// TODO maybe: do above methods (sends, get, etc. ) need to be defined here globally instead?
 
-// TODO: naming OK (same as name within NodeLabel)?
-fun <R:Node, RL:NodeLabel<R>>RL.merge(
-    key: String = autoKey(),
-    messageBlock: (RL.(Message<RL>)->Unit)?=null,
-): R {
-    messageBlock?.let { mb ->
-        return this.merge(
-            key,
-            LocalMessage(this).also { msg-> mb.invoke(this, msg) }.properties
-        )
-    }
-    return this.merge(key)
-}
-
-fun <R:Node, RL:NodeLabel<R>>RL.create(
-    key: String = autoKey(),
-    messageBlock: (RL.(Message<RL>)->Unit)?=null,
-): R {
-    messageBlock?.let { mb ->
-        return this.create(
-            key,
-            LocalMessage(this).also { msg-> mb.invoke(this, msg) }.properties
-        )
-    }
-    return this.create(key)
-}
-
-//fun field<T:Any>
 
 // TODO: naming?
-// TODO: overloads for using existing object, only saving/merging if needed, various args, etc.
-fun <R: Node, RL:NodeLabel<R>>RL.receives(
-    sender: Node,
-    key:String=autoKey(),
-    messageBlock: (RL.(Message<RL>)->Unit)?=null,
-    receiverBlock: ((R)->Unit)?=null
-) {
-    val receiver = this.merge(key, messageBlock)
-    sender.relate(TARGETS, receiver) // TODO: replace with BUMPS
-    receiverBlock?.invoke(receiver)
-}
+// TODO: bring back as needed based on solve implementation
 
-
-fun <N:Node, R:Node, RL:NodeLabel<R>>N.relateMerge(
-    field: Field<*>,
-    relatedLabel: RL,
-    key: String = autoKey(),
-    messageBlock: (RL.(Message<RL>)->Unit)?=null,
-    postCreate:(RL.(R)->Unit)? = null,
-) {
-    // TODO: complete this...
-    val relatedNode = relatedLabel.merge(key, messageBlock)
-    // TODO: add fieldName to the relationship
-    this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
-}
-
-fun <P:Node, C:Node, R:Node, RL:NodeLabel<R>>P.nest(
-
-)
-
-
-// TODO maybe: define this in Node base class instead of here?
-fun <N:Node>N.relate(field: Field<*>, targetKey: String) {
-    if (!label.fields.contains(field.name))
-        // prevents erroneous field-based relationships from being added
-        throw Exception("Field '${field.name}' not found on '$label' label.")
-    // TODO: guarantee that relationshipLabel not null
-    relate(field.relationshipLabel!!, targetKey)
-}
-
-fun <N:Node>N.relate(field: Field<*>, targetNode: Node) { relate(field, targetNode.key) }
-
-
-fun <N:Node, FT:Node, RL:NodeLabel<FT>>N.fieldTo(
-    field: Field<FT>,
-    relatedLabel: RL,
-    key: String = autoKey(),
-    messageBlock: (RL.(Message<RL>)->Unit)?=null,
-    postCreate:(RL.(FT)->Unit)?=null,
-) {
-    // TODO: complete this...
-    val relatedNode = relatedLabel.merge(key, messageBlock)
-    // TODO: add fieldName to the relationship
-    this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
-}
+//fun <R: Node, RL:NodeLabel<R>>RL.receives(
+//    sender: Node,
+//    key:String=autoKey(),
+//    messageBlock: (RL.(Message<RL>)->Unit)?=null,
+//    receiverBlock: ((R)->Unit)?=null
+//) {
+//    val receiver = this.merge(key, messageBlock)
+//    sender.relate(TARGETS, receiver) // TODO: replace with BUMPS
+//    receiverBlock?.invoke(receiver)
+//}
+//
+//
+//fun <N:Node, R:Node, RL:NodeLabel<R>>N.relateMerge(
+//    field: Field<*>,
+//    relatedLabel: RL,
+//    key: String = autoKey(),
+//    messageBlock: (RL.(Message<RL>)->Unit)?=null,
+//    postCreate:(RL.(R)->Unit)? = null,
+//) {
+//    // TODO: complete this...
+//    val relatedNode = relatedLabel.merge(key, messageBlock)
+//    // TODO: add fieldName to the relationship
+//    this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
+//}
+//
+//// TODO maybe: define this in Node base class instead of here?
+//fun <N:Node>N.relate(field: Field<*>, targetKey: String) {
+//    if (!label.fields.contains(field.name))
+//        // prevents erroneous field-based relationships from being added
+//        throw Exception("Field '${field.name}' not found on '$label' label.")
+//    // TODO: guarantee that relationshipLabel not null
+//    relate(field.relationshipLabel!!, targetKey)
+//}
+//
+//fun <N:Node>N.relate(field: Field<*>, targetNode: Node) { relate(field, targetNode.key) }
+//
+//
+//fun <N:Node, FT:Node, RL:NodeLabel<FT>>N.fieldTo(
+//    field: Field<FT>,
+//    relatedLabel: RL,
+//    key: String = autoKey(),
+//    messageBlock: (RL.(Message<RL>)->Unit)?=null,
+//    postCreate:(RL.(FT)->Unit)?=null,
+//) {
+//    // TODO: complete this...
+//    val relatedNode = relatedLabel.merge(key, messageBlock)
+//    // TODO: add fieldName to the relationship
+//    this.relate(field.relationshipLabel!!, relatedNode) // TODO: guarantee that relationshipLabel not null
+//}

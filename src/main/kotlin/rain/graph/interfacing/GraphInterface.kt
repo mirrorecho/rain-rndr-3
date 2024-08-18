@@ -30,9 +30,6 @@ interface GraphInterface {
 
     fun read(relationship:GraphableRelationship)
 
-    // TODO: assume not needed
-//    fun readRelationship(item:GraphableItem)
-
     fun getNode(key:String): GraphableNode
 
     fun getRelationship(key:String): GraphableRelationship

@@ -29,11 +29,11 @@ fun solve1() {
 //    }
 
     Event.sends(Circle, "E1") { e1 ->
-        receives(e1, "C1") { circle ->
-            circle.relate(radius, "RADIUS_MASTER")
-        }
-        e1.dur()
-        e1[radius.name] = 20.0
+//        receives(e1, "C1") { circle ->
+//            circle.relate(radius, "RADIUS_MASTER")
+//        }
+        e1.bumps.value = Circle.get("C1")
+        e1.dur.value = 4.0
         e1[radius] = 20.0
     }
 

@@ -15,7 +15,7 @@ class GraphRelationship(
     override val properties: MutableMap<String, Any?> = properties.toMutableMap()
 
     // TODO: replace with label instance
-    override val labels get() = listOf(labelName)
+    override val labels get() = arrayOf(labelName)
 
     override fun directedTarget(directionIsRight:Boolean): GraphNode = if (directionIsRight) target else source
 

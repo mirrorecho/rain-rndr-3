@@ -1,38 +1,37 @@
 package rain.rndr.nodes
 
-import rain.language.*
-import rain.patterns.*
 import rain.patterns.nodes.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.Program
+import rain.language.fields.field
 
 open class Circle protected constructor(
     key:String = autoKey(),
 ): Machine(key) {
 
     abstract class CircleLabel<T:Circle>(): MachineLabel<T>() {
-
         val radius = field("radius", RADIUS, 90.0)
         val position = field("position", POSITION, Position.CENTER)
+//        val x = field("x", POSITION, 0.5)
+//        val y = field("y", POSITION, 0.5)
 
-        // TODO MAYBE: implement these xy, and hsva sub-fields
-//        val x = field("x", 0.5, X)
-//        val y = field("y", 0.5, Y)
-        val strokeColor = nodeField<Color?>("strokeColor", STROKE_COLOR)
+        val strokeColor = field("strokeColor", STROKE_COLOR, Color)
         val strokeWeight = field("strokeWeight", STROKE_WEIGHT, 0.9)
-        val fillColor = nodeField<Color?>("fillColor", FILL_COLOR)
-//        val h = field("h", 90.0, H)
-//        val s = field("s", 0.9, S)
-//        val v = field("v", 0.9, V)
-//        val a = field("a", 0.8, A)
+        val fillColor = field("fillColor", FILL_COLOR, Color)
+//        TODO: maybe: implement these
+//        val h = field<Double?>("h", FILL_COLOR) // hue would be proxy for whether entire color is null or not
+//        val s = field("s", 0.9, FILL_COLOR)
+//        val v = field("v", 0.9, FILL_COLOR)
+//        val a = field("a", 0.8, FILL_COLOR)
 
     }
 
     companion object : CircleLabel<Circle>() {
+        override val parent = Machine
         override val labelName:String = "Circle"
-        override fun factory(key:String) = Circle(key)
+        override fun factory(key:String): Circle = Circle(key)
     }
 
     override val label = Circle

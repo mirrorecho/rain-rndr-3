@@ -6,7 +6,7 @@ typealias LabelsToRelationships =  MutableMap<String, MutableSet<GraphRelationsh
 
 class GraphNode(
     override val key:String,
-    override val labels: List<String>, // TODO: make array?
+    override val labels: Array<String>,
     properties: Map<String, Any?> = mapOf()
 ) : GraphableNode {
 

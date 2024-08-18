@@ -3,38 +3,45 @@ package rain.rndr.nodes
 import org.openrndr.Program
 import org.openrndr.animatable.Animatable
 import org.openrndr.animatable.easing.Easing
-import rain.language.NodeLabel
-import rain.language.manageWith
-import rain.patterns.nodes.Machine
+import rain.language.*
+import rain.language.fields.field
 import rain.rndr.relationships.ANIMATES
 import rain.utils.autoKey
 import kotlin.math.absoluteValue
 
 
-class PropertyType<T> where T : String, T: Int, T:Double {
-
-}
 
 
 open class ValueAnimate(
     key:String = autoKey(),
-    ): ValueController(key) {
-    companion object : NodeLabel<ValueAnimate>(ValueAnimate::class, Machine, { k -> ValueAnimate(k) }){
-        override val receives: ReceivingManager get() = ReceivingManager()
-    }
-    override val label: NodeLabel<out ValueAnimate> = ValueAnimate
+): Value(key) {
+    abstract class ValueAnimateLabel<T:ValueAnimate>: ValueLabel<T>() {
+        val initValue = field<Double?>("value")
+        val easing = field("easing", Easing.None)
+        val animateDur = field<Double?>("animateDur")
 
-    class AnimationValue(
-        var value: Double
-    ) : Animatable()
-
-    class ReceivingManager : Value.ReceivingManager() {
-        var initValue: Double? by nullable("initValue")
-        var easing: Easing by defaultable("easing", Easing.None)
-        var animateDur: Double? by nullable("animateDur")
+        // TODO: would this be used? Or just add to the confusion (for now, KISS)
+        //  ... could be used to animates a field on ANOTHER node somewhere
+//        val animates = field<Double?>("animates", ANIMATES)
     }
 
-    var animationValue = AnimationValue(0.0)
+    companion object : ValueAnimateLabel<ValueAnimate>() {
+        override val parent = Value
+        override val labelName:String = "ValueAnimate"
+        override fun factory(key:String) = ValueAnimate(key)
+    }
+
+    override val label: NodeLabel<out ValueAnimate>  = ValueAnimate
+
+    private class AnimationValue(
+        var value:Double = 0.0
+    ): Animatable()
+
+    val initValue = attachField(ValueAnimate.initValue)
+    val easing = attachField(ValueAnimate.easing)
+    val animateDur = attachField(ValueAnimate.animateDur)
+
+    private val animationValue = AnimationValue(0.0)
 
     override var controlValue:Double? get() = animationValue.value
         set(v) { v?.let { animationValue.value = it } }

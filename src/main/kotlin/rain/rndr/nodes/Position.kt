@@ -1,11 +1,11 @@
 package rain.rndr.nodes
 
-import rain.language.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.Program
 import org.openrndr.math.Vector2
+import rain.language.fields.field
 import rain.patterns.nodes.Machine
 
 
@@ -14,8 +14,8 @@ open class Position protected constructor(
 ): Machine(key) {
 
     abstract class PositionLabel<T:Position>: MachineLabel<T>() {
-        val x = field("x", Machine, X, 0.5)
-        val y = field("y", Machine, Y, 0.5)
+        val x = field("x", X, 0.5)
+        val y = field("y", Y, 0.5)
     }
 
     companion object : PositionLabel<Position>() {
@@ -31,8 +31,8 @@ open class Position protected constructor(
     val y = attachField(Position.y)
 
     fun vector(program: Program): Vector2 = Vector2(
-        x() * program.width,
-        y() * program.height,
+        x.value * program.width,
+        y.value * program.height,
     )
 }
 

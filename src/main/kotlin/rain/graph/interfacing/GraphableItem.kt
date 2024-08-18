@@ -6,15 +6,10 @@ package rain.graph.interfacing
 // is important for this data modeling)
 interface GraphableItem {
 
-    // TODO - is this necessary? WHy not just check the type?
-//    val graphableType: GraphableType
 
-    // TODO maybe: ditch the get methods and just make these properties?
-//    abstract fun getKey(): String
     val key: String
 
-    // TODO consider either Label class/object, and/or companion object
-    val labels: List<String>
+    val labels: Array<String>
 
     val labelName: String
 
