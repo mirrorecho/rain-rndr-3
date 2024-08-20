@@ -2,9 +2,9 @@ package rain._bak.patterns
 
 //import rain.language.NodeLabel
 //import rain.language._bak2.SelectNodes
-//import rain.patterns.relationships.CUES
-//import rain.patterns.relationships.CUES_FIRST
-//import rain.patterns.relationships.CUES_NEXT
+//import rain.language.patterns.relationships.CUES
+//import rain.language.patterns.relationships.CUES_FIRST
+//import rain.language.patterns.relationships.CUES_NEXT
 //
 //open class TreeLineage<T:Tree, TL:TreeLineage<T,TL>>(
 //    val tree: T,

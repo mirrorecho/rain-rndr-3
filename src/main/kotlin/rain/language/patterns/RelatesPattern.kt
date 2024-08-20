@@ -1,8 +1,7 @@
-package rain.patterns
+package rain.language.patterns
 
 import rain.language.RelationshipLabel
 import rain.language.Node
-import rain.language.NodeLabel
 
 // base dimension for simple relationship-based items
 open class RelatesPattern<T:Node>(

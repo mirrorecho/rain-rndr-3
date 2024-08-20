@@ -4,8 +4,8 @@ package rain._bak.rndr.rndr_bak
 //import org.openrndr.animatable.Animatable
 //import rain.language.interfaces.ContextInterface
 //import rain.language.LocalContext
-//import rain.patterns.nodes.Machine
-//import rain.patterns.nodes.Leaf
+//import rain.language.patterns.nodes.Machine
+//import rain.language.patterns.nodes.Leaf
 //
 //interface OpInterface {
 //

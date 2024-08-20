@@ -1,11 +1,14 @@
 package rain.rndr.nodes
 
-import rain.patterns.nodes.*
+import rain.language.patterns.nodes.*
 import rain.rndr.relationships.*
 import rain.utils.*
 
 import org.openrndr.Program
+import org.openrndr.color.ColorHSVa
 import rain.language.fields.field
+import rain.language.fields.fieldOfNode
+import rain.language.patterns.Pattern
 
 open class Circle protected constructor(
     key:String = autoKey(),
@@ -13,21 +16,22 @@ open class Circle protected constructor(
 
     abstract class CircleLabel<T:Circle>(): MachineLabel<T>() {
         val radius = field("radius", RADIUS, 90.0)
-        val position = field("position", POSITION, Position.CENTER)
-//        val x = field("x", POSITION, 0.5)
-//        val y = field("y", POSITION, 0.5)
+        val position = fieldOfNode("position", POSITION, Position, Position.CENTER)
 
-        val strokeColor = field("strokeColor", STROKE_COLOR, Color)
+        // TODO: an easy copy when all the params for the relationship, etc., are the same for the field
+        val x = field("x", X, 0.5)
+        val y = field("y", Y, 0.5)
+
+        val strokeColor = fieldOfNode("strokeColor", STROKE_COLOR, Color, null)
         val strokeWeight = field("strokeWeight", STROKE_WEIGHT, 0.9)
-        val fillColor = field("fillColor", FILL_COLOR, Color)
+//        val fillColor = field("fillColor", FILL_COLOR, Color)
 //        TODO: maybe: implement these
-        val h = field<Double?>("h", FILL_COLOR) // hue would be proxy for whether entire color is null or not
-//        val s = field("s", 0.9, FILL_COLOR)
-//        val v = field("v", 0.9, FILL_COLOR)
-//        val a = field("a", 0.8, FILL_COLOR)
 
-        val t = listOf("s", fillColor, Color.s, S, 0.9)
-
+        // hue would be proxy for whether entire color is null or not
+        val h = field<Double?>("h", H, null)
+        val s = field("s", S, 0.9)
+        val v = field("v", V, 0.9)
+        val a = field("a", A, 0.8)
     }
 
     companion object : CircleLabel<Circle>() {
@@ -38,29 +42,31 @@ open class Circle protected constructor(
 
     override val label = Circle
 
-    val radius by attachField(Circle.radius)
-    val position = attachField(Circle.position)
-    val strokeColor = attachField(Circle.strokeColor)
-    val strokeWeight = attachField(Circle.strokeWeight)
-    val fillColor = attachField(Circle.fillColor)
+    var radius by attach(Circle.radius)
+    var position by attach(Circle.position)
+    var strokeColor by attach(Circle.strokeColor)
+    var strokeWeight by attach(Circle.strokeWeight)
+//    val fillColor by attachField(Circle.fillColor) // NOTE: not needed since we're also using h,s,v,a explicitly
 
+    var h by attach(Circle.h)
+    var s by attach(Circle.s)
+    var v by attach(Circle.v)
+    var a by attach(Circle.a)
 
     //    // TODO: implement if needed (or remove)
-//    override fun bump(properties: MutableMap<String, Any?>) {
-//
-//    }
+    override fun bump(pattern: Pattern<Event>) {
+        updateAllFieldsFrom(pattern.source)
+    }
 
     override fun render(program: Program) {
 //        println("circle with x position " + position.x().toString())
         program.apply {
-
-//            println("rendering $this")
-            drawer.fill = fillColor.value?.colorRGBa()
-            drawer.stroke = strokeColor.value?.colorRGBa()
-            drawer.strokeWeight = strokeWeight.value
+            drawer.fill = h?.let { ColorHSVa(it, s, v, a) }?.toRGBa()
+            drawer.stroke = strokeColor?.colorRGBa()
+            drawer.strokeWeight = strokeWeight
             drawer.circle(
-                position = position.value.vector(program),
-                radius.value
+                position = position.vector(program),
+                radius
             )
         }
     }

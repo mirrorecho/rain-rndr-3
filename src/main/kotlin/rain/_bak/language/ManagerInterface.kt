@@ -1,7 +1,7 @@
 package rain._bak.language
 //
 //import rain._bak.patterns.Dimension
-//import rain.patterns.Pattern
+//import rain.language.patterns.Pattern
 //import rain._bak.patterns.DimensionLabel
 //import kotlin.reflect.KMutableProperty
 //

@@ -4,7 +4,7 @@ package rain._bak.language
 //import rain.language.Filter
 //import rain.language.Query
 //import rain.language.Queryable
-//import rain.patterns.Pattern
+//import rain.language.patterns.Pattern
 //
 //// TODO: is this even needed?
 //abstract class RelationshipQuery: Query, Queryable {

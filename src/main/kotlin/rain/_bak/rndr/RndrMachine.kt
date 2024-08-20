@@ -3,9 +3,9 @@ package rain._bak.rndr
 //import org.openrndr.Program
 //import rain.utils.*
 //import rain.language.*
-//import rain.patterns.nodes.Machine
+//import rain.language.patterns.nodes.Machine
 //import rain._bak.machines.nodes.MachinePattern
-//import rain.patterns.nodes.Event
+//import rain.language.patterns.nodes.Event
 //
 //// OLD TODOS:
 //// TODO: combine Machine and MachineFunc? (YES, DID IT!)

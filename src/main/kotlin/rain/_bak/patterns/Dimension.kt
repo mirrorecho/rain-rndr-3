@@ -3,7 +3,7 @@ package rain._bak.patterns
 //import rain.language.Node
 //import rain.language.NodeLabel
 //import rain.language.Query
-//import rain.patterns.Pattern
+//import rain.language.patterns.Pattern
 //
 //typealias DimensionFactory = (Pattern) -> Dimension
 ////typealias PatternFactory = (LanguageNode) -> Pattern

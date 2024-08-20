@@ -1,7 +1,6 @@
 package rain.language
 
 import rain.graph.interfacing.*
-import rain.patterns.Pattern
 import rain.utils.Caching
 
 

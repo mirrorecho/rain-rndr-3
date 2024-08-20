@@ -2,7 +2,7 @@ package rain.sandbox.solve
 //
 //import org.openrndr.animatable.easing.Easing
 //import rain.language.Palette
-//import rain.patterns.*
+//import rain.language.patterns.*
 //import rain.rndr.*
 //
 //

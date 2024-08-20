@@ -1,7 +1,7 @@
 package rain._bak.patterns
 //
 //import rain.language.*
-//import rain.patterns.selects.*
+//import rain.language.patterns.selects.*
 //
 //// a node that represents an iterable over a group nodes ... each of which is connected
 //// to this node, in a "pattern"

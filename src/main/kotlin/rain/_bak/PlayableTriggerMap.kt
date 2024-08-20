@@ -2,7 +2,7 @@ package rain._bak
 //
 //import org.openrndr.Program
 //import rain.language.Palette
-//import rain.patterns.nodes.Machine
+//import rain.language.patterns.nodes.Machine
 //import rain.rndr.*
 //import rain.utils.autoKey
 //

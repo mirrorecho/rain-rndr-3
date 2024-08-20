@@ -1,9 +1,4 @@
-package rain.patterns
-
-import rain.graph.interfacing.GraphableNode
-import rain.language.Node
-import rain.language.NodeLabel
-import rain.language.RelationshipLabel
+package rain.language.patterns
 
 // TODO: is this even used any more???? assume NOT
 //open class RelatesHistoryPattern<T: Node>(

@@ -1,7 +1,7 @@
 package rain.sandbox.solve
 
 fun main()  {
-//    solve6()
+    println("YOYO!")
 }
 
 // TODO: SOLVE THE FOLLOWING:

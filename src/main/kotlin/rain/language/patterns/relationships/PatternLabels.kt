@@ -1,4 +1,4 @@
-package rain.patterns.relationships
+package rain.language.patterns.relationships
 
 import rain.language.RelationshipLabel
 

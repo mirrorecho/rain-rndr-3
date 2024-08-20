@@ -1,4 +1,4 @@
-package rain.patterns
+package rain.language.patterns
 
 import rain.graph.interfacing.GraphableNode
 import rain.graph.interfacing.QueryMethod
@@ -33,8 +33,8 @@ abstract class Pattern<T:Node>(
 
     // see Node.get(field:Field<T>) for more details
     // ... same as that, but with cascading values from previous
-    operator fun <T:Any?>get(field: Field<T>):T? =
-        source[field] ?: previous?.source?.get(field)
+    operator fun <T:Any?>get(field: Field<T>):T =
+        source[field] ?: previous?.source?.get(field) ?: field.default
 
     override var queryFrom: Query? = source?.queryMe
 

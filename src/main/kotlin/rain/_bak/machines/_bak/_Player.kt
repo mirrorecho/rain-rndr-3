@@ -3,7 +3,7 @@ package rain._bak.machines._bak
 //
 //import kotlinx.coroutines.*
 //import rain.language.*
-//import rain.patterns.*
+//import rain.language.patterns.*
 //import kotlin.time.DurationUnit
 //import kotlin.time.toDuration
 //

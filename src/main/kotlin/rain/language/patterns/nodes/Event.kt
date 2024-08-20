@@ -1,10 +1,11 @@
-package rain.patterns.nodes
+package rain.language.patterns.nodes
 
 
 import rain.language.*
 import rain.language.fields.field
-import rain.patterns.*
-import rain.patterns.relationships.*
+import rain.language.fields.fieldOfNode
+import rain.language.patterns.*
+import rain.language.patterns.relationships.*
 import rain.utils.*
 
 enum class Gate(val startGate: Boolean?, val endGate:Boolean?) {
@@ -26,7 +27,7 @@ open class Event protected constructor(
         val dur = field("dur", 0.0, false)
         val simultaneous = field("simultaneous", false, false)
         val gate = field("gate", Gate.NONE, false)
-        val bumps = field("bumps", BUMPS, Machine)
+        val bumps = fieldOfNode("bumps", BUMPS, Machine, null)
         val bumping = field("bumping", true)
     }
 
@@ -37,11 +38,11 @@ open class Event protected constructor(
 
     override val label: NodeLabel<out Event> = Event
 
-    val dur = attachField(Event.dur)
-    val simultaneous = attachField(Event.simultaneous)
-    val gate = attachField(Event.gate)
-    val bumps = attachField(Event.bumps)
-    val bumping = attachField(Event.bumping)
+    var dur by attach(Event.dur)
+    var simultaneous by attach(Event.simultaneous)
+    var gate by attach(Event.gate)
+    var bumps by attach(Event.bumps)
+    var bumping by attach(Event.bumping)
 
     // TODO: is this by lazy effective enough for "caching"?
     val childrenPattern by lazy { CuedChildrenPattern(this) }

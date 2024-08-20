@@ -1,4 +1,4 @@
-package rain.patterns.nodes
+package rain.language.patterns.nodes
 
 import rain.language.Node
 import rain.language.NodeLabel
@@ -24,7 +24,7 @@ open class Cue(
     override val label: NodeLabel<out Thingy> = Thingy
 
     // attach fields here:
-    val thing = attachField(Thingy.thing)
+    val thing = attach(Thingy.thing)
 
 
 }

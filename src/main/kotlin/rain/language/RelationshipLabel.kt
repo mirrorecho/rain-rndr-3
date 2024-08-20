@@ -13,7 +13,7 @@ class RelationshipLabel(
         else
             this
 
-    override val allNames: List<String> = listOf(labelName)
+    override val allNames: Array<String> = arrayOf(labelName)
 
     override fun toString() = labelName
 

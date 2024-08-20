@@ -2,7 +2,7 @@ package rain._bak.machines._bak
 
 //import rain.graph.interfaces.*
 //import rain.language.*
-//import rain.patterns.*
+//import rain.language.patterns.*
 
 // TODO: will this be used?
 

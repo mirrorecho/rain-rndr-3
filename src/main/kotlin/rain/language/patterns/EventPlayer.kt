@@ -1,4 +1,4 @@
-package rain.patterns
+package rain.language.patterns
 
 import kotlinx.coroutines.*
 import kotlin.time.DurationUnit
@@ -7,8 +7,7 @@ import kotlin.time.toDuration
 import org.openrndr.Program
 import org.openrndr.application
 import org.openrndr.launch
-import rain.language.*
-import rain.patterns.nodes.*
+import rain.language.patterns.nodes.*
 
 
 open class EventPlayer(
@@ -29,20 +28,20 @@ open class EventPlayer(
     private suspend fun playPattern(pattern: Pattern<Event>, program: Program) {
         val threads: MutableList<Job> = mutableListOf()
         val event = pattern.source
-        val gate = event.gate.value
+        val gate = event.gate
         // access the bumps machine only if necessary:
-        val machine = if (event.bumping.value || gate.hasGate) pattern[Event.bumps] else null
+        val machine = if (event.bumping || gate.hasGate) pattern[Event.bumps] else null
 
         machine?.let { m ->
             gate.startGate?.let { gateMachine(m, it) }
-            if (event.bumping.value) m.bump(pattern)
+            if (event.bumping) m.bump(pattern)
         }
 
 //        println("adding delay: $addDelay")
-        event.dur.value.let { dur -> if (dur > 0.0) delay(dur.toDuration(DurationUnit.SECONDS))  }
+        event.dur.let { dur -> if (dur > 0.0) delay(dur.toDuration(DurationUnit.SECONDS))  }
 
         event.children.forEach { childPattern ->
-            if (childPattern.source.simultaneous.value)
+            if (childPattern.source.simultaneous)
                 threads.add(program.launch { playPattern(childPattern, program) })
             else
                 playPattern(childPattern, program)

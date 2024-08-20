@@ -1,11 +1,5 @@
 package rain._bak.language
 
-import rain.language.*
-import rain.patterns.Pattern
-import rain.patterns.RelatesPattern
-import rain.patterns.nodes.*
-import rain.rndr.relationships.POSITION
-
 // TODO: consider making message an interface,
 //  with a SenderMessage and ReceiverMessage
 //  (e.g. only the ReceiverMessage would support fieldNodes)

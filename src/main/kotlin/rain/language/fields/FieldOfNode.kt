@@ -3,11 +3,11 @@ package rain.language.fields
 import rain.language.Node
 import rain.language.NodeLabel
 import rain.language.RelationshipLabel
-import rain.patterns.Pattern
-import rain.patterns.RelatesPattern
+import rain.language.patterns.Pattern
+import rain.language.patterns.RelatesPattern
 
 
-open class FieldNode<T:Node?>(
+open class FieldOfNode<T:Node?>(
     name: String,
     val patternFactory: (source: Node)-> Pattern<*>,
     val label: NodeLabel<T & Any>,
@@ -30,7 +30,7 @@ open class FieldNode<T:Node?>(
         }
 
         override fun retrieve() {
-            value = pattern(this@FieldNode.label).firstOrNull()
+            value = pattern(this@FieldOfNode.label).firstOrNull() ?: default
         }
 
     }
@@ -40,14 +40,14 @@ open class FieldNode<T:Node?>(
 
 //// ======================================================================
 
-fun <T: Node?> field(
+fun <T: Node?> fieldOfNode(
     name: String,
     relationshipLabel: RelationshipLabel,
     label: NodeLabel<T & Any>,
-    default: T? = null,
+    default: T,
     cascade: Boolean = true,
 ) =
-    FieldNode(
+    FieldOfNode(
         name,
         {s -> RelatesPattern(s, null, relationshipLabel) },
         label,

@@ -6,7 +6,7 @@ import rain.utils.*
 import org.openrndr.Program
 import org.openrndr.math.Vector2
 import rain.language.fields.field
-import rain.patterns.nodes.Machine
+import rain.language.patterns.nodes.Machine
 
 
 open class Position protected constructor(
@@ -27,12 +27,12 @@ open class Position protected constructor(
 
     override val label = Position
 
-    val x = attachField(Position.x)
-    val y = attachField(Position.y)
+    val x by attach(Position.x)
+    val y by attach(Position.y)
 
     fun vector(program: Program): Vector2 = Vector2(
-        x.value * program.width,
-        y.value * program.height,
+        x * program.width,
+        y * program.height,
     )
 }
 

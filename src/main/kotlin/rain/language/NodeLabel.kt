@@ -13,11 +13,11 @@ abstract class NodeLabel<T: Node>(
     open val parent: NodeLabel<*>? = null
     abstract fun factory(key:String): T
 
-    private fun getAllNames(): Array<String> = arrayOf(labelName, *parent?.allNames.orEmpty())
-    final override val allNames = getAllNames()
+    private fun myAllNames(): Array<String> = arrayOf(labelName, *parent?.allNames.orEmpty())
+    final override val allNames = myAllNames()
 
-    private fun getQueryMe():Query = Query(selectLabelName=labelName)
-    final override val queryMe = getQueryMe()
+    private fun myQueryMe():Query = Query(selectLabelName=labelName)
+    final override val queryMe = myQueryMe()
 
     operator fun get(vararg keys:String) = Query(selectKeys=keys)
 
@@ -50,7 +50,6 @@ abstract class NodeLabel<T: Node>(
         block?.let {
             it.invoke(receiving, this)
             save()
-            connectAllFields()
         }
     }
 
@@ -58,15 +57,14 @@ abstract class NodeLabel<T: Node>(
     //  T as would be applicable for the given T)
     fun get(key: String): T =
         registry.getOrPut(key) {
-            factory(key).apply {
-                context.graph.read(this)
-            }
+            factory(key).apply { read() }
         }
 
     fun from(gNode: GraphableNode): T =
         registry.getOrPut(gNode.key) {
             factory(gNode.key).apply {
                 updatePropertiesFrom(gNode)
+                retrieveAllFields()
             }
         }
 
@@ -76,6 +74,7 @@ abstract class NodeLabel<T: Node>(
     ): T =
         registry.getOrPut(key) { factory(key) }.also { node ->
             properties?.let { node.updatePropertiesFrom(it) };
+            node.retrieveAllFields()
             context.graph.merge(node)
         }
 
@@ -85,6 +84,7 @@ abstract class NodeLabel<T: Node>(
     ): T =
         factory(key).apply {
             properties?.let { this.updatePropertiesFrom(it) }
+            retrieveAllFields()
             context.graph.create(this)
             registry[key] = this
         }

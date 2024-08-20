@@ -1,7 +1,6 @@
 package rain.language.fields
 
 import rain.language.*
-import rain.patterns.*
 import kotlin.reflect.KProperty
 
 // TODO: able to implement Animatable seamlessly here?
@@ -22,19 +21,13 @@ open class Field<T:Any?>(
 
         open val isLocal: Boolean = true
 
-        open var value: T? = null // note that this duplicates/caches the value in the properties
+        open var value: T = default
 
-        open operator fun getValue(thisRef: Any?, property: KProperty<*>): T = this.value ?: default
+        open operator fun getValue(thisRef: Any?, property: KProperty<*>): T = this.value
 
         open operator fun setValue(thisRef: Any?, property: KProperty<*>, value:T) {this.value = value}
 
-        // TODO: combine with retrieveFromNode?
-        fun connect(reset:Boolean=false) {
-            // implemented here as an empty fun in order to be able to iterate over all
-            // fields and call this (even if it does nothing)
-        }
-
-        open fun resetValue() { value = null }
+        open fun resetValue() { value = default }
 
         open fun resetDefault() { default = field.default }
 
@@ -52,39 +45,5 @@ open class Field<T:Any?>(
 
 //// ======================================================================
 //
-fun <T:Any?> field(name: String, default: T? = null, cascade: Boolean = true) =
+fun <T:Any?> field(name: String, default: T, cascade: Boolean = true) =
     Field(name, default, cascade)
-
-fun <T:Any> field(name: String, default: T, cascade: Boolean = true) =
-    Field(name, default, cascade)
-
-fun <T:Any?> field(
-    name: String,
-    relationshipLabel: RelationshipLabel,
-    default: T? = null,
-    cascade: Boolean = true,
-    defaultToSelf: Boolean=true
-) =
-    FieldConnectingValue(
-        name,
-        {s, p-> RelatesPattern(s, p, relationshipLabel)},
-        default,
-        cascade,
-        defaultToSelf
-    )
-
-fun <T:Any> field(
-    name: String,
-    relationshipLabel: RelationshipLabel,
-    default: T,
-    cascade: Boolean = true,
-    defaultToSelf: Boolean=true
-) =
-    FieldConnectingValue(
-        name,
-        {s, p-> RelatesPattern(s, p, relationshipLabel)},
-        default,
-        cascade,
-        defaultToSelf
-    )
-

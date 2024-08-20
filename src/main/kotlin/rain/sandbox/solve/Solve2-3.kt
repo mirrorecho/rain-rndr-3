@@ -2,7 +2,7 @@ package rain.sandbox.solve
 //
 //import org.openrndr.animatable.easing.Easing
 //import rain.language.Palette
-//import rain.patterns.*
+//import rain.language.patterns.*
 //import rain.rndr.*
 //
 //
@@ -70,7 +70,7 @@ package rain.sandbox.solve
 //    val cSpace = cell("SPACE", "RADIUS") { vein("dur")(0.01) }
 //
 //    // TODO: simplify below with a helper function
-//    val s = rain.patterns.CellTree().apply {
+//    val s = rain.language.patterns.CellTree().apply {
 //        simultaneous = false
 //        createMe()
 //    }

@@ -3,7 +3,7 @@ package rain.language
 import rain.graph.interfacing.*
 import rain.language.fields.Field
 import rain.language.fields.field
-import rain.patterns.Pattern
+import rain.language.patterns.Pattern
 import rain.utils.autoKey
 
 // ===========================================================================================================
@@ -27,9 +27,9 @@ abstract class Node protected constructor(
 //    open fun render(program: Program) { println("render not implemented for $this") }
 
 
-    fun save() = context.graph.save(this)
+    fun save() { storeAllFields(); context.graph.save(this); }
 
-    fun read() = context.graph.read(this)
+    fun read() { context.graph.read(this); retrieveAllFields() }
 
     fun delete() {
         context.graph.deleteNode(this.key)
@@ -58,42 +58,52 @@ abstract class Node protected constructor(
     // TODO maybe: should this just be a list? do we ever need to look up by field name?
     private val attachedFields: MutableMap<String, Field<Any?>.Attached> = mutableMapOf()
 
-    fun connectAllFields() {
-        attachedFields.forEach { (_, v) -> v.connect() }
+    fun storeAllFields() {
+        attachedFields.forEach { (_, v) -> v.store() }
     }
 
-    fun <T:Any?>attachField(field: Field<T>): Field<T>.Attached =
+    fun retrieveAllFields() {
+        attachedFields.forEach { (_, v) -> v.retrieve() }
+    }
+
+    fun <T:Any?>attach(field: Field<T>): Field<T>.Attached =
         field.attach(this).also { af ->
             attachedFields[field.name] = af as Field<Any?>.Attached // TODO: why is this cast necessary????
         }
 
-    fun <T:Any?>attachedField(name:String): Field<T?>.Attached? =
+    fun <T:Any?>attached(name:String): Field<T?>.Attached? =
         attachedFields[name] as Field<T?>.Attached?
 
-    fun <T:Any?>attachedField(field: Field<T>) = attachedField<T>(field.name)
+    fun <T:Any?>attached(field: Field<T>) = attached<T>(field.name)
 
     // returns value associated with a field name... note that the field does
     // not have to be a field associated with this type (label) of node
     // (facilitates things like getting values from Events for the fields they update)
     // ... note it's always nullable since even if the field is required on another node type
     // ... it can't be guaranteed to exist on this node type or in its properties
-    operator fun <T:Any?>get(field: Field<T>):T? =
-        (attachedField(field)?.value ?: properties[field.name]) as T?
+    operator fun <T:Any?>get(field: Field<T>):T =
+        (attached(field)?.value ?: properties[field.name]) as T? ?: field.default
 
-    operator fun <T:Any?>set(field: Field<T>, value:T?) {
-        attachedField(field)?.let { it.value = value; return }
+    operator fun <T:Any?>set(field: Field<T>, value:T) {
+        attached(field)?.let { it.value = value; return }
         properties[field.name] = value
     }
 
     fun updateAllFieldsFrom(node:Node) {
-        attachedFields.values.forEach { af ->
-            af.value = node[af.field]
+        node.attachedFields.forEach {
+            attachedFields[it.key]?.let { af ->
+                // TODO maybe: only update non-node fields?
+                af.value = node[af.field]
+            }
         }
     }
 
     fun updateAllFieldsFrom(pattern:Pattern<*>) {
-        attachedFields.values.forEach { af ->
-            af.value = pattern[af.field]
+        pattern.source.attachedFields.forEach {
+            attachedFields[it.key]?.let { af ->
+                // TODO maybe: only update non-node fields?
+                af.value = pattern[af.field]
+            }
         }
     }
 
@@ -141,7 +151,7 @@ open class Thingy protected constructor(
     override val label: NodeLabel<out Thingy> = Thingy
 
     // attach fields here:
-    val thing = attachField(Thingy.thing)     // TODO: maybe... eventually use delegation here
+    val thing = attach(Thingy.thing)     // TODO: maybe... eventually use delegation here
 
 }
 
@@ -166,6 +176,6 @@ open class SpecialThingy protected constructor(
     override val label: NodeLabel<out SpecialThingy> = SpecialThingy
 
     // attach fields here:
-    val specialThing = attachField(SpecialThingy.specialThing)
+    val specialThing = attach(SpecialThingy.specialThing)
 
 }

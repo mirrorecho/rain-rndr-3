@@ -1,10 +1,10 @@
-package rain.patterns
+package rain.language.patterns
 
 import rain.graph.interfacing.GraphableNode
 import rain.language.*
-import rain.patterns.nodes.Cue
+import rain.language.patterns.nodes.Cue
 
-import rain.patterns.relationships.*
+import rain.language.patterns.relationships.*
 
 
 open class CuedChildrenPattern<T: Node>(

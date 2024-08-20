@@ -1,4 +1,4 @@
-package rain.patterns
+package rain.language.patterns
 
 //import rain.graph.interfacing.*
 //import rain.language.*

@@ -1,9 +1,9 @@
-package rain.language
+package rain._bak.language
 
 //import rain.language.fields.ConnectingDefaultingNodeField
 //import rain.language.fields.FieldConnectNode
 //import rain.language.fields.FieldConnectingValue
-//import rain.patterns.Pattern
+//import rain.language.patterns.Pattern
 //
 //// TODO maybe: an interface for DefaultingField to help organize everything
 //

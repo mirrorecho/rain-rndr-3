@@ -6,7 +6,7 @@ import org.openrndr.color.ColorHSVa
 import org.openrndr.color.ColorRGBa
 import rain.language.*
 import rain.language.fields.field
-import rain.patterns.nodes.Machine
+import rain.language.patterns.nodes.Machine
 import rain.rndr.relationships.*
 
 open class Color(
@@ -29,12 +29,12 @@ open class Color(
 
     override val label: NodeLabel<out Color> = Color
 
-    val h = attachField(Color.h)
-    val s = attachField(Color.s)
-    val v = attachField(Color.v)
-    val a = attachField(Color.a)
+    val h by attach(Color.h)
+    val s by attach(Color.s)
+    val v by attach(Color.v)
+    val a by attach(Color.a)
 
-    fun colorHSVa() = ColorHSVa(h.value, s.value, v.value, a.value)
+    fun colorHSVa() = ColorHSVa(h, s, v, a)
 
     fun colorRGBa(): ColorRGBa = colorHSVa().toRGBa()
 

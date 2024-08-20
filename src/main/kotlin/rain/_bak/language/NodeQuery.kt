@@ -2,7 +2,7 @@ package rain._bak.language
 
 //import rain.language.interfacing.queries.*
 //import rain.language.interfacing.*
-//import rain.patterns.Pattern
+//import rain.language.patterns.Pattern
 //
 //
 //

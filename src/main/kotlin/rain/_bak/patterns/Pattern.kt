@@ -1,7 +1,7 @@
 package rain._bak.patterns
 //import rain.graph.interfaces.*
 //import rain.language.*
-//import rain.patterns.selects.CuePath
+//import rain.language.patterns.selects.CuePath
 
 
 //open class MachinePattern(
