@@ -45,10 +45,10 @@ open class Event protected constructor(
     var bumping by attach(Event.bumping)
 
     // TODO: is this by lazy effective enough for "caching"?
-    val childrenPattern by lazy { CuedChildrenPattern(this) }
+    val treePattern by lazy { CuedChildrenPattern(this) }
 
     // TODO: implement caching
-    val children get() = childrenPattern.children
+    val children get() = treePattern.children
 
 //    fun <R:Node, RL:NodeLabel<R>>bumps(
 //        receiverLabel:RL,
@@ -61,6 +61,7 @@ open class Event protected constructor(
 //        receiverBlock.invoke(receiver)
 //    }
 
+    fun play() = EventPlayer(treePattern).play()
 
 
 }
@@ -70,7 +71,7 @@ fun par(key:String = autoKey(), properties:Map<String, Any?>?=null, vararg child
         key,
         mapOf<String, Any?>("simultaneous" to true)  + properties.orEmpty()
     ).apply {
-        childrenPattern.extend(*children)
+        treePattern.extend(*children)
     }
 
 fun par(properties:Map<String, Any?>?=null, vararg children:Event):Event =

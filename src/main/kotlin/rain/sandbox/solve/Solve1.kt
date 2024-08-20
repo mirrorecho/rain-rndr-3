@@ -1,11 +1,25 @@
 package rain.sandbox.solve
+
+import rain.language.patterns.nodes.*
+
 //
 //import rain.language.Palette
 //import rain.language.patterns.nodes.Cell
 //import rain.rndr.*
 //
 //
-//fun solve1() {
+fun solve1() {
+    val e = Event.sends(Printer) {
+        it.bumps = Printer.create {
+//            msg = "I am printing!"
+        }
+        it.dur = 1.0
+        it[Printer.msg] = "I am printing!"
+        it[Printer.renderMe] = true
+    }
+    par(e, e, e).play()
+}
+
 //    createValues(true,"X", "Y", "H", "S", "V", "A", "STROKE_WEIGHT", "RADIUS")
 //
 //    // TODO: this is not being picked up in the trigger properties!

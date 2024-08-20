@@ -81,13 +81,19 @@ abstract class NodeLabel<T: Node>(
     fun create(
         key: String = autoKey(),
         properties: Map<String, Any?>? = null,
+        block:(T.()->Unit)?=null,
     ): T =
         factory(key).apply {
             properties?.let { this.updatePropertiesFrom(it) }
             retrieveAllFields()
             context.graph.create(this)
             registry[key] = this
+            block?.let {
+                it.invoke(this)
+                save()
+            }
         }
+
 
     private fun registerMe() {
         context.nodeLabels[labelName] = this
